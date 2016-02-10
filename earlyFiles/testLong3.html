@@ -1,0 +1,139 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>D3 Example</title>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+  </head>
+  <body>
+
+  <script>
+
+    function color(d) { return d.id; }
+
+    var colorScale = d3.scale.category10();
+
+    var svg = d3.select("body")
+      .append("svg")
+      .attr("width",  600)
+      .attr("height", 500);
+
+    function render(inD) {
+      var circles = svg.selectAll("circle")
+          .data(inD)
+        .enter()
+          .append("circle")
+  //        .attr("r", 10)
+          .attr("class", "circles")
+          .style("fill", function(d){ return colorScale( color(d) ); })
+          .call(position);
+    }
+      
+      
+ // accesory functions //     
+
+    function type(d){
+      d.sample = +d.sample;
+      d.id = +d.id;
+      d.section = +d.section;
+      d.length = +d.length;
+      return d;
+    }
+
+    function getData(d,s) {
+      return d.filter( function(d){
+        return d.sample == s;
+      });
+    }   
+       
+    // Positions the dots based on data
+    function position(dot) {
+      dot
+        .attr("cx", function (d,i){ return i*5+10; })//{ return xScale(x(d)); })
+        .attr("cy", function (d  ){ return d.section*20; })//{ return yScale(y(d)); });
+        .attr("r", function(d) { return d.length; });
+    }
+
+    // Sort numbers ascending
+    function compareNumbers(a, b) {
+     return a - b;
+    }
+
+    // Update Individual Locations
+    function updateRender(inData) {
+      var tmpID = d3.map(inData, function(d) { return d.id; } );
+      
+      
+      var fish = d3.selectAll(".circles")
+  //      .data(inData)
+//        .enter().append("circle")
+        ;
+      
+      fish.transition()
+        .attr("cy", function(d, i) {
+          return tmpID.get(d.id).section * 20;        
+        })
+        .attr("cx", function(d, i) {
+          return i*5+10;
+        })
+        .attr("r", function(d, i) {
+          return tmpID.get(d.id).length;
+        })
+    //    .delay(1000)
+        .duration(2000);
+        
+        fish.exit()
+        .attr("class", "exit")
+        .remove();
+
+    }
+
+ // run //
+ 
+      d3.csv("d3FishMoveLong3.csv", type,  function (inData){
+        //Map sample num to array
+        var samps = inData.map(function(d) { return d.sample; });
+
+        //Construct set of samples
+        var sampSet = [];
+        samps.forEach(function(samp) { 
+          if (sampSet.indexOf(samp) == -1) {
+            sampSet.push(samp);
+          }
+        });
+
+        //Sort samples in ascending order
+        sampSet.sort(compareNumbers)
+
+        //Add slider to control samples
+        d3.select("body")
+          .append("input")
+          .attr({type: "range", name: "Sample", min: sampSet[0], max: sampSet[sampSet.length - 1], value: sampSet[sampSet.length - 1]})
+          .attr("id", "sampSlider")
+          .property("title", "Sample: " + sampSet[sampSet.length - 1])
+          .on("input", function() { 
+            updateRender(getData(inData, Math.floor(this.value)));
+            this.title = "Sample: " + Math.floor(this.value);
+          });
+
+
+        //Position first sample
+        render(getData(inData,sampSet[0]));
+
+        //Move through samples     
+        sampSet.forEach(function(samp, i) {
+    //      if (i > 0) {
+ //           setInterval(function(){
+              updateRender(getData(inData, samp));
+//            }, 2000);
+    //      };  
+        });
+
+      });
+
+
+    </script>
+
+  </body>
+</html>
