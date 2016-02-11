@@ -10,20 +10,39 @@
   <body>
 
   <script>
-
-    function color(d) { return d.id; }
-
-    var colorScale = d3.scale.category10();
-
+ // some global variables //
+    var maxSection = 15
+    
+ // set up svg element //
+    var w = 500;
+		var h = 500;
+		var padding = 20;
+    
     var svg = d3.select("body")
       .append("svg")
-      .attr("width",  600)
-      .attr("height", 500);
-
- //  functions //     
-
-    function keyID(d){ return d.id; }
+      .attr("width",  w)
+      .attr("height", h);
+      
+ // Accessor functions for circle attributes
+    function x(d) { return d.i };
+    function y(d) { return d.section };
+    function r(d) { return d.river };
     
+    function color(d){ return d.id; }
+    function keyID(d){ return d.id; }
+      
+ // Various scales.
+    var xScale = d3.scale.linear().domain([0, 50]).range([0, w]),
+        yScale = d3.scale.linear().domain([1, maxSection]).range([h, 0]),
+        radiusScale = d3.scale.sqrt().domain([40, 400]).range([0, 40]),
+        colorScale = d3.scale.category10();
+        
+    var timeScale = d3.time.scale.utc()  // utc does't shift for daylight saving time
+        .domain([new Date(2000, 0, 1), new Date(2000, 0, 2)])
+        .range([0, 500]);  
+
+ //  functions // 
+
     function type(d){
       d.sample = +d.sample;
       d.id = +d.id;
@@ -41,8 +60,8 @@
     // Positions the dots based on data
     function position(dot) {
       dot
-        .attr("cx", function (d,i){ return i*5+10; })//{ return xScale(x(d)); })
-        .attr("cy", function (d  ){ return d.section*20; })//{ return yScale(y(d)); });
+        .attr("cx", function (d,i){ return i*5+30; })//{  })return i*5+10;
+        .attr("cy", function (d  ){ return yScale(y(d)); })//{  }); return d.section*20;
         .attr("r", function(d) { return d.length; });
     }
 
@@ -53,6 +72,85 @@
 
     // Update Individual Locations
     function updateRender(inData) {
+
+      // BIND DATA
+      var circles = svg.selectAll("circle")
+            .data(inData, keyID);
+
+      // APPEND NEW CIRCLE for each data element that doesn't already have a circle
+      circles.enter().append("circle")
+          .style("fill",  function(d  ){ return colorScale( color(d) ); })
+          .style("fill-opacity", 1e-6)
+          .attr ("cx",    xScale(0))
+          .attr ("cy",    yScale(maxSection/2))
+          .attr ("r",     function(d  ){ return d.length; })
+          ;
+
+      // UPDATE the color/position/size of each circle that has a data element
+      circles
+        .transition()
+          .duration(1000)
+            .style("fill",  function(d  ){ return colorScale( color(d) ); })
+            .style("fill-opacity", 1)
+            .call(position)
+ /*           .attr ("cx",    function(d,i){ return i*10+200; })
+            .attr ("cy",    function(d  ){ return d.section*30; })
+            .attr ("r",     function(d  ){ return d.length; })
+   */         ;
+
+      // REMOVE any existing circles that no longer have data
+      circles.exit()
+          .transition()
+            .duration(1000)
+            .attr ("cx",    500)
+            .attr ("cy",    200)
+            .style("fill-opacity", 1e-5)
+       .remove();
+    }
+
+ // run //
+ 
+      d3.csv("d3FishMoveLong3.csv", type,  function (inData){
+        
+        //Map sample num to array
+        var samps = inData.map(function(d) { return d.sample; });
+
+        //Construct set of samples
+        var sampSet = [];
+        samps.forEach(function(samp) { 
+          if (sampSet.indexOf(samp) == -1) {
+            sampSet.push(samp);
+          }
+        });
+
+        //Sort samples in ascending order
+        sampSet.sort(compareNumbers)
+
+        //Add slider to control samples
+        d3.select("body")
+          .append("input")
+          .attr({type: "range", name: "Sample", min: sampSet[0], max: sampSet[sampSet.length - 1], value: sampSet[0]})
+          .attr("id", "sampSlider")
+          .property("title", "Sample: " + sampSet[sampSet.length - 1])
+          .on("input", function() { 
+            updateRender(getData(inData, Math.floor(this.value)));
+            this.title = "Sample: " + Math.floor(this.value);
+          });
+
+
+        //Position first sample
+        updateRender(getData(inData,sampSet[0]));
+
+        //Move through samples     
+//        sampSet.forEach(function(samp, i) {
+    //      if (i > 0) {
+    //        setInterval(function(){
+//              updateRender(getData(inData, samp));
+    //        }, 2000);
+    //      };  
+//        });
+
+      });
 
       // JDW: if you look in the console, you'll see an error: "circles.exit"
       //      is not a function, because you've assigned the variable "circles"
@@ -102,89 +200,9 @@
       //      variable was an empty selection
       //
       //      anyway, this is what you want:
-
-      // BIND DATA
-      var circles = svg.selectAll("circle")
-            .data(inData, keyID);
-
-      // APPEND NEW CIRCLE for each data element that doesn't already have a circle
-      circles.enter().append("circle")
-          .style("fill",  function(d  ){ return colorScale( color(d) ); })
-          .style("fill-opacity", 1e-6)
-          .attr ("cx",    50)
-          .attr ("cy",    200)
-          .attr ("r",     function(d  ){ return d.length; })
-          ;
-
-      // UPDATE the color/position/size of each circle that has a data element
-      circles
-        .transition()
-          .duration(1000)
-            .style("fill",  function(d  ){ return colorScale( color(d) ); })
-            .style("fill-opacity", 1)
-            .attr ("cx",    function(d,i){ return i*10+200; })
-            .attr ("cy",    function(d  ){ return d.section*30; })
-            .attr ("r",     function(d  ){ return d.length; })
-            ;
-
-      // REMOVE any existing circles that no longer have data
-      circles.exit()
-          .transition()
-            .duration(1000)
-            .attr ("cx",    500)
-            .attr ("cy",    200)
-            .style("fill-opacity", 1e-5)
-       .remove();
-    }
-
- // run //
- 
-      d3.csv("d3FishMoveLong3.csv", type,  function (inData){
-        //Map sample num to array
-        var samps = inData.map(function(d) { return d.sample; });
-
-        //Construct set of samples
-        var sampSet = [];
-        samps.forEach(function(samp) { 
-          if (sampSet.indexOf(samp) == -1) {
-            sampSet.push(samp);
-          }
-        });
-
-        //Sort samples in ascending order
-        sampSet.sort(compareNumbers)
-
-        //Add slider to control samples
-        d3.select("body")
-          .append("input")
-          // .attr({type: "range", name: "Sample", min: sampSet[0], max: sampSet[sampSet.length - 1], value: sampSet[sampSet.length - 1]})
-          // JDW: I would set "value" of slider to first element not the last
-          //      to match the updateRender(getData(inData, sampSet[0])) below
-          .attr({type: "range", name: "Sample", min: sampSet[0], max: sampSet[sampSet.length - 1], value: sampSet[0]})
-          .attr("id", "sampSlider")
-          .property("title", "Sample: " + sampSet[sampSet.length - 1])
-          .on("input", function() { 
-            updateRender(getData(inData, Math.floor(this.value)));
-            this.title = "Sample: " + Math.floor(this.value);
-          });
-
-
-        //Position first sample
-        updateRender(getData(inData,sampSet[0]));
-
-        //Move through samples     
-//        sampSet.forEach(function(samp, i) {
-    //      if (i > 0) {
-    //        setInterval(function(){
-//              updateRender(getData(inData, samp));
-    //        }, 2000);
-    //      };  
-//        });
-
-      });
-
-
     </script>
 
   </body>
 </html>
+
+
