@@ -11,20 +11,27 @@
 
   <script>
  // some global variables //
-    var maxSection = 15
+    var maxSection = 15;
+    var timeSteps = 25;
     
  // set up svg element //
-    var w = 500;
-		var h = 500;
-		var padding = 20;
+    var w = 500,
+		    h = 550,
+		    xPadding = 30,
+		    yPadding = 30;
     
     var svg = d3.select("body")
       .append("svg")
       .attr("width",  w)
       .attr("height", h);
-      
+ 
+    var svg2 = d3.select("body")
+      .append("svg")
+      .attr("width",  w)
+      .attr("height", h);
+           
  // Accessor functions for circle attributes
-    function x(d) { return d.i };
+    function x(d,i) { return d.i };
     function y(d) { return d.section };
     function r(d) { return d.river };
     
@@ -32,22 +39,25 @@
     function keyID(d){ return d.id; }
       
  // Various scales.
-    var xScale = d3.scale.linear().domain([0, 50]).range([0, w]),
-        yScale = d3.scale.linear().domain([1, maxSection]).range([h, 0]),
-        radiusScale = d3.scale.sqrt().domain([40, 400]).range([0, 40]),
+    var xScale = d3.scale.linear().domain([50, 200]).range([xPadding, w-xPadding]),
+        yScale = d3.scale.linear().domain([1, maxSection]).range([h-yPadding, yPadding]),
+        radiusScale = d3.scale.linear().domain([50, 200]).range([2, 8]),
         colorScale = d3.scale.category10();
         
-    var timeScale = d3.time.scale.utc()  // utc does't shift for daylight saving time
-        .domain([new Date(2000, 0, 1), new Date(2000, 0, 2)])
-        .range([0, 500]);  
-
+/*    var timeScale = d3.time.scale.utc()  // utc does't shift for daylight saving time
+        .domain([Date.parse(new Date(2002, 0, 1)),
+                 Date.parse(new Date(2003, 12, 2))])
+        .range([0, timeSteps]);  
+*/
  //  functions // 
 
     function type(d){
       d.sample = +d.sample;
+      d.date = Date.parse(d.date);
       d.id = +d.id;
       d.section = +d.section;
-      d.length = +d.length;
+      d.len = +d.len;
+      d.enc = +d.enc;
       return d;
     }
 
@@ -60,9 +70,10 @@
     // Positions the dots based on data
     function position(dot) {
       dot
-        .attr("cx", function (d,i){ return i*5+30; })//{  })return i*5+10;
+        //.attr("cx", function (d,i){ return i + w/2; })//{  })return i*5+10;
+        .attr("cx", function (d){ return xScale(d.len); })//{  })return i*5+10;
         .attr("cy", function (d  ){ return yScale(y(d)); })//{  }); return d.section*20;
-        .attr("r", function(d) { return d.length; });
+        .attr("r", function(d) { return radiusScale(d.len); });
     }
 
     // Sort numbers ascending
@@ -79,41 +90,39 @@
 
       // APPEND NEW CIRCLE for each data element that doesn't already have a circle
       circles.enter().append("circle")
-          .style("fill",  function(d  ){ return colorScale( color(d) ); })
+          .style("fill",  "green") //function(d  ){ return colorScale( color(d) ); })
           .style("fill-opacity", 1e-6)
-          .attr ("cx",    xScale(0))
-          .attr ("cy",    yScale(maxSection/2))
-          .attr ("r",     function(d  ){ return d.length; })
-          ;
+      ;
 
       // UPDATE the color/position/size of each circle that has a data element
       circles
         .transition()
-          .duration(1000)
-            .style("fill",  function(d  ){ return colorScale( color(d) ); })
+          .duration(4000)
+            .style("fill", "darkgrey")// function(d  ){ return colorScale( color(d) ); })
             .style("fill-opacity", 1)
             .call(position)
- /*           .attr ("cx",    function(d,i){ return i*10+200; })
-            .attr ("cy",    function(d  ){ return d.section*30; })
-            .attr ("r",     function(d  ){ return d.length; })
-   */         ;
+        ;
 
       // REMOVE any existing circles that no longer have data
       circles.exit()
+          .style("fill", "red")
           .transition()
-            .duration(1000)
-            .attr ("cx",    500)
-            .attr ("cy",    200)
-            .style("fill-opacity", 1e-5)
+            .duration(2000)
+       //     .attr ("cx",    500)
+      //      .attr ("cy",    200)
+            
+            .style("fill-opacity", 1e-3)
        .remove();
     }
 
  // run //
  
-      d3.csv("d3FishMoveLong3.csv", type,  function (inData){
-        
+   //   d3.csv("d3FishMoveLong3.csv", type,  function (inData){
+      d3.csv("coreDataOut.csv", type,  function (inData){  
+       console.log(inData); 
         //Map sample num to array
         var samps = inData.map(function(d) { return d.sample; });
+  //        var sampDays = inData.map(function(d) { return d.date; });
 
         //Construct set of samples
         var sampSet = [];
@@ -122,9 +131,13 @@
             sampSet.push(samp);
           }
         });
+//console.log(samps);
+
 
         //Sort samples in ascending order
         sampSet.sort(compareNumbers)
+//console.log(sampSet);
+//console.log(samps);
 
         //Add slider to control samples
         d3.select("body")
@@ -142,14 +155,14 @@
         updateRender(getData(inData,sampSet[0]));
 
         //Move through samples     
-//        sampSet.forEach(function(samp, i) {
-    //      if (i > 0) {
-    //        setInterval(function(){
-//              updateRender(getData(inData, samp));
-    //        }, 2000);
-    //      };  
-//        });
-
+ /*       sampSet.forEach(function(samp, i) {
+          if (i > 0) {
+           setInterval(function(){
+              updateRender(getData(inData, samp));
+            }, 2000);
+          };  
+        });
+*/
       });
 
       // JDW: if you look in the console, you'll see an error: "circles.exit"

@@ -1,12 +1,23 @@
 library(dplyr)
 
-# coreData created in the qualitativeMovement project on Osensei
-load('coreData')
+# coreData created in the git/getWBCoreDataForD3FishMove subdir on Osensei
+load('coreDataForD3.RData')
 
 out <- cd %>%
-         filter(year %in% 2002:2003 &  riverOrdered == "IL") %>%
+         filter(year %in% 2003:2004 &  riverOrdered == "IL" ) %>%
          mutate( tagFactor = as.numeric(factor(tag))) %>%
-         select( date = detectionDate, id = tagFactor, section = section, len = observedLength, river=riverOrdered )
+         select( date = detectionDate, 
+                 id = tagFactor, 
+                 species = species, 
+                 sample = sampleNumber, 
+                 enc = enc, 
+                 section = section, 
+                 lagSection = lagSection,
+                 moveDir = moveDir,
+                 distMoved = distMoved,
+                 len = observedLength, 
+                 river=riverOrdered ) %>%
+         filter( !is.na(len) ) # have one fish right now
 
 write.csv(out,file='coreDataOut.csv', row.names = F)
-str(out)
+
