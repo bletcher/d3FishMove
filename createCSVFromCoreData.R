@@ -6,7 +6,8 @@ load('coreDataForD3.RData')
 out <- cd %>%
          filter(year %in% 2003:2004 &  riverOrdered == "IL" ) %>%
          mutate( tagFactor = as.numeric(factor(tag))) %>%
-         select( date = detectionDate, 
+         select( tag = tag,
+                 date = detectionDate, 
                  id = tagFactor, 
                  species = species, 
                  sample = sampleNumber, 
@@ -16,7 +17,7 @@ out <- cd %>%
                  moveDir = moveDir,
                  distMoved = distMoved,
                  len = observedLength, 
-                 river=riverOrdered ) %>%
+                 river = riverOrdered ) %>%
          filter( !is.na(len) ) # have one fish right now
 
 write.csv(out,file='coreDataOut.csv', row.names = F)

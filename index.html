@@ -15,34 +15,40 @@
     var timeSteps = 25;
     
  // set up svg element //
-    var w = 500,
+    var w = 800,
 		    h = 550,
-		    xPadding = 30,
-		    yPadding = 30;
+		    xPadding = 20,
+		    yPadding = 20,
+		    tweenPadding = 20;
     
     var svg = d3.select("body")
       .append("svg")
       .attr("width",  w)
       .attr("height", h);
- 
-    var svg2 = d3.select("body")
-      .append("svg")
-      .attr("width",  w)
-      .attr("height", h);
-           
+      
+    var g1 = svg.append('g');
+    var g2 = svg.append('g');
+      
  // Accessor functions for circle attributes
     function x(d,i) { return d.i };
     function y(d) { return d.section };
+    function y2(d) { return d.distMoved};
     function r(d) { return d.river };
     
     function color(d){ return d.id; }
     function keyID(d){ return d.id; }
+    function keyID2(d){ return d.id; }
       
- // Various scales.
-    var xScale = d3.scale.linear().domain([50, 200]).range([xPadding, w-xPadding]),
-        yScale = d3.scale.linear().domain([1, maxSection]).range([h-yPadding, yPadding]),
-        radiusScale = d3.scale.linear().domain([50, 200]).range([2, 8]),
-        colorScale = d3.scale.category10();
+ // Scales for absolute position.
+    var xScale = d3.scale.linear().domain([50, 200]).range([xPadding, w/2-xPadding/2]),
+        yScale = d3.scale.linear().domain([1, maxSection]).range([h-yPadding, yPadding]);
+        
+ // Scales for relative position.
+    var xScale2 = d3.scale.linear().domain([50, 200]).range([w/2+xPadding, w-xPadding]),
+        yScale2 = d3.scale.linear().domain([-maxSection, maxSection]).range([h-yPadding, yPadding]);
+
+    var radiusScale = d3.scale.linear().domain([50, 200]).range([2, 8]),
+        colorScale = d3.scale.category10();        
         
 /*    var timeScale = d3.time.scale.utc()  // utc does't shift for daylight saving time
         .domain([Date.parse(new Date(2002, 0, 1)),
@@ -58,6 +64,9 @@
       d.section = +d.section;
       d.len = +d.len;
       d.enc = +d.enc;
+      d.moveDir = +d.moveDir;
+      d.distMoved = +d.distMoved;
+      d.lagSection = +d.lagSection;
       return d;
     }
 
@@ -67,12 +76,19 @@
       });
     }   
        
-    // Positions the dots based on data
+    // Absolute positions for the dots based on data
     function position(dot) {
       dot
-        //.attr("cx", function (d,i){ return i + w/2; })//{  })return i*5+10;
-        .attr("cx", function (d){ return xScale(d.len); })//{  })return i*5+10;
-        .attr("cy", function (d  ){ return yScale(y(d)); })//{  }); return d.section*20;
+        .attr("cx", function (d){ return xScale(d.len); })
+        .attr("cy", function (d  ){ return yScale(y(d)); })
+        .attr("r", function(d) { return radiusScale(d.len); });
+    }
+
+    // Relative positions for the dots based on data
+    function position2(dot) {
+      dot
+        .attr("cx", function (d){ return xScale2(d.len); })
+        .attr("cy", function (d  ){ return yScale2(y2(d)); })
         .attr("r", function(d) { return radiusScale(d.len); });
     }
 
@@ -81,17 +97,19 @@
      return a - b;
     }
 
-    // Update Individual Locations
-    function updateRender(inData) {
+    // Update Individual absolute Locations
+    function updateRenderAbs(inData) {
 
       // BIND DATA
-      var circles = svg.selectAll("circle")
+      var circles = g1.selectAll("circle")
             .data(inData, keyID);
 
       // APPEND NEW CIRCLE for each data element that doesn't already have a circle
       circles.enter().append("circle")
           .style("fill",  "green") //function(d  ){ return colorScale( color(d) ); })
           .style("fill-opacity", 1e-6)
+ //         .transition()
+//            .delay(8000)
       ;
 
       // UPDATE the color/position/size of each circle that has a data element
@@ -107,17 +125,55 @@
       circles.exit()
           .style("fill", "red")
           .transition()
-            .duration(2000)
+            .duration(3000)
        //     .attr ("cx",    500)
       //      .attr ("cy",    200)
             
             .style("fill-opacity", 1e-3)
        .remove();
+
     }
 
+    // Update Individual relative Locations
+    function updateRenderRel(inData) {
+
+      // BIND DATA
+      var circles2 = g2.selectAll("circle")
+            .data(inData, keyID);
+console.log(circles2);
+      // APPEND NEW CIRCLE for each data element that doesn't already have a circle
+      circles2.enter().append("circle")
+          .style("fill",  "green") //function(d  ){ return colorScale( color(d) ); })
+          .style("fill-opacity", 1e-6)
+ //         .transition()
+//            .delay(8000)
+      ;
+
+      // UPDATE the color/position/size of each circle that has a data element
+      circles2
+        .transition()
+          .duration(4000)
+            .style("fill", "darkgrey")// function(d  ){ return colorScale( color(d) ); })
+            .style("fill-opacity", 1)
+            .call(position2)
+        ;
+
+      // REMOVE any existing circles that no longer have data
+      circles2.exit()
+          .style("fill", "red")
+          .transition()
+            .duration(3000)
+       //     .attr ("cx",    500)
+      //      .attr ("cy",    200)
+            
+            .style("fill-opacity", 1e-3)
+       .remove();
+
+    }
+
+
  // run //
- 
-   //   d3.csv("d3FishMoveLong3.csv", type,  function (inData){
+
       d3.csv("coreDataOut.csv", type,  function (inData){  
        console.log(inData); 
         //Map sample num to array
@@ -146,13 +202,16 @@
           .attr("id", "sampSlider")
           .property("title", "Sample: " + sampSet[sampSet.length - 1])
           .on("input", function() { 
-            updateRender(getData(inData, Math.floor(this.value)));
+            updateRenderAbs(getData(inData, Math.floor(this.value)));
+            updateRenderRel(getData(inData, Math.floor(this.value)));
             this.title = "Sample: " + Math.floor(this.value);
           });
 
 
         //Position first sample
-        updateRender(getData(inData,sampSet[0]));
+        updateRenderAbs(getData(inData,sampSet[0]));
+        updateRenderRel(getData(inData,sampSet[0]));
+
 
         //Move through samples     
  /*       sampSet.forEach(function(samp, i) {
