@@ -6,50 +6,104 @@
     <meta charset="utf-8">
     <title>Fish movements</title>
     <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+    
+    <style>
+    text {
+      font: 10px sans-serif;
+ //     stroke: rgb(81, 81, 81);
+    }
+    
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: rgb(81, 81, 81);
+      shape-rendering: crispEdges;
+    }
+
+    .axis text {
+        font-family: sans-serif;
+        font-size: 11px;
+  //      stroke: rgb(81, 81, 81);
+    }
+    
+    d3Tooltip {
+        font-family: sans-serif;
+        font-size: 11px;      
+    }
+    
+    </style>
   </head>
   <body>
+    
+    <div id="option">
+      <input name="updateButton" 
+             type="button" 
+             value="Unselect all" 
+             onclick="unSelectAll()" />
+   </div>
+
+<form>
+    <input type="radio" name="optradio" value="Select" checked>Select<br>
+    <input type="radio" name="optradio" value="Unselect">Unselect
+</form>
 
   <script>
  // some global variables //
     var maxSection = 15;
     var timeSteps = 25;
+    var selectedID = [];
+    var inData;
     
  // set up svg element //
-    var w = 800,
+    var w = 850,
 		    h = 550,
-		    xPadding = 20,
-		    yPadding = 20,
-		    tweenPadding = 20;
+		    xPadding = 40,
+		    yPadding = 40,
+		    tweenPadding = 10;
+		    
+		var transSlow = new Boolean(true);
+		  
+//var margin = {top: 20, right: 50, bottom: 30, left: 50},
+//    width = 960 - margin.left - margin.right,
+//    height = 500 - margin.top - margin.bottom;
     
     var svg = d3.select("body")
       .append("svg")
       .attr("width",  w)
       .attr("height", h);
       
-    var g1 = svg.append('g');
-    var g2 = svg.append('g');
+    var gAll = svg.append('g').attr("class", "gAll");
+    var g1 =   gAll.append('g').attr("class", "g1");
+    var g2 =   gAll.append('g').attr("class", "g2");  
       
  // Accessor functions for circle attributes
     function x(d,i) { return d.i };
     function y(d) { return d.section };
-    function y2(d) { return d.distMoved};
+    function y2(d) { return d.distMoved };
     function r(d) { return d.river };
     
     function color(d){ return d.id; }
     function keyID(d){ return d.id; }
-    function keyID2(d){ return d.id; }
+    
+    function colorWithSelected(d) { 
+                              if ( IDinSelectedID(selectedID,d.id) ) 
+                                   { return "rgb(128, 43, 0)" } // return colorScale( color(d) ); }
+                              else { return "darkgrey" }; 
+                              } 
+
       
  // Scales for absolute position.
-    var xScale = d3.scale.linear().domain([50, 200]).range([xPadding, w/2-xPadding/2]),
-        yScale = d3.scale.linear().domain([1, maxSection]).range([h-yPadding, yPadding]);
+    var xScale = d3.scale.linear().domain([50, 220]).range([xPadding, w/2-xPadding/1]),
+        yScale = d3.scale.linear().domain([0.5, maxSection]).range([h-yPadding, yPadding]);
         
  // Scales for relative position.
-    var xScale2 = d3.scale.linear().domain([50, 200]).range([w/2+xPadding, w-xPadding]),
+    var xScale2 = d3.scale.linear().domain([50, 220]).range([w/2 + xPadding + tweenPadding, w-xPadding + tweenPadding]),
         yScale2 = d3.scale.linear().domain([-maxSection, maxSection]).range([h-yPadding, yPadding]);
 
     var radiusScale = d3.scale.linear().domain([50, 200]).range([2, 8]),
         colorScale = d3.scale.category10();        
-        
+
+
 /*    var timeScale = d3.time.scale.utc()  // utc does't shift for daylight saving time
         .domain([Date.parse(new Date(2002, 0, 1)),
                  Date.parse(new Date(2003, 12, 2))])
@@ -96,10 +150,97 @@
     function compareNumbers(a, b) {
      return a - b;
     }
+    
+    // Is id in selectedID array?
+    function IDinSelectedID(arr, val) {
+      return arr.some(function(arrVal) {
+        return val === arrVal;
+      });
+    }
 
-    // Update Individual absolute Locations
-    function updateRenderAbs(inData) {
-
+    // color and select circles
+    function colorAndSelectAndMouse(d){
+       d
+          .on('mouseover',function(d) {
+            d3.select(this)
+              .style("fill", "orange")
+              .moveToFront()
+              .call(showTT(d.id));
+              ; 
+          })
+          .on("mousemove", function() { 
+            return tooltip.style("top", (d3.event.pageY-10) + "px")
+                          .style("left", (d3.event.pageX+10) + "px"); 
+          })
+          .on('mouseout',function(d) {
+            d3.select(this)
+              .style("fill", colorWithSelected)
+      //        .style("visibility", "hidden"); //function() { return tooltip.
+          })
+          .on("click", function(d) {
+             if (d3.select('input[name="optradio"]:checked').node().value == "Select"){
+               selectedID.push(d.id);
+               console.log(d.id);
+               console.log(selectedID);
+            
+               d3.select(this)
+                 .style("fill", colorWithSelected)
+                 .moveToFront();
+             }
+             else if (d3.select('input[name="optradio"]:checked').node().value == "Unselect"){
+               unSelectOne(d);
+               console.log(selectedID);
+               
+               d3.select(this)
+                 .style("fill", colorWithSelected)
+                 ;
+             }
+             else{
+               console.log(d3.select('input[name="optradio"]:checked').node().value);
+             }
+             
+             render(0.2);
+             
+          })
+    }
+    
+    //Make tooltip for displaying attribute data
+    var tooltip = d3.select("body")
+        .append("div")
+        .attr("class", "d3Tooltip");
+    
+    //Show ID in tooltip
+    function showTT(d) {
+      console.log(d);
+      tooltip.text(d);
+      tooltip.style("visibility", "visible");
+    }
+      
+    d3.selection.prototype.moveToFront = function() { 
+      return this.each(function() { 
+        this.parentNode.appendChild(this); //try .append()
+      }); 
+    };
+    
+    moveToFrontIfSelected = function(d){
+       if ( IDinSelectedID(selectedID,d.id) ){ moveToFront(d) }
+    }
+    
+    function unSelectAll(){ 
+      selectedID = []; 
+      render(0.2);
+    }
+    
+    function unSelectOne(d){ 
+      selectedID.splice(selectedID.indexOf(d.id),1);
+  //    render(0.2);
+    }
+    
+    // Update Individual Locations
+    function render( seconds ) {
+      if (arguments.length == 0) seconds = 4; // set default to 4 seconds
+      
+///// Absolute position //////
       // BIND DATA
       var circles = g1.selectAll("circle")
             .data(inData, keyID);
@@ -108,77 +249,80 @@
       circles.enter().append("circle")
           .style("fill",  "green") //function(d  ){ return colorScale( color(d) ); })
           .style("fill-opacity", 1e-6)
- //         .transition()
-//            .delay(8000)
+          .call(colorAndSelectAndMouse)
+          .call(moveToFrontIfSelected)
       ;
 
       // UPDATE the color/position/size of each circle that has a data element
       circles
         .transition()
-          .duration(4000)
-            .style("fill", "darkgrey")// function(d  ){ return colorScale( color(d) ); })
+          .duration(1000*seconds)
+            .style("fill", colorWithSelected)// function(d  ){ return colorScale( color(d) ); })
             .style("fill-opacity", 1)
             .call(position)
+            .call(moveToFrontIfSelected)
         ;
 
       // REMOVE any existing circles that no longer have data
       circles.exit()
           .style("fill", "red")
           .transition()
-            .duration(3000)
-       //     .attr ("cx",    500)
-      //      .attr ("cy",    200)
-            
+            .duration(1000*seconds)
             .style("fill-opacity", 1e-3)
        .remove();
-
-    }
-
-    // Update Individual relative Locations
-    function updateRenderRel(inData) {
-
+      
+///// Relative position //////
       // BIND DATA
       var circles2 = g2.selectAll("circle")
             .data(inData, keyID);
-console.log(circles2);
+
       // APPEND NEW CIRCLE for each data element that doesn't already have a circle
       circles2.enter().append("circle")
           .style("fill",  "green") //function(d  ){ return colorScale( color(d) ); })
           .style("fill-opacity", 1e-6)
- //         .transition()
-//            .delay(8000)
+          .call(colorAndSelectAndMouse)
+          .call(moveToFrontIfSelected)
       ;
 
       // UPDATE the color/position/size of each circle that has a data element
       circles2
         .transition()
-          .duration(4000)
-            .style("fill", "darkgrey")// function(d  ){ return colorScale( color(d) ); })
+          .duration(1000*seconds)
+            .style("fill", colorWithSelected)
             .style("fill-opacity", 1)
             .call(position2)
+            .call(moveToFrontIfSelected)
         ;
-
+  
       // REMOVE any existing circles that no longer have data
       circles2.exit()
           .style("fill", "red")
           .transition()
-            .duration(3000)
-       //     .attr ("cx",    500)
-      //      .attr ("cy",    200)
-            
-            .style("fill-opacity", 1e-3)
+          .duration(1000*seconds)
+          .style("fill-opacity", 1e-3)
        .remove();
+       
+};
+/*
+  // add a tooltip        
+      circles
+          .append("title")
+          .text(function(d) {
+                return (d.id);
+      });
+      circles2  
+          .append("title")
+          .text(function(d) {
+                return (d.id);
+      });
+*/
+///////////////////////////////////////////////////////
+// run //
 
-    }
+      d3.csv("coreDataOut.csv", type,  function (allData){ //alldata 
 
-
- // run //
-
-      d3.csv("coreDataOut.csv", type,  function (inData){  
-       console.log(inData); 
         //Map sample num to array
-        var samps = inData.map(function(d) { return d.sample; });
-  //        var sampDays = inData.map(function(d) { return d.date; });
+        var samps = allData.map(function(d) { return d.sample; });
 
         //Construct set of samples
         var sampSet = [];
@@ -202,16 +346,16 @@ console.log(circles2);
           .attr("id", "sampSlider")
           .property("title", "Sample: " + sampSet[sampSet.length - 1])
           .on("input", function() { 
-            updateRenderAbs(getData(inData, Math.floor(this.value)));
-            updateRenderRel(getData(inData, Math.floor(this.value)));
+            inData = getData(allData,Math.floor(this.value));
+            render();
             this.title = "Sample: " + Math.floor(this.value);
           });
 
-
         //Position first sample
-        updateRenderAbs(getData(inData,sampSet[0]));
-        updateRenderRel(getData(inData,sampSet[0]));
-
+        inData = getData(allData,sampSet[0]);
+        render();
+        
+        
 
         //Move through samples     
  /*       sampSet.forEach(function(samp, i) {
@@ -223,55 +367,66 @@ console.log(circles2);
         });
 */
       });
+// ----------------------------------------------
+// Define axes for Absolute plot
+    var xAxis1 = d3.svg.axis().orient("bottom").scale(xScale).ticks(6);//, d3.format(",d"));
+    svg.append("g")
+        .attr("class", "axis")
+        .attr("transform","translate(0," + (h- yPadding) +")")
+        .call(xAxis1);
+        
+    var yAxis1 = d3.svg.axis().scale(yScale).orient("left").ticks(15, d3.format(",d"));
+    svg.append("g")
+        .attr("class", "axis")
+        .attr("transform","translate(" + xPadding  + ",0)")
+        .call(yAxis1);
+ 
+ // Add x-axis1 label 
+    svg.append("text")
+        .attr("class", "x label")
+        .attr("text-anchor", "middle")
+        .attr("x", xScale(120))
+        .attr("y", h - 6)
+        .text("Fish length (mm)");
+        
+ // Add y-axis1 label 
+    svg.append("text")
+        .attr("class", "y label")
+        .attr('transform', 'translate(' + 10 + ',' + h / 1.8 + ') rotate(-90)')
+        .text("Section number (20 m)");
+ 
+// ---------------------------------------------        
+// Define axes for Relative plot
+    var xAxis2 = d3.svg.axis().orient("bottom").scale(xScale2).ticks(6);//, d3.format(",d"));
+    svg.append("g")
+        .attr("class", "axis")
+        .attr("transform","translate(0," + (h- yPadding) +")")
+        .call(xAxis2);
+        
+    var yAxis2 = d3.svg.axis().scale(yScale2).orient("left").ticks(15, d3.format(",d"));
+    svg.append("g")
+        .attr("class", "axis")
+        .attr("transform","translate(" + (w/2 + xPadding + tweenPadding)  + ",0)")
+    //    .attr("transform","translate(40,0)")
+        .call(yAxis2); 
+        
+ // Add x-axis2 label 
+    svg.append("text")
+        .attr("class", "x label")
+        .attr("text-anchor", "middle")
+        .attr("x", xScale2(120))
+        .attr("y", h - 6)
+        .text("Fish length (mm)");
+        
+ // Add y-axis2 label 
+    svg.append("text")
+        .attr("class", "y label")
+        .attr('transform', 'translate(' + (w/2 + xPadding + tweenPadding - 30) + ',' + h / 1.6 + ') rotate(-90)')
+        .text("Distance to move (20 m sections)");
+    
+// ----------------------------------------------
 
-      // JDW: if you look in the console, you'll see an error: "circles.exit"
-      //      is not a function, because you've assigned the variable "circles"
-      //      to the result of the enter().append() calls, so "circles" is a
-      //      reference to all the circles added in this iteration
-      //
-      //      so that's why exit isn't working, because it doesn't exist as a
-      //      method on "circles"
-      //
-      //      instead, "circles" should be assigned to the result of the data
-      //      binding, then .enter() should be called in a separate statement
 
-      // OLD CODE:
-      // var circles = svg.selectAll("circles")
-      //       .data(inData, keyID)
-      //       .enter()
-      //       .append("circle");
-
-      // NEW CODE:
-      // var circles = svg.selectAll("circles")
-      //       .data(inData, keyID);
-      // circles.enter()
-      //       .append("circle");
-
-      // JDW: but that still won't work because you're not doing the
-      //      selection correctly
-      //
-      //      although selectAll("circles") sounds like it should work,
-      //      what is "circles" referring to here?
-      //
-      //      what you pass to selectAll() is called a "selector" query,
-      //      which is used in CSS. For example if something has class="fish",
-      //      then you could select it with the selector query ".fish" because
-      //      the "." means class. You can also use id's with "#",
-      //      so <div id="fish"></div> could be selected with "#fish" query.
-      //      Finally, you can select by tag name, which is what you want here.
-      //      When you .append("circle"), that adds elements in the HTML
-      //      (technically to the Document Object Model or DOM) named circle
-      //      like this: <circle></circle>
-      //
-      //      so what you want is to selectAll("circle") which will select all
-      //      elements of type "circle"
-      //
-      //      you were trying to select all elements of type "circles" which don't
-      //      exist, so that selection always came back empty, and thus every time
-      //      this was run, it would append more circles since the "circles"
-      //      variable was an empty selection
-      //
-      //      anyway, this is what you want:
     </script>
 
   </body>
