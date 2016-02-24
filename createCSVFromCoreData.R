@@ -16,9 +16,13 @@ out <- cd %>%
                  lagSection = lagSection,
                  moveDir = moveDir,
                  distMoved = distMoved,
-                 len = observedLength, 
-                 river = riverOrdered ) %>%
+                 len = observedLength,
+                 wt = observedWeight,
+                 river = riverOrdered,
+                 year = year,
+                 season = season) %>%
          filter( !is.na(len) ) # have one fish right now
 
 write.csv(out,file='coreDataOut.csv', row.names = F)
+
 

@@ -6,6 +6,7 @@
     <meta charset="utf-8">
     <title>Fish movements</title>
     <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+    <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
     
     <style>
     text {
@@ -26,9 +27,33 @@
   //      stroke: rgb(81, 81, 81);
     }
     
-    d3Tooltip {
-        font-family: sans-serif;
-        font-size: 11px;      
+    .d3-tip {
+        line-height: 1;
+        font-weight: bold;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.7);
+        color: #fff;
+        border-radius: 2px;
+    }
+
+    /* Creates a small triangle extender for the tooltip */
+    .d3-tip:after {
+        box-sizing: border-box;
+        display: inline;
+        font-size: 10px;
+        width: 100%;
+        line-height: 1;
+        color: rgba(0, 0, 0, 0.8);
+        content: "\25BC";
+        position: absolute;
+        text-align: center;
+    }
+
+    /* Style northward tooltips differently */
+    .d3-tip.n:after {
+        margin: -1px 0 0 0;
+        top: 100%;
+        left: 0;
     }
     
     </style>
@@ -41,31 +66,64 @@
              value="Unselect all" 
              onclick="unSelectAll()" />
    </div>
-
-<form>
-    <input type="radio" name="optradio" value="Select" checked>Select<br>
-    <input type="radio" name="optradio" value="Unselect">Unselect
-</form>
+   
+   <div>
+       <input type="radio" name="optradio" value="Count" onclick="render(2)" checked>Count<br>
+       <input type="radio" name="optradio" value="Biomass" onclick="render(2)">Biomass
+   </div>
+   <div>
+       <input type="radio" name="optradioBars" value="Yes" onclick="render(2)" checked>Bars:Yes<br>
+       <input type="radio" name="optradioBars" value="No" onclick="render(2)">Bars:No
+   </div>
 
   <script>
  // some global variables //
-    var maxSection = 15;
-    var timeSteps = 25;
-    var selectedID = [];
-    var inData;
+    var maxSection = 15,
+        timeSteps = 25,
+        selectedID = [],
+        inData,
+        currentSample,
+        summarizeBySection;
     
  // set up svg element //
     var w = 850,
 		    h = 550,
 		    xPadding = 40,
 		    yPadding = 40,
-		    tweenPadding = 10;
+		    tweenPadding = 10,
+		    barPadding = 3;
 		    
-		var transSlow = new Boolean(true);
+ // Bar variables	//	    
+		 var barData = [],
+		     barData2 = [],
+		     barMultiplier,
+		     barMultiplierCount = 4,
+		     barMultiplierSumWt = 0.4,
+		     barGreyBase,
+		     barGreyBaseCount = 200,
+		     barGreyBaseSumWt = 250,
+		     barGreyMult,
+		     barGreyMultCount = 4,
+		     barGreyMultSumWt = 0.4;
 		  
 //var margin = {top: 20, right: 50, bottom: 30, left: 50},
 //    width = 960 - margin.left - margin.right,
 //    height = 500 - margin.top - margin.bottom;
+
+    // Define tool tips //
+    var tip = d3.tip()
+      .attr('class', 'd3-tip')
+      .offset([-10, 0])
+      .html(function(d) {
+        return "Fish " + d.id ;
+      })
+      
+    var tipBar = d3.tip()
+      .attr('class', 'd3-tip')
+      .offset([-10, 0])
+      .html(function(d) {
+        return Math.round(d);// + " g" ;
+      })
     
     var svg = d3.select("body")
       .append("svg")
@@ -86,19 +144,21 @@
     function keyID(d){ return d.id; }
     
     function colorWithSelected(d) { 
-                              if ( IDinSelectedID(selectedID,d.id) ) 
-                                   { return "rgb(128, 43, 0)" } // return colorScale( color(d) ); }
-                              else { return "darkgrey" }; 
+                              if ( IDinSelectedID(selectedID,d.id) ) {
+                                { return colorScale( color(d) ); } 
+                              }                 //return "rgb(128, 43, 0)" } // return colorScale( color(d) ); }
+                              else { return "darkgrey"; } 
                               } 
 
       
  // Scales for absolute position.
     var xScale = d3.scale.linear().domain([50, 220]).range([xPadding, w/2-xPadding/1]),
         yScale = d3.scale.linear().domain([0.5, maxSection]).range([h-yPadding, yPadding]);
-        
+ 
  // Scales for relative position.
-    var xScale2 = d3.scale.linear().domain([50, 220]).range([w/2 + xPadding + tweenPadding, w-xPadding + tweenPadding]),
-        yScale2 = d3.scale.linear().domain([-maxSection, maxSection]).range([h-yPadding, yPadding]);
+    var xScale2 = d3.scale.linear().domain([50, 220]).range([w/2 + xPadding + tweenPadding, w - xPadding + tweenPadding]),
+        yScale2 = d3.scale.linear().domain([-maxSection, maxSection]).range([h - yPadding, yPadding]),
+        yScale2Bar = d3.scale.linear().domain([-0.75, maxSection * 2]).range([h - yPadding, yPadding]); // not sure why 0.75 works
 
     var radiusScale = d3.scale.linear().domain([50, 200]).range([2, 8]),
         colorScale = d3.scale.category10();        
@@ -117,6 +177,7 @@
       d.id = +d.id;
       d.section = +d.section;
       d.len = +d.len;
+      d.wt = +d.wt;
       d.enc = +d.enc;
       d.moveDir = +d.moveDir;
       d.distMoved = +d.distMoved;
@@ -125,11 +186,15 @@
     }
 
     function getData(d,s) {
-      return d.filter( function(d){
+      return d.filter( function(d) {
         return d.sample == s;
       });
     }   
-       
+
+///////////////////////////////////////////// 
+// functions for showing and selecting dots  
+/////////////////////////////////////////////
+
     // Absolute positions for the dots based on data
     function position(dot) {
       dot
@@ -159,26 +224,20 @@
     }
 
     // color and select circles
-    function colorAndSelectAndMouse(d){
+    function colorAndSelect(d){
        d
           .on('mouseover',function(d) {
             d3.select(this)
               .style("fill", "orange")
               .moveToFront()
-              .call(showTT(d.id));
-              ; 
-          })
-          .on("mousemove", function() { 
-            return tooltip.style("top", (d3.event.pageY-10) + "px")
-                          .style("left", (d3.event.pageX+10) + "px"); 
+              ;
           })
           .on('mouseout',function(d) {
             d3.select(this)
-              .style("fill", colorWithSelected)
-      //        .style("visibility", "hidden"); //function() { return tooltip.
+              .style("fill", colorWithSelected);
           })
           .on("click", function(d) {
-             if (d3.select('input[name="optradio"]:checked').node().value == "Select"){
+             if ( !IDinSelectedID(selectedID,d.id) ){
                selectedID.push(d.id);
                console.log(d.id);
                console.log(selectedID);
@@ -187,35 +246,17 @@
                  .style("fill", colorWithSelected)
                  .moveToFront();
              }
-             else if (d3.select('input[name="optradio"]:checked').node().value == "Unselect"){
-               unSelectOne(d);
+             else if ( IDinSelectedID(selectedID,d.id) ){
+               unSelectThisOne(d);
                console.log(selectedID);
                
                d3.select(this)
-                 .style("fill", colorWithSelected)
-                 ;
+                 .style("fill", colorWithSelected);
              }
-             else{
-               console.log(d3.select('input[name="optradio"]:checked').node().value);
-             }
-             
              render(0.2);
-             
           })
     }
     
-    //Make tooltip for displaying attribute data
-    var tooltip = d3.select("body")
-        .append("div")
-        .attr("class", "d3Tooltip");
-    
-    //Show ID in tooltip
-    function showTT(d) {
-      console.log(d);
-      tooltip.text(d);
-      tooltip.style("visibility", "visible");
-    }
-      
     d3.selection.prototype.moveToFront = function() { 
       return this.each(function() { 
         this.parentNode.appendChild(this); //try .append()
@@ -231,16 +272,208 @@
       render(0.2);
     }
     
-    function unSelectOne(d){ 
+    function unSelectThisOne(d){ 
       selectedID.splice(selectedID.indexOf(d.id),1);
-  //    render(0.2);
     }
     
-    // Update Individual Locations
+///////////////////////////////////////////// 
+// Functions for the line plot  
+/////////////////////////////////////////////    
+    var line = d3.svg.line()
+      .interpolate("linear")
+      .x(function(d,i) {return xScale(d.len);})
+      .y(function(d) {return yScale(y(d));})
+      ;
+    
+
+    
+//////////////////////////////
+
+    svg.call(tip);
+    svg.call(tipBar);
+    
+/////////////////////////////////////////////////////////////////////////    
+// Update Individual Locations and bars
+/////////////////////////////////////////////////////////////////////////    
     function render( seconds ) {
       if (arguments.length == 0) seconds = 4; // set default to 4 seconds
+
+/////////////////////////////////////////////////////////////////////////    
+// Update absolute position bar plots - put before circles so circles are on top
+///////////////////////////////////////////////////////////////////////// 
       
-///// Absolute position //////
+  // Get counts and biomass by section into an array (sectArrxxx)
+        summarizeBySection = d3.nest()
+          .key(function(d) { return d.section; })
+          .rollup(function(d) { 
+             return { 
+               sumWt: d3.sum(d, function(g) { return g.wt; }),
+               count: d.length
+             };
+          })
+          .map(inData);
+
+          var sectArrCount = [];
+          var sectArrSumWt = [];
+          for ( i = 1; i < maxSection + 1; i++){  
+            if (d3.select('input[name="optradioBars"]:checked').node().value == "Yes"){
+              sectArrCount.push(summarizeBySection[i].count);
+              sectArrSumWt.push(summarizeBySection[i].sumWt);
+            } 
+            // Don't plot bars if opt button is 'no'
+            else if (d3.select('input[name="optradioBars"]:checked').node().value == "No"){
+              sectArrCount.push(0);
+              sectArrSumWt.push(0);
+            } 
+          }
+
+      if (d3.select('input[name="optradio"]:checked').node().value == "Count"){ 
+        barData = sectArrCount;
+        barMultiplier = barMultiplierCount;
+        barGreyBase = barGreyBaseCount;
+        barGreyMult = barGreyMultCount;
+      }
+      else if (d3.select('input[name="optradio"]:checked').node().value == "Biomass"){ 
+        barData = sectArrSumWt;
+        barMultiplier = barMultiplierSumWt;
+        barGreyBase = barGreyBaseSumWt;
+        barGreyMult = barGreyMultSumWt;
+      } 
+
+      // BIND DATA
+      var bars = g1.selectAll("rect")
+            .data(barData);
+      
+      // APPEND NEW bar for each data element that doesn't already have a bar
+      bars.enter().append("rect")
+            .style("fill-opacity", 1e-6)
+            .on('mouseover', tipBar.show)
+            .on('mouseout', tipBar.hide)
+      ;
+
+      // UPDATE the color/position/size of each bar that has a data element
+      bars
+        .transition()
+          .duration(1000*seconds)
+            //.style("fill", "orange")
+            .attr("fill", function(d) {
+				     	return "rgb(" + (barGreyBase - d * barGreyMult) + ", " + (barGreyBase - d * barGreyMult) + ", " + (barGreyBase - d * barGreyMult) + ")";
+			      })
+            .style("fill-opacity", 1)
+            .attr("x", function(d, i) {
+			   		  return 400 - d * barMultiplier;//w/2 - (d * 2);
+			      })
+			      .attr("y", function(d,i) {
+			   	  	return yScale(i) - yPadding; 
+			      })
+			      .attr("height", (h/maxSection/1.75 - barPadding))
+			      .attr("width", function(d) {
+			   	  	return d * barMultiplier;
+			      })
+        ;
+  
+      // REMOVE any existing bars that no longer have data
+      bars.exit()
+          .style("fill", "red")
+          .transition()
+          .duration(1000*seconds)
+          .style("fill-opacity", 1e-3)
+       .remove();
+
+/////////////////////////////////////////////////////////////////////////    
+// Update relative position bar plots - put before circles so circles are on top
+///////////////////////////////////////////////////////////////////////// 
+      
+        summarizeByDM = d3.nest()
+          .key(function(d) { return d.distMoved; })
+          .rollup(function(d) { 
+             return { 
+               sumWt: d3.sum(d, function(g) { return g.wt; }),
+               count: d.length
+             };
+          })
+          .map(inData);
+
+          var sectArrCount2 = [];
+          var sectArrSumWt2 = [];
+          for ( i = -maxSection; i < maxSection + 1; i++){                        
+             if (summarizeByDM[i] == null){
+               sectArrCount2[i + maxSection + 0] = 0;
+               sectArrSumWt2[i + maxSection + 0] = 0;
+             }
+             else{
+               
+               if (d3.select('input[name="optradioBars"]:checked').node().value == "Yes"){
+                 sectArrCount2[i + maxSection + 0] = summarizeByDM[i].count;
+                 sectArrSumWt2[i + maxSection + 0] = summarizeByDM[i].sumWt;
+               } 
+              // Don't plot bars if opt button is 'no'
+               else if (d3.select('input[name="optradioBars"]:checked').node().value == "No"){
+                 sectArrCount2[i + maxSection + 0] = 0;
+                 sectArrSumWt2[i + maxSection + 0] = 0;
+               } 
+             }
+          }
+
+      if (d3.select('input[name="optradio"]:checked').node().value == "Count"){ 
+        barData2 = sectArrCount2;
+        barMultiplier = barMultiplierCount;
+        barGreyBase = barGreyBaseCount;
+        barGreyMult = barGreyMultCount;
+      }
+      else if (d3.select('input[name="optradio"]:checked').node().value == "Biomass"){ 
+        barData2 = sectArrSumWt2;
+        barMultiplier = barMultiplierSumWt;
+        barGreyBase = barGreyBaseSumWt;
+        barGreyMult = barGreyMultSumWt;
+      }  
+
+      // BIND DATA
+      var bars = g2.selectAll("rect")
+            .data(barData2);
+      
+      // APPEND NEW bar for each data element that doesn't already have a bar
+      bars.enter().append("rect")
+            .style("fill-opacity", 1e-6)
+            .on('mouseover', tipBar.show)
+            .on('mouseout', tipBar.hide)
+      ;
+
+      // UPDATE the color/position/size of each bar that has a data element
+      bars
+        .transition()
+          .duration(1000*seconds)
+            //.style("fill", "orange")
+            .attr("fill", function(d) {
+				     	return "rgb(" + (barGreyBase - d * barGreyMult) + ", " + (barGreyBase - d * barGreyMult) + ", " + (barGreyBase - d * barGreyMult) + ")";
+			      })
+            .style("fill-opacity", 1)
+            .attr("x", function(d, i) {
+			   		  return 825 - d * barMultiplier/10;
+			      })
+			      .attr("y", function(d,i) {
+			   	  	return yScale2Bar(i);
+			      })
+			      .attr("height", (h/maxSection/2.25 - barPadding))
+			      .attr("width", function(d) {
+			   	  	return (d * barMultiplier/10);
+			      })
+        ;
+  
+      // REMOVE any existing bars that no longer have data
+      bars.exit()
+          .style("fill", "red")
+          .transition()
+          .duration(1000*seconds)
+          .style("fill-opacity", 1e-3)
+       .remove();
+            
+/////////////////////////////////////////////////////////////////////////
+// Circles
+/////////////////////////////////////////////////////////////////////////    
+// Update absolute position plots 
+///////////////////////////////////////////////////////////////////////// 
+
       // BIND DATA
       var circles = g1.selectAll("circle")
             .data(inData, keyID);
@@ -249,9 +482,12 @@
       circles.enter().append("circle")
           .style("fill",  "green") //function(d  ){ return colorScale( color(d) ); })
           .style("fill-opacity", 1e-6)
-          .call(colorAndSelectAndMouse)
+          .call(colorAndSelect)
           .call(moveToFrontIfSelected)
-      ;
+          .on('mouseover', tip.show)   // have a conflict because there's a mouseover call in colorAndSelect()
+          .on('mouseout', tip.hide)
+          
+          ;
 
       // UPDATE the color/position/size of each circle that has a data element
       circles
@@ -270,8 +506,34 @@
             .duration(1000*seconds)
             .style("fill-opacity", 1e-3)
        .remove();
-      
+       
+/////
+/*    var path = g1.append("path")
+      .attr("d", line(inData))
+      .attr("stroke", "steelblue")
+      .attr("stroke-width", "2")
+      .attr("fill", "none");
+
+    var totalLength = path.node().getTotalLength();
+
+    path
+      .attr("stroke-dasharray", totalLength + " " + totalLength)
+      .attr("stroke-dashoffset", totalLength)
+      .transition()
+        .duration(2000)
+        .ease("linear")
+        .attr("stroke-dashoffset", 0);
+        
+       defined above
+    var line = d3.svg.line()
+      .interpolate("linear")
+      .x(function(d,i) {return xScale(d.len);})
+      .y(function(d) {return yScale(y(d));})
+      ;
+  */     
+//////////////////////////////      
 ///// Relative position //////
+
       // BIND DATA
       var circles2 = g2.selectAll("circle")
             .data(inData, keyID);
@@ -280,8 +542,10 @@
       circles2.enter().append("circle")
           .style("fill",  "green") //function(d  ){ return colorScale( color(d) ); })
           .style("fill-opacity", 1e-6)
-          .call(colorAndSelectAndMouse)
+          .call(colorAndSelect)
           .call(moveToFrontIfSelected)
+          .on('mouseover', tip.show)
+          .on('mouseout', tip.hide)
       ;
 
       // UPDATE the color/position/size of each circle that has a data element
@@ -302,24 +566,14 @@
           .style("fill-opacity", 1e-3)
        .remove();
        
-};
-/*
-  // add a tooltip        
-      circles
-          .append("title")
-          .text(function(d) {
-                return (d.id);
-      });
-      circles2  
-          .append("title")
-          .text(function(d) {
-                return (d.id);
-      });
-*/
+
+    };
+
 ///////////////////////////////////////////////////////
 // run //
+///////////////////////////////////////////////////////
 
-      d3.csv("coreDataOut.csv", type,  function (allData){ //alldata 
+    d3.csv("coreDataOut.csv", type,  function (allData){  
 
         //Map sample num to array
         var samps = allData.map(function(d) { return d.sample; });
@@ -331,14 +585,10 @@
             sampSet.push(samp);
           }
         });
-//console.log(samps);
-
 
         //Sort samples in ascending order
         sampSet.sort(compareNumbers)
-//console.log(sampSet);
-//console.log(samps);
-
+       
         //Add slider to control samples
         d3.select("body")
           .append("input")
@@ -347,15 +597,16 @@
           .property("title", "Sample: " + sampSet[sampSet.length - 1])
           .on("input", function() { 
             inData = getData(allData,Math.floor(this.value));
+            currentSample = Math.floor(this.value);
             render();
             this.title = "Sample: " + Math.floor(this.value);
+          console.log(currentSample);
           });
 
         //Position first sample
         inData = getData(allData,sampSet[0]);
+        currentSample = sampSet[0]
         render();
-        
-        
 
         //Move through samples     
  /*       sampSet.forEach(function(samp, i) {
@@ -367,6 +618,8 @@
         });
 */
       });
+      
+      
 // ----------------------------------------------
 // Define axes for Absolute plot
     var xAxis1 = d3.svg.axis().orient("bottom").scale(xScale).ticks(6);//, d3.format(",d"));
