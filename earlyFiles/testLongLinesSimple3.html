@@ -1,0 +1,186 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>D3 Example</title>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+  </head>
+  <body>
+
+  <script>
+
+    var w = 650,
+		    h = 450,
+		    xPadding = 40,
+		    yPadding = 40;
+
+    function color(d) { return d.id; }
+    function x(d) { return d.len };
+    function y(d) { return d.section };
+
+    var colorScale = d3.scale.category10();
+    var currentSample, sampSet = [], seconds = 3;
+
+    var svg = d3.select("body")
+      .append("svg")
+      .attr("width",  w)
+      .attr("height", h);
+      
+ //  functions //     
+
+    function keyID(d){ return d.id; }
+    
+    function type(d){
+      d.sample = +d.sample;
+      d.id = +d.id;
+      d.section = +d.section;
+      d.len = +d.len;
+      return d;
+    }
+
+    function getData(d,s) {
+      return d.filter( function(d){
+        return d.sample == s;
+      });
+    }   
+    
+    function getDataAndPrevious(d,s) {
+      return d.filter( function(d){
+        return d.sample == s || d.sample == (s-1);
+      });
+    }
+    var xScale = d3.scale.linear().domain([0, 25]).range([xPadding, w/1-xPadding/1]),
+        yScale = d3.scale.linear().domain([0.5, 20]).range([h-yPadding, yPadding]);
+ 
+       
+    // Positions the dots based on data
+    function position(dot) {
+      dot
+        .attr("cx", function (d,i){ return xScale(x(d)); })
+        .attr("cy", function (d  ){ return yScale(y(d)); })
+        .attr("r", function(d) { return d.len; });
+    }
+    
+    var lineFunction = d3.svg.line()
+                         .x(function(d) { return xScale(x(d)); })
+                         .y(function(d) { return yScale(y(d)); })
+                         .interpolate("linear");
+
+    // Sort numbers ascending
+    function compareNumbers(a, b) {
+     return a - b;
+    }
+
+    ////////////////////////////////////////////////
+    // Update Individual Locations
+    // fData contains this and the previous sampleNum, unless it is the first sampleNum
+    
+    function render(fData,sampleNum) {
+
+      var circles = svg.selectAll("circle")
+            .data(getData(fData,sampleNum),keyID)
+           
+          circles.enter()
+            .append("circle")
+            .style("fill",  function(d){ return colorScale(color(d)); })
+
+          circles
+            .transition()
+            .duration(1000*seconds)
+              .call(position)
+          ;
+
+          circles.exit().remove();
+          
+          
+      //The line SVG Path 
+      //This transitions the line between the two samples, which is cool, but not what we want
+ /*     var lineGraph = svg.selectAll("path")
+          .data(fData)
+          
+          lineGraph.enter()
+            .append("path")
+        
+          lineGraph
+            .transition()
+            .duration(1000*seconds)    
+            .attr("d", lineFunction(fData))
+            .attr("stroke", "blue")
+            .attr("stroke-width", 2)
+            .attr("fill", "none");
+  */          
+/////////////
+      if (sampleNum > sampSet[0]) {
+        
+        var circleLine = svg.selectAll("line")
+           .data(getData(fData,sampleNum-1),keyID)
+           ;
+console.log(getData(fData,sampleNum-1));
+console.log(getData(fData,sampleNum));
+
+          circleLine.enter()
+            .append("line")
+            .attr("stroke", function(d){ return colorScale(color(d)); })
+            .attr("stroke-width", 2);
+         
+          circleLine
+            .attr("x1",function(d) { return xScale(x(d)); })
+            .attr("y1",function(d) { return yScale(y(d)); })
+
+            .data(getData(fData,sampleNum),keyID)
+              .transition()
+              .duration(1000*seconds)
+                .attr("x2", function(d) { return xScale(x(d)); })
+                .attr("y2", function(d) { return yScale(y(d)); }) 
+
+          ;
+          
+     //     circleLine.exit().remove();
+      }
+    }
+
+ // run //
+ 
+      d3.csv("d3FishMoveLong3_2Fish.csv", type,  function (inData){
+        console.log(inData);
+        //Map sample num to array
+        var samps = inData.map(function(d) { return d.sample; });
+
+        //Construct set of samples
+        
+        samps.forEach(function(samp) { 
+          if (sampSet.indexOf(samp) == -1) {
+            sampSet.push(samp);
+          }
+        });
+
+        //Sort samples in ascending order
+        sampSet.sort(compareNumbers)
+
+        //Add slider to control samples
+        d3.select("body")
+          .append("input")
+          .attr({type: "range", name: "Sample", min: sampSet[0], max: sampSet[sampSet.length - 1], value: sampSet[0]})
+          .attr("id", "sampSlider")
+          .property("title", "Sample: " + sampSet[sampSet.length - 1])
+          .on("input", function() { 
+            currentSample = Math.floor(this.value);
+            this.title = "Sample: " + Math.floor(this.value);
+            console.log(getDataAndPrevious(inData, Math.floor(this.value)));
+            render(getDataAndPrevious(inData, Math.floor(this.value)),Math.floor(this.value));
+            
+          });
+
+
+        //Position first sample
+        currentSample = sampSet[0];
+        render(getData(inData,sampSet[0]),sampSet[0]);
+
+      });
+
+
+    </script>
+
+  </body>
+</html>

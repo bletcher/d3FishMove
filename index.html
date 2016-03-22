@@ -9,11 +9,20 @@
     <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
     
     <style>
+    
+    #chart {
+    }
+
     text {
       font: 10px sans-serif;
- //     stroke: rgb(81, 81, 81);
+
     }
     
+    text2 {
+      font: 14px sans-serif;
+
+    }
+
     .axis path,
     .axis line {
       fill: none;
@@ -58,23 +67,36 @@
     
     </style>
   </head>
-  <body>
-    
-    <div id="option">
-      <input name="updateButton" 
-             type="button" 
-             value="Unselect all" 
-             onclick="unSelectAll()" />
+  
+  <h2>Visualising movements of tagged fish</h2>
+  
+   <div>
+       <input type="radio" name="optradioBars" value="Yes" onclick="render(2)" checked>Bars:Yes 
+       <input type="radio" name="optradioBars" value="No" onclick="render(2)">Bars:No 
    </div>
-   
+
    <div>
        <input type="radio" name="optradio" value="Count" onclick="render(2)" checked>Count<br>
        <input type="radio" name="optradio" value="Biomass" onclick="render(2)">Biomass
    </div>
    <div>
-       <input type="radio" name="optradioBars" value="Yes" onclick="render(2)" checked>Bars:Yes<br>
-       <input type="radio" name="optradioBars" value="No" onclick="render(2)">Bars:No
+       <input type="radio" name="optradioDot" value="All dots" onclick="render(2)" checked> Dots: all
+       <input type="radio" name="optradioDot" value="Selected dots" onclick="render(2)">Dots: selected 
    </div>
+   
+   <div id="option">
+     <input name="updateButton" 
+         type="button" 
+         value="Unselect all dots" 
+         onclick="unSelectAll()" />
+   </div>
+
+  <p id="chart"></p>
+  <p>The graph on the left shows absolute position along a stream segment (O'Bear Brook). The graph on the right shows individual movements.</p>
+  <p> Dots are individual fish, with radius proportional to body length. Move the slider to advance seasonal samples. Recaptured fish will change y-axis position if they were observed to move and change x-axis poition based on body growth. Newly tagged fish on the sample will initially appear as green and fish that are never seen again will turn red and disappear.  </p>
+  <p>Select individual fish by clicking on a dot. Viewing just the selected points using the radio button is under construction.</p>
+  
+  <p> Bars on the sides of the graphs sum up the count or biomass (depending on which radio button is selected) for each section (left) or distance moved (right).</p>
 
   <script>
  // some global variables //
@@ -83,9 +105,10 @@
         selectedID = [],
         inData,
         currentSample,
+        sampSet = [],
         summarizeBySection;
     
- // set up svg element //
+ // set up svg element data //
     var w = 850,
 		    h = 550,
 		    xPadding = 40,
@@ -99,7 +122,7 @@
 		     barMultiplier,
 		     barMultiplierCount = 4,
 		     barMultiplierSumWt = 0.4,
-		     barGreyBase,
+		     barGreyBase,              // these could be replaced with scales
 		     barGreyBaseCount = 200,
 		     barGreyBaseSumWt = 250,
 		     barGreyMult,
@@ -125,7 +148,7 @@
         return Math.round(d);// + " g" ;
       })
     
-    var svg = d3.select("body")
+    var svg = d3.select("#chart")
       .append("svg")
       .attr("width",  w)
       .attr("height", h);
@@ -135,7 +158,7 @@
     var g2 =   gAll.append('g').attr("class", "g2");  
       
  // Accessor functions for circle attributes
-    function x(d,i) { return d.i };
+    function x(d) { return d.len };
     function y(d) { return d.section };
     function y2(d) { return d.distMoved };
     function r(d) { return d.river };
@@ -147,8 +170,12 @@
                               if ( IDinSelectedID(selectedID,d.id) ) {
                                 { return colorScale( color(d) ); } 
                               }                 //return "rgb(128, 43, 0)" } // return colorScale( color(d) ); }
-                              else { return "darkgrey"; } 
-                              } 
+                              else { 
+                                if  (d3.select('input[name="optradioDot"]:checked').node().value == "All dots"){ 
+                                  return "darkgrey"; }
+                                else { return "white"; }  
+                              }
+    }
 
       
  // Scales for absolute position.
@@ -182,6 +209,7 @@
       d.moveDir = +d.moveDir;
       d.distMoved = +d.distMoved;
       d.lagSection = +d.lagSection;
+      d.season = d.seasonStr;
       return d;
     }
 
@@ -189,7 +217,19 @@
       return d.filter( function(d) {
         return d.sample == s;
       });
-    }   
+    } 
+    
+    function getDataAndPrevious(d,s) {
+      return d.filter( function(d){
+        return d.sample == s || d.sample == (s-1);
+      });
+    }
+    
+    function getDataAndSelected(dd,s) {
+      return dd.filter( function(d) {
+        return d.sample == s & IDinSelectedID(selectedID,d.id);
+      });
+    }
 
 ///////////////////////////////////////////// 
 // functions for showing and selecting dots  
@@ -198,17 +238,17 @@
     // Absolute positions for the dots based on data
     function position(dot) {
       dot
-        .attr("cx", function (d){ return xScale(d.len); })
+        .attr("cx", function (d){ return xScale(x(d)); })
         .attr("cy", function (d  ){ return yScale(y(d)); })
-        .attr("r", function(d) { return radiusScale(d.len); });
+        .attr("r", function(d) { return radiusScale(x(d)); });
     }
 
     // Relative positions for the dots based on data
     function position2(dot) {
       dot
-        .attr("cx", function (d){ return xScale2(d.len); })
+        .attr("cx", function (d){ return xScale2(x(d)); })
         .attr("cy", function (d  ){ return yScale2(y2(d)); })
-        .attr("r", function(d) { return radiusScale(d.len); });
+        .attr("r", function(d) { return radiusScale(x(d)); });
     }
 
     // Sort numbers ascending
@@ -279,14 +319,7 @@
 ///////////////////////////////////////////// 
 // Functions for the line plot  
 /////////////////////////////////////////////    
-    var line = d3.svg.line()
-      .interpolate("linear")
-      .x(function(d,i) {return xScale(d.len);})
-      .y(function(d) {return yScale(y(d));})
-      ;
-    
 
-    
 //////////////////////////////
 
     svg.call(tip);
@@ -301,7 +334,7 @@
 /////////////////////////////////////////////////////////////////////////    
 // Update absolute position bar plots - put before circles so circles are on top
 ///////////////////////////////////////////////////////////////////////// 
-      
+    
   // Get counts and biomass by section into an array (sectArrxxx)
         summarizeBySection = d3.nest()
           .key(function(d) { return d.section; })
@@ -311,7 +344,7 @@
                count: d.length
              };
           })
-          .map(inData);
+          .map(getData(inData,currentSample));
 
           var sectArrCount = [];
           var sectArrSumWt = [];
@@ -339,6 +372,8 @@
         barGreyBase = barGreyBaseSumWt;
         barGreyMult = barGreyMultSumWt;
       } 
+      
+
 
       // BIND DATA
       var bars = g1.selectAll("rect")
@@ -392,7 +427,7 @@
                count: d.length
              };
           })
-          .map(inData);
+          .map(getData(inData,currentSample));
 
           var sectArrCount2 = [];
           var sectArrSumWt2 = [];
@@ -476,7 +511,7 @@
 
       // BIND DATA
       var circles = g1.selectAll("circle")
-            .data(inData, keyID);
+            .data(getData(inData,currentSample), keyID);
 
       // APPEND NEW CIRCLE for each data element that doesn't already have a circle
       circles.enter().append("circle")
@@ -491,52 +526,61 @@
 
       // UPDATE the color/position/size of each circle that has a data element
       circles
+        .call(moveToFrontIfSelected)
         .transition()
           .duration(1000*seconds)
             .style("fill", colorWithSelected)// function(d  ){ return colorScale( color(d) ); })
             .style("fill-opacity", 1)
             .call(position)
-            .call(moveToFrontIfSelected)
         ;
 
       // REMOVE any existing circles that no longer have data
       circles.exit()
           .style("fill", "red")
           .transition()
-            .duration(1000*seconds)
+            .duration(1000*seconds/2)
             .style("fill-opacity", 1e-3)
        .remove();
        
 /////
-/*    var path = g1.append("path")
-      .attr("d", line(inData))
-      .attr("stroke", "steelblue")
-      .attr("stroke-width", "2")
-      .attr("fill", "none");
 
-    var totalLength = path.node().getTotalLength();
-
-    path
-      .attr("stroke-dasharray", totalLength + " " + totalLength)
-      .attr("stroke-dashoffset", totalLength)
-      .transition()
-        .duration(2000)
-        .ease("linear")
-        .attr("stroke-dashoffset", 0);
+     if (currentSample > sampSet[0]) {
+        var last = getDataAndSelected(inData,currentSample-1);
+        var current = getDataAndSelected(inData,currentSample);
         
-       defined above
-    var line = d3.svg.line()
-      .interpolate("linear")
-      .x(function(d,i) {return xScale(d.len);})
-      .y(function(d) {return yScale(y(d));})
-      ;
-  */     
+        console.log(selectedID);
+        console.log(last);
+        console.log(current);
+
+        var circleLine = g1.selectAll("line")
+           .data(last,keyID);
+
+          circleLine.enter()
+            .append("line")
+            .attr("stroke", function(d){ return colorScale(color(d)); })
+            .attr("stroke-width", 2);
+
+          circleLine
+            .attr("x1",function(d) { return xScale(x(d)); })
+            .attr("y1",function(d) { return yScale(y(d)); })
+            .data(current,keyID)
+              .transition()
+              .duration(1000*seconds)
+                .attr("x2", function(d) { return xScale(x(d)); })
+                .attr("y2", function(d) { return yScale(y(d)); }) 
+
+          ;
+          
+          circleLine.exit().remove();
+      }
+     
+     
 //////////////////////////////      
 ///// Relative position //////
 
       // BIND DATA
       var circles2 = g2.selectAll("circle")
-            .data(inData, keyID);
+            .data(getData(inData,currentSample), keyID);
 
       // APPEND NEW CIRCLE for each data element that doesn't already have a circle
       circles2.enter().append("circle")
@@ -550,12 +594,12 @@
 
       // UPDATE the color/position/size of each circle that has a data element
       circles2
+        .call(moveToFrontIfSelected)
         .transition()
           .duration(1000*seconds)
             .style("fill", colorWithSelected)
             .style("fill-opacity", 1)
             .call(position2)
-            .call(moveToFrontIfSelected)
         ;
   
       // REMOVE any existing circles that no longer have data
@@ -579,24 +623,26 @@
         var samps = allData.map(function(d) { return d.sample; });
 
         //Construct set of samples
-        var sampSet = [];
         samps.forEach(function(samp) { 
           if (sampSet.indexOf(samp) == -1) {
             sampSet.push(samp);
           }
         });
-
+        
         //Sort samples in ascending order
         sampSet.sort(compareNumbers)
        
         //Add slider to control samples
-        d3.select("body")
+        d3.select("#chart")
           .append("input")
           .attr({type: "range", name: "Sample", min: sampSet[0], max: sampSet[sampSet.length - 1], value: sampSet[0]})
           .attr("id", "sampSlider")
           .property("title", "Sample: " + sampSet[sampSet.length - 1])
           .on("input", function() { 
-            inData = getData(allData,Math.floor(this.value));
+     //       inData = getData(allData,Math.floor(this.value));
+              inData = getDataAndPrevious(allData, Math.floor(this.value));
+              label.text(inData[inData.length-1].season); //grab season of the last fish - make sure don't get 'previous' sample
+              labelY.text(inData[inData.length-1].year);
             currentSample = Math.floor(this.value);
             render();
             this.title = "Sample: " + Math.floor(this.value);
@@ -605,6 +651,8 @@
 
         //Position first sample
         inData = getData(allData,sampSet[0]);
+        label.text(inData[0].season);
+        labelY.text(inData[0].year);
         currentSample = sampSet[0]
         render();
 
@@ -678,11 +726,25 @@
         .text("Distance to move (20 m sections)");
     
 // ----------------------------------------------
+// Add the year label; the value is set on transition.
+var label = svg.append("text")
+    .attr("class", "year label")
+    .attr("text-anchor", "end")
+    .attr("y", h-8)
+    .attr("x", w-32)
+    //.text("Spring")
+    ;
+
+var labelY = svg.append("text")
+    .attr("class", "year label")
+    .attr("text-anchor", "end")
+    .attr("y", h-8)
+    .attr("x", w-5)
+    //.text("Spring")
+    ;
 
 
     </script>
-
-  </body>
 </html>
 
 

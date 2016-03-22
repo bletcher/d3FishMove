@@ -23,6 +23,10 @@ out <- cd %>%
                  season = season) %>%
          filter( !is.na(len) ) # have one fish right now
 
+out$seasonStr <- ifelse(out$season == 1, "Spring", 
+                 ifelse(out$season == 2, "Summer",
+                 ifelse(out$season == 3, "Autumn","Winter")))
+
 write.csv(out,file='coreDataOut.csv', row.names = F)
 
 
