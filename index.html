@@ -106,7 +106,8 @@
         inData,
         currentSample,
         sampSet = [],
-        summarizeBySection;
+        summarizeBySection,
+        selectedRiver;
     
  // set up svg element data //
     var w = 850,
@@ -231,6 +232,11 @@
       });
     }
 
+    function getDataRiver(d,s) {
+      return d.filter( function(d) {
+        return d.river == s;
+      });
+    }
 ///////////////////////////////////////////// 
 // functions for showing and selecting dots  
 /////////////////////////////////////////////
@@ -345,7 +351,7 @@
              };
           })
           .map(getData(inData,currentSample));
-
+console.log(summarizeBySection);
           var sectArrCount = [];
           var sectArrSumWt = [];
           for ( i = 1; i < maxSection + 1; i++){  
@@ -618,6 +624,61 @@
 ///////////////////////////////////////////////////////
 
     d3.csv("coreDataOut.csv", type,  function (allData){  
+      
+        selectedRiver = "IL";  //set default river
+        
+        //Map year to array
+        var years = allData.map(function(d) { return d.year; }),
+            yearSet=[];
+
+        //Construct set of samples
+        years.forEach(function(year) { 
+          if (yearSet.indexOf(year) == -1) {
+            yearSet.push(year);
+          }
+        });
+ console.log(yearSet);
+ 
+         
+        
+        //Map river to array
+        var rivers = allData.map(function(d) { return d.river; }),
+            riverSet=[];
+
+        //Construct set of samples
+        rivers.forEach(function(river) { 
+          if (riverSet.indexOf(river) == -1) {
+            riverSet.push(river);
+          }
+        });
+
+        var ddRiver = d3.select("body")
+          .append("select");
+          
+        var optionsriver = ddRiver.selectAll("option")
+           .data(riverSet)
+         .enter()
+           .append("option");
+           
+        optionsriver.text(function (d) { return d; })
+          .attr("value", function (d) { return d; });   
+           
+        ddRiver.on("change", function(d) {
+ /*         d3.select(this)
+            .selectAll("option")
+            .filter(function (d, i) { 
+                return this.selected;
+                
+*/         selectedRiver = d3.event.target.value; 
+            console.log(selectedRiver);
+          // inData = getDataRiver(inData,selectedRiver);
+              inData = getDataAndPrevious(allData, currentSample);
+              inData = getDataRiver(inData,selectedRiver);
+           render();
+           
+        } );   
+           
+
 
         //Map sample num to array
         var samps = allData.map(function(d) { return d.sample; });
@@ -629,6 +690,7 @@
           }
         });
         
+       
         //Sort samples in ascending order
         sampSet.sort(compareNumbers)
        
@@ -641,6 +703,7 @@
           .on("input", function() { 
      //       inData = getData(allData,Math.floor(this.value));
               inData = getDataAndPrevious(allData, Math.floor(this.value));
+              inData = getDataRiver(inData,selectedRiver);
               label.text(inData[inData.length-1].season); //grab season of the last fish - make sure don't get 'previous' sample
               labelY.text(inData[inData.length-1].year);
             currentSample = Math.floor(this.value);
@@ -651,6 +714,7 @@
 
         //Position first sample
         inData = getData(allData,sampSet[0]);
+        inData = getDataRiver(inData,selectedRiver);
         label.text(inData[0].season);
         labelY.text(inData[0].year);
         currentSample = sampSet[0]
@@ -726,9 +790,9 @@
         .text("Distance to move (20 m sections)");
     
 // ----------------------------------------------
-// Add the year label; the value is set on transition.
+// Add the season label; the value is set on transition.
 var label = svg.append("text")
-    .attr("class", "year label")
+    .attr("class", "season label")
     .attr("text-anchor", "end")
     .attr("y", h-8)
     .attr("x", w-32)
