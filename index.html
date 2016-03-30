@@ -10,6 +10,26 @@
     
     <style>
     
+  /*  <div style="background-color:black; color:white; padding:20px;"> */
+    
+    header {
+      position: fixed;
+      width: 100%;
+      height: 40px;
+      top: 0;
+      left: 0;
+      background: rgba(40, 40, 40, 0.5);
+      color: white;
+      padding: 10px;
+      font-family: 'Open Sans', "proxima-nova-alt", Helvetica, Arial, sans-serif;
+ /*     z-index: 2000;*/
+    }
+    
+    header .brand {
+      font-variant: small-caps;
+      font-size: 24pt;
+    }
+    
     #chart {
     }
 
@@ -68,8 +88,12 @@
     </style>
   </head>
   
-  <h2>Visualising movements of tagged fish</h2>
-  
+  <body>
+
+    <header>
+       <span class="brand">Visualising fish movements</span>
+    </header>
+ 
    <div>
        <input type="radio" name="optradioBars" value="Yes" onclick="render(2)" checked>Bars:Yes 
        <input type="radio" name="optradioBars" value="No" onclick="render(2)">Bars:No 
@@ -98,9 +122,13 @@
   
   <p> Bars on the sides of the graphs sum up the count or biomass (depending on which radio button is selected) for each section (left) or distance moved (right).</p>
 
+ 
+ 
+ 
   <script>
  // some global variables //
-    var maxSection = 15,
+    var maxSection=14,
+        maxLength=220,
         timeSteps = 25,
         selectedID = [],
         inData,
@@ -108,7 +136,17 @@
         sampSet = [],
         summarizeBySection,
         selectedRiver;
-    
+        
+ // Global scale values       
+    var xScale,
+        yScale,
+        xScale2,
+        yScale2,
+        yScale2Bar,
+        radiusScale,
+        colorScale,
+        yAxis1;
+        
  // set up svg element data //
     var w = 850,
 		    h = 550,
@@ -178,19 +216,20 @@
                               }
     }
 
-      
- // Scales for absolute position.
-    var xScale = d3.scale.linear().domain([50, 220]).range([xPadding, w/2-xPadding/1]),
-        yScale = d3.scale.linear().domain([0.5, maxSection]).range([h-yPadding, yPadding]);
- 
- // Scales for relative position.
-    var xScale2 = d3.scale.linear().domain([50, 220]).range([w/2 + xPadding + tweenPadding, w - xPadding + tweenPadding]),
-        yScale2 = d3.scale.linear().domain([-maxSection, maxSection]).range([h - yPadding, yPadding]),
-        yScale2Bar = d3.scale.linear().domain([-0.75, maxSection * 2]).range([h - yPadding, yPadding]); // not sure why 0.75 works
 
-    var radiusScale = d3.scale.linear().domain([50, 200]).range([2, 8]),
-        colorScale = d3.scale.category10();        
-
+    function getScales(maxLength,maxSection){  
+   // Scales for absolute position.
+          xScale = d3.scale.linear().domain([50, maxLength]).range([xPadding, w/2-xPadding/1]);
+          yScale = d3.scale.linear().domain([0.5, maxSection]).range([h-yPadding, yPadding]);
+   
+   // Scales for relative position.
+          xScale2 = d3.scale.linear().domain([50, maxLength]).range([w/2 + xPadding + tweenPadding, w - xPadding + tweenPadding]);
+          yScale2 = d3.scale.linear().domain([-maxSection, maxSection]).range([h - yPadding, yPadding]);
+          yScale2Bar = d3.scale.linear().domain([-0.75, maxSection * 2]).range([h - yPadding, yPadding]); // not sure why 0.75 works
+  
+          radiusScale = d3.scale.linear().domain([50, maxLength]).range([2, 8]);
+          colorScale = d3.scale.category10();        
+    }
 
 /*    var timeScale = d3.time.scale.utc()  // utc does't shift for daylight saving time
         .domain([Date.parse(new Date(2002, 0, 1)),
@@ -625,7 +664,7 @@ console.log(summarizeBySection);
 
     d3.csv("coreDataOut.csv", type,  function (allData){  
       
-        selectedRiver = "IL";  //set default river
+        selectedRiver = "WB";  //set default river
         
         //Map year to array
         var years = allData.map(function(d) { return d.year; }),
@@ -674,11 +713,42 @@ console.log(summarizeBySection);
           // inData = getDataRiver(inData,selectedRiver);
               inData = getDataAndPrevious(allData, currentSample);
               inData = getDataRiver(inData,selectedRiver);
+              
+              maxLength = d3.max(getDataRiver(allData,selectedRiver), function(d) { return d.len; })
+              console.log(maxLength);  
+              maxSection = d3.max(getDataRiver(allData,selectedRiver), function(d) { return d.section; })
+              console.log(maxSection);
+         //     getScales(maxLength,maxSection);
+                         // Scales for absolute position.
+                  xScale = d3.scale.linear().domain([50, maxLength]).range([xPadding, w/2-xPadding/1]);
+                  yScale = d3.scale.linear().domain([0.5, maxSection]).range([h-yPadding, yPadding]);
+           
+           // Scales for relative position.
+                  xScale2 = d3.scale.linear().domain([50, maxLength]).range([w/2 + xPadding + tweenPadding, w - xPadding + tweenPadding]);
+                  yScale2 = d3.scale.linear().domain([-maxSection, maxSection]).range([h - yPadding, yPadding]);
+                  yScale2Bar = d3.scale.linear().domain([-0.75, maxSection * 2]).range([h - yPadding, yPadding]); // not sure why 0.75 works
+          
+                  radiusScale = d3.scale.linear().domain([50, maxLength]).range([2, 8]);
+                  colorScale = d3.scale.category10(); 
+              
+                  var yAxis1 = d3.svg.axis().scale(yScale).orient("left").ticks(maxSection, d3.format(",d"));
+    y.domain([0.5, maxSection]);
+    svg.append("g")
+        .attr("class", "axis")
+        .attr("transform","translate(" + xPadding  + ",0)")
+        .call(yAxis1);
+        
+        
+            
+ //   var t1 = t0.transition();
+//    t1.selectAll(".line").attr("d", line);
+//    t1.selectAll(".label").attr("transform", transform);
+//    t1.selectAll(".y.axis").call(yAxis);
+        
+              
            render();
            
         } );   
-           
-
 
         //Map sample num to array
         var samps = allData.map(function(d) { return d.sample; });
@@ -694,6 +764,8 @@ console.log(summarizeBySection);
         //Sort samples in ascending order
         sampSet.sort(compareNumbers)
        
+    //    getScales(220,14);//maxLength,maxSection);
+       
         //Add slider to control samples
         d3.select("#chart")
           .append("input")
@@ -704,13 +776,32 @@ console.log(summarizeBySection);
      //       inData = getData(allData,Math.floor(this.value));
               inData = getDataAndPrevious(allData, Math.floor(this.value));
               inData = getDataRiver(inData,selectedRiver);
+          //    getScales(maxLength,maxSection);
               label.text(inData[inData.length-1].season); //grab season of the last fish - make sure don't get 'previous' sample
               labelY.text(inData[inData.length-1].year);
-            currentSample = Math.floor(this.value);
-            render();
-            this.title = "Sample: " + Math.floor(this.value);
+              currentSample = Math.floor(this.value);
+              render();
+              this.title = "Sample: " + Math.floor(this.value);
           console.log(currentSample);
           });
+
+        maxLength = d3.max(getDataRiver(allData,selectedRiver), function(d) { return d.len; })
+        console.log(maxLength);  
+        maxSection = d3.max(getDataRiver(allData,selectedRiver), function(d) { return d.section; })
+        console.log(maxSection); 
+       
+       // getScales(maxLength,maxSection);
+           // Scales for absolute position.
+          xScale = d3.scale.linear().domain([50, maxLength]).range([xPadding, w/2-xPadding/1]);
+          yScale = d3.scale.linear().domain([0.5, maxSection]).range([h-yPadding, yPadding]);
+   
+   // Scales for relative position.
+          xScale2 = d3.scale.linear().domain([50, maxLength]).range([w/2 + xPadding + tweenPadding, w - xPadding + tweenPadding]);
+          yScale2 = d3.scale.linear().domain([-maxSection, maxSection]).range([h - yPadding, yPadding]);
+          yScale2Bar = d3.scale.linear().domain([-0.75, maxSection * 2]).range([h - yPadding, yPadding]); // not sure why 0.75 works
+  
+          radiusScale = d3.scale.linear().domain([50, maxLength]).range([2, 8]);
+          colorScale = d3.scale.category10(); 
 
         //Position first sample
         inData = getData(allData,sampSet[0]);
@@ -729,7 +820,7 @@ console.log(summarizeBySection);
           };  
         });
 */
-      });
+//      });
       
       
 // ----------------------------------------------
@@ -740,11 +831,13 @@ console.log(summarizeBySection);
         .attr("transform","translate(0," + (h- yPadding) +")")
         .call(xAxis1);
         
-    var yAxis1 = d3.svg.axis().scale(yScale).orient("left").ticks(15, d3.format(",d"));
+    yAxis1 = d3.svg.axis().scale(yScale).orient("left").ticks(maxSection, d3.format(",d"));
     svg.append("g")
         .attr("class", "axis")
         .attr("transform","translate(" + xPadding  + ",0)")
+        .transition()
         .call(yAxis1);
+  //  yAxis1.exit().remove();        
  
  // Add x-axis1 label 
     svg.append("text")
@@ -768,7 +861,7 @@ console.log(summarizeBySection);
         .attr("transform","translate(0," + (h- yPadding) +")")
         .call(xAxis2);
         
-    var yAxis2 = d3.svg.axis().scale(yScale2).orient("left").ticks(15, d3.format(",d"));
+    var yAxis2 = d3.svg.axis().scale(yScale2).orient("left").ticks(maxSection, d3.format(",d"));
     svg.append("g")
         .attr("class", "axis")
         .attr("transform","translate(" + (w/2 + xPadding + tweenPadding)  + ",0)")
@@ -788,7 +881,7 @@ console.log(summarizeBySection);
         .attr("class", "y label")
         .attr('transform', 'translate(' + (w/2 + xPadding + tweenPadding - 30) + ',' + h / 1.6 + ') rotate(-90)')
         .text("Distance to move (20 m sections)");
-    
+    });
 // ----------------------------------------------
 // Add the season label; the value is set on transition.
 var label = svg.append("text")
@@ -809,6 +902,7 @@ var labelY = svg.append("text")
 
 
     </script>
+      </body> 
 </html>
 
 
