@@ -1,908 +1,215 @@
-
-
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>Fish movements</title>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
-    <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
-    
-    <style>
-    
-  /*  <div style="background-color:black; color:white; padding:20px;"> */
-    
-    header {
-      position: fixed;
-      width: 100%;
-      height: 40px;
-      top: 0;
-      left: 0;
-      background: rgba(40, 40, 40, 0.5);
-      color: white;
-      padding: 10px;
-      font-family: 'Open Sans', "proxima-nova-alt", Helvetica, Arial, sans-serif;
- /*     z-index: 2000;*/
-    }
-    
-    header .brand {
-      font-variant: small-caps;
-      font-size: 24pt;
-    }
-    
-    #chart {
-    }
-
-    text {
-      font: 10px sans-serif;
-
-    }
-    
-    text2 {
-      font: 14px sans-serif;
-
-    }
-
-    .axis path,
-    .axis line {
-      fill: none;
-      stroke: rgb(81, 81, 81);
-      shape-rendering: crispEdges;
-    }
-
-    .axis text {
-        font-family: sans-serif;
-        font-size: 11px;
-  //      stroke: rgb(81, 81, 81);
-    }
-    
-    .d3-tip {
-        line-height: 1;
-        font-weight: bold;
-        padding: 12px;
-        background: rgba(0, 0, 0, 0.7);
-        color: #fff;
-        border-radius: 2px;
-    }
-
-    /* Creates a small triangle extender for the tooltip */
-    .d3-tip:after {
-        box-sizing: border-box;
-        display: inline;
-        font-size: 10px;
-        width: 100%;
-        line-height: 1;
-        color: rgba(0, 0, 0, 0.8);
-        content: "\25BC";
-        position: absolute;
-        text-align: center;
-    }
-
-    /* Style northward tooltips differently */
-    .d3-tip.n:after {
-        margin: -1px 0 0 0;
-        top: 100%;
-        left: 0;
-    }
-    
-    </style>
-  </head>
+<html lang="en">
+<head>
+  <title>Fish Movement</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   
-  <body>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+  <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+  
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 
-    <header>
-       <span class="brand">Visualising fish movements</span>
-    </header>
- 
-   <div>
-       <input type="radio" name="optradioBars" value="Yes" onclick="render(2)" checked>Bars:Yes 
-       <input type="radio" name="optradioBars" value="No" onclick="render(2)">Bars:No 
-   </div>
-
-   <div>
-       <input type="radio" name="optradio" value="Count" onclick="render(2)" checked>Count<br>
-       <input type="radio" name="optradio" value="Biomass" onclick="render(2)">Biomass
-   </div>
-   <div>
-       <input type="radio" name="optradioDot" value="All dots" onclick="render(2)" checked> Dots: all
-       <input type="radio" name="optradioDot" value="Selected dots" onclick="render(2)">Dots: selected 
-   </div>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/6.1.5/css/bootstrap-slider.css" rel="stylesheet">
+  <script type='text/javascript' src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/6.1.5/bootstrap-slider.js"></script>
    
-   <div id="option">
-     <input name="updateButton" 
-         type="button" 
-         value="Unselect all dots" 
-         onclick="unSelectAll()" />
-   </div>
+  <link rel="stylesheet" href="css/ice.css">
+  <link rel="stylesheet" href="css/movement.css">
 
-  <p id="chart"></p>
-  <p>The graph on the left shows absolute position along a stream segment (O'Bear Brook). The graph on the right shows individual movements.</p>
-  <p> Dots are individual fish, with radius proportional to body length. Move the slider to advance seasonal samples. Recaptured fish will change y-axis position if they were observed to move and change x-axis poition based on body growth. Newly tagged fish on the sample will initially appear as green and fish that are never seen again will turn red and disappear.  </p>
+</head>
+
+
+<body>
+
+    <!-- Navigation bar -->
+    <nav class="navbar navbar-default">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span> 
+          </button>
+          <a class="navbar-brand" href="#">Visualising movements</a>
+        </div>
+        <div class="collapse navbar-collapse" id="myNavbar">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="#">WHO</a></li>
+            <li><a href="#">WHAT</a></li>
+            <li><a href="#">WHERE</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Header -->
+        <div class="row">
+          
+            <div class="col-lg-7">
+                <h3 class="page-header">Brook trout in a small stream in western MA, USA
+                    <small></small>
+                </h3>
+            </div>
+
+            <div class="col-lg-5">
+              <button type="button" class="btn btn-sm dropdown-toggle" data-toggle="dropdown">
+              River <span class="caret"></span></button>
+              <ul class="dropdown-menu" role="menu" id="selectedRiverDD">
+                <li><a href="#">WB</a></li>
+                <li><a href="#">OL</a></li>
+                <li><a href="#">OS</a></li>
+                <li><a href="#">IL</a></li>
+              </ul>
+         
+              <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-default">Unselect all</button>
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                  Show dots <span class="caret"></span></button>
+                  <ul class="dropdown-menu" role="menu">
+                    <li><a href="#">All</a></li>
+                    <li><a href="#">Selected</a></li>
+                  </ul>
+              </div>
+     
+              <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-default">No Bars</button>
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                  Bars <span class="caret"></span></button>
+                  <ul class="dropdown-menu" role="menu">
+                    <li><a href="#">Count</a></li>
+                    <li><a href="#">Biomass</a></li>
+                  </ul>
+              </div>
+              
+            </div>
+        </div>
+    
+        <!-- /.row -->
+
+        <!-- Projects Row -->
+        <div class="row">
+            <div class="col-md-6" id="g1">
+                <a href="#">
+                    <img class="img-responsive" src="http://placehold.it/700x400" alt="">
+                </a>
+                <h4>
+                    <a href="#">Absolute position</a>
+                </h4>
+            </div>
+            <div class="col-md-6" id="g2">
+                <a href="#">
+                    <img class="img-responsive" src="http://placehold.it/700x400" alt="">
+                </a>
+                <h4>
+                    <a href="#">Movement distance</a>
+                </h4>
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <hr>
+
+        <!-- Slider section -->
+        <div class="row">
+            <div class="col-lg-11">
+                <div class="sliderSection">
+
+                  <input id="sampleSlider" data-slider-width="1000px" />
+
+                </div>
+            </div>
+            <div class="col-lg-1">
+
+                <div id="yearLabel"></div>
+                <div id="seasonLabel"></div>
+
+            </div>  
+        </div>
+        <!-- /.slider -->
+
+        <hr>
+
+        <!-- Info section -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="infoSection">
+                    
+                        <p> Dots are individual fish, with radius proportional to body length. Move the slider to advance seasonal samples. Recaptured fish will change y-axis position if they were observed to move and change x-axis poition based on body growth. Newly tagged fish on the sample will initially appear as green and fish that are never seen again will turn red and disappear.  </p>
   <p>Select individual fish by clicking on a dot. Viewing just the selected points using the radio button is under construction.</p>
   
   <p> Bars on the sides of the graphs sum up the count or biomass (depending on which radio button is selected) for each section (left) or distance moved (right).</p>
+                    
+                </div>
+            </div>
+        </div>
+        <!-- /.row -->
 
- 
- 
- 
-  <script>
- // some global variables //
-    var maxSection=14,
-        maxLength=220,
-        timeSteps = 25,
-        selectedID = [],
-        inData,
-        currentSample,
-        sampSet = [],
-        summarizeBySection,
-        selectedRiver;
-        
- // Global scale values       
-    var xScale,
-        yScale,
-        xScale2,
-        yScale2,
-        yScale2Bar,
-        radiusScale,
-        colorScale,
-        yAxis1;
-        
- // set up svg element data //
-    var w = 850,
-		    h = 550,
-		    xPadding = 40,
-		    yPadding = 40,
-		    tweenPadding = 10,
-		    barPadding = 3;
-		    
- // Bar variables	//	    
-		 var barData = [],
-		     barData2 = [],
-		     barMultiplier,
-		     barMultiplierCount = 4,
-		     barMultiplierSumWt = 0.4,
-		     barGreyBase,              // these could be replaced with scales
-		     barGreyBaseCount = 200,
-		     barGreyBaseSumWt = 250,
-		     barGreyMult,
-		     barGreyMultCount = 4,
-		     barGreyMultSumWt = 0.4;
-		  
-//var margin = {top: 20, right: 50, bottom: 30, left: 50},
-//    width = 960 - margin.left - margin.right,
-//    height = 500 - margin.top - margin.bottom;
+        <hr>
 
-    // Define tool tips //
-    var tip = d3.tip()
-      .attr('class', 'd3-tip')
-      .offset([-10, 0])
-      .html(function(d) {
-        return "Fish " + d.id ;
-      })
-      
-    var tipBar = d3.tip()
-      .attr('class', 'd3-tip')
-      .offset([-10, 0])
-      .html(function(d) {
-        return Math.round(d);// + " g" ;
-      })
+        <!-- Footer -->
+        <footer>
+            <div class="row">
+                <div class="col-lg-12">
+                    <p>Data from USGS Conte Lab <a href="http://www.lsc.usgs.gov/?q=cafb-population-dynamics-personnel">Ecology Section</a></p>
+                </div>
+            </div>
+            <!-- /.row -->
+        </footer>
+
+    </div>
+    <!-- /.container -->
+
+    <script type='text/javascript' src="js/functions.js"></script>
+    <script type='text/javascript' src="js/globalVariables.js"></script>    
     
-    var svg = d3.select("#chart")
-      .append("svg")
-      .attr("width",  w)
-      .attr("height", h);
-      
-    var gAll = svg.append('g').attr("class", "gAll");
-    var g1 =   gAll.append('g').attr("class", "g1");
-    var g2 =   gAll.append('g').attr("class", "g2");  
-      
- // Accessor functions for circle attributes
-    function x(d) { return d.len };
-    function y(d) { return d.section };
-    function y2(d) { return d.distMoved };
-    function r(d) { return d.river };
-    
-    function color(d){ return d.id; }
-    function keyID(d){ return d.id; }
-    
-    function colorWithSelected(d) { 
-                              if ( IDinSelectedID(selectedID,d.id) ) {
-                                { return colorScale( color(d) ); } 
-                              }                 //return "rgb(128, 43, 0)" } // return colorScale( color(d) ); }
-                              else { 
-                                if  (d3.select('input[name="optradioDot"]:checked').node().value == "All dots"){ 
-                                  return "darkgrey"; }
-                                else { return "white"; }  
-                              }
-    }
+    <script>
+       
+       
+       
+       
+       // get data and filter based on selections
+       d3.csv("coreDataOut.csv", type,  function (allData){
+       
+         yearSet = sortUnique(allData.map(function(d) { return d.year; }));
+         console.log(yearSet);
+         sampSet = sortUnique(allData.map(function(d) { return d.sample; }));
+         console.log(sampSet);
 
-
-    function getScales(maxLength,maxSection){  
-   // Scales for absolute position.
-          xScale = d3.scale.linear().domain([50, maxLength]).range([xPadding, w/2-xPadding/1]);
-          yScale = d3.scale.linear().domain([0.5, maxSection]).range([h-yPadding, yPadding]);
+         addSlider(sampSet);
    
-   // Scales for relative position.
-          xScale2 = d3.scale.linear().domain([50, maxLength]).range([w/2 + xPadding + tweenPadding, w - xPadding + tweenPadding]);
-          yScale2 = d3.scale.linear().domain([-maxSection, maxSection]).range([h - yPadding, yPadding]);
-          yScale2Bar = d3.scale.linear().domain([-0.75, maxSection * 2]).range([h - yPadding, yPadding]); // not sure why 0.75 works
-  
-          radiusScale = d3.scale.linear().domain([50, maxLength]).range([2, 8]);
-          colorScale = d3.scale.category10();        
-    }
-
-/*    var timeScale = d3.time.scale.utc()  // utc does't shift for daylight saving time
-        .domain([Date.parse(new Date(2002, 0, 1)),
-                 Date.parse(new Date(2003, 12, 2))])
-        .range([0, timeSteps]);  
-*/
- //  functions // 
-
-    function type(d){
-      d.sample = +d.sample;
-      d.date = Date.parse(d.date);
-      d.id = +d.id;
-      d.section = +d.section;
-      d.len = +d.len;
-      d.wt = +d.wt;
-      d.enc = +d.enc;
-      d.moveDir = +d.moveDir;
-      d.distMoved = +d.distMoved;
-      d.lagSection = +d.lagSection;
-      d.season = d.seasonStr;
-      return d;
-    }
-
-    function getData(d,s) {
-      return d.filter( function(d) {
-        return d.sample == s;
-      });
-    } 
-    
-    function getDataAndPrevious(d,s) {
-      return d.filter( function(d){
-        return d.sample == s || d.sample == (s-1);
-      });
-    }
-    
-    function getDataAndSelected(dd,s) {
-      return dd.filter( function(d) {
-        return d.sample == s & IDinSelectedID(selectedID,d.id);
-      });
-    }
-
-    function getDataRiver(d,s) {
-      return d.filter( function(d) {
-        return d.river == s;
-      });
-    }
-///////////////////////////////////////////// 
-// functions for showing and selecting dots  
-/////////////////////////////////////////////
-
-    // Absolute positions for the dots based on data
-    function position(dot) {
-      dot
-        .attr("cx", function (d){ return xScale(x(d)); })
-        .attr("cy", function (d  ){ return yScale(y(d)); })
-        .attr("r", function(d) { return radiusScale(x(d)); });
-    }
-
-    // Relative positions for the dots based on data
-    function position2(dot) {
-      dot
-        .attr("cx", function (d){ return xScale2(x(d)); })
-        .attr("cy", function (d  ){ return yScale2(y2(d)); })
-        .attr("r", function(d) { return radiusScale(x(d)); });
-    }
-
-    // Sort numbers ascending
-    function compareNumbers(a, b) {
-     return a - b;
-    }
-    
-    // Is id in selectedID array?
-    function IDinSelectedID(arr, val) {
-      return arr.some(function(arrVal) {
-        return val === arrVal;
-      });
-    }
-
-    // color and select circles
-    function colorAndSelect(d){
-       d
-          .on('mouseover',function(d) {
-            d3.select(this)
-              .style("fill", "orange")
-              .moveToFront()
-              ;
-          })
-          .on('mouseout',function(d) {
-            d3.select(this)
-              .style("fill", colorWithSelected);
-          })
-          .on("click", function(d) {
-             if ( !IDinSelectedID(selectedID,d.id) ){
-               selectedID.push(d.id);
-               console.log(d.id);
-               console.log(selectedID);
-            
-               d3.select(this)
-                 .style("fill", colorWithSelected)
-                 .moveToFront();
-             }
-             else if ( IDinSelectedID(selectedID,d.id) ){
-               unSelectThisOne(d);
-               console.log(selectedID);
-               
-               d3.select(this)
-                 .style("fill", colorWithSelected);
-             }
-             render(0.2);
-          })
-    }
-    
-    d3.selection.prototype.moveToFront = function() { 
-      return this.each(function() { 
-        this.parentNode.appendChild(this); //try .append()
-      }); 
-    };
-    
-    moveToFrontIfSelected = function(d){
-       if ( IDinSelectedID(selectedID,d.id) ){ moveToFront(d) }
-    }
-    
-    function unSelectAll(){ 
-      selectedID = []; 
-      render(0.2);
-    }
-    
-    function unSelectThisOne(d){ 
-      selectedID.splice(selectedID.indexOf(d.id),1);
-    }
-    
-///////////////////////////////////////////// 
-// Functions for the line plot  
-/////////////////////////////////////////////    
-
-//////////////////////////////
-
-    svg.call(tip);
-    svg.call(tipBar);
-    
-/////////////////////////////////////////////////////////////////////////    
-// Update Individual Locations and bars
-/////////////////////////////////////////////////////////////////////////    
-    function render( seconds ) {
-      if (arguments.length == 0) seconds = 4; // set default to 4 seconds
-
-/////////////////////////////////////////////////////////////////////////    
-// Update absolute position bar plots - put before circles so circles are on top
-///////////////////////////////////////////////////////////////////////// 
-    
-  // Get counts and biomass by section into an array (sectArrxxx)
-        summarizeBySection = d3.nest()
-          .key(function(d) { return d.section; })
-          .rollup(function(d) { 
-             return { 
-               sumWt: d3.sum(d, function(g) { return g.wt; }),
-               count: d.length
-             };
-          })
-          .map(getData(inData,currentSample));
-console.log(summarizeBySection);
-          var sectArrCount = [];
-          var sectArrSumWt = [];
-          for ( i = 1; i < maxSection + 1; i++){  
-            if (d3.select('input[name="optradioBars"]:checked').node().value == "Yes"){
-              sectArrCount.push(summarizeBySection[i].count);
-              sectArrSumWt.push(summarizeBySection[i].sumWt);
-            } 
-            // Don't plot bars if opt button is 'no'
-            else if (d3.select('input[name="optradioBars"]:checked').node().value == "No"){
-              sectArrCount.push(0);
-              sectArrSumWt.push(0);
-            } 
-          }
-
-      if (d3.select('input[name="optradio"]:checked').node().value == "Count"){ 
-        barData = sectArrCount;
-        barMultiplier = barMultiplierCount;
-        barGreyBase = barGreyBaseCount;
-        barGreyMult = barGreyMultCount;
-      }
-      else if (d3.select('input[name="optradio"]:checked').node().value == "Biomass"){ 
-        barData = sectArrSumWt;
-        barMultiplier = barMultiplierSumWt;
-        barGreyBase = barGreyBaseSumWt;
-        barGreyMult = barGreyMultSumWt;
-      } 
-      
-
-
-      // BIND DATA
-      var bars = g1.selectAll("rect")
-            .data(barData);
-      
-      // APPEND NEW bar for each data element that doesn't already have a bar
-      bars.enter().append("rect")
-            .style("fill-opacity", 1e-6)
-            .on('mouseover', tipBar.show)
-            .on('mouseout', tipBar.hide)
-      ;
-
-      // UPDATE the color/position/size of each bar that has a data element
-      bars
-        .transition()
-          .duration(1000*seconds)
-            //.style("fill", "orange")
-            .attr("fill", function(d) {
-				     	return "rgb(" + (barGreyBase - d * barGreyMult) + ", " + (barGreyBase - d * barGreyMult) + ", " + (barGreyBase - d * barGreyMult) + ")";
-			      })
-            .style("fill-opacity", 1)
-            .attr("x", function(d, i) {
-			   		  return 400 - d * barMultiplier;//w/2 - (d * 2);
-			      })
-			      .attr("y", function(d,i) {
-			   	  	return yScale(i) - yPadding; 
-			      })
-			      .attr("height", (h/maxSection/1.75 - barPadding))
-			      .attr("width", function(d) {
-			   	  	return d * barMultiplier;
-			      })
-        ;
-  
-      // REMOVE any existing bars that no longer have data
-      bars.exit()
-          .style("fill", "red")
-          .transition()
-          .duration(1000*seconds)
-          .style("fill-opacity", 1e-3)
-       .remove();
-
-/////////////////////////////////////////////////////////////////////////    
-// Update relative position bar plots - put before circles so circles are on top
-///////////////////////////////////////////////////////////////////////// 
-      
-        summarizeByDM = d3.nest()
-          .key(function(d) { return d.distMoved; })
-          .rollup(function(d) { 
-             return { 
-               sumWt: d3.sum(d, function(g) { return g.wt; }),
-               count: d.length
-             };
-          })
-          .map(getData(inData,currentSample));
-
-          var sectArrCount2 = [];
-          var sectArrSumWt2 = [];
-          for ( i = -maxSection; i < maxSection + 1; i++){                        
-             if (summarizeByDM[i] == null){
-               sectArrCount2[i + maxSection + 0] = 0;
-               sectArrSumWt2[i + maxSection + 0] = 0;
-             }
-             else{
-               
-               if (d3.select('input[name="optradioBars"]:checked').node().value == "Yes"){
-                 sectArrCount2[i + maxSection + 0] = summarizeByDM[i].count;
-                 sectArrSumWt2[i + maxSection + 0] = summarizeByDM[i].sumWt;
-               } 
-              // Don't plot bars if opt button is 'no'
-               else if (d3.select('input[name="optradioBars"]:checked').node().value == "No"){
-                 sectArrCount2[i + maxSection + 0] = 0;
-                 sectArrSumWt2[i + maxSection + 0] = 0;
-               } 
-             }
-          }
-
-      if (d3.select('input[name="optradio"]:checked').node().value == "Count"){ 
-        barData2 = sectArrCount2;
-        barMultiplier = barMultiplierCount;
-        barGreyBase = barGreyBaseCount;
-        barGreyMult = barGreyMultCount;
-      }
-      else if (d3.select('input[name="optradio"]:checked').node().value == "Biomass"){ 
-        barData2 = sectArrSumWt2;
-        barMultiplier = barMultiplierSumWt;
-        barGreyBase = barGreyBaseSumWt;
-        barGreyMult = barGreyMultSumWt;
-      }  
-
-      // BIND DATA
-      var bars = g2.selectAll("rect")
-            .data(barData2);
-      
-      // APPEND NEW bar for each data element that doesn't already have a bar
-      bars.enter().append("rect")
-            .style("fill-opacity", 1e-6)
-            .on('mouseover', tipBar.show)
-            .on('mouseout', tipBar.hide)
-      ;
-
-      // UPDATE the color/position/size of each bar that has a data element
-      bars
-        .transition()
-          .duration(1000*seconds)
-            //.style("fill", "orange")
-            .attr("fill", function(d) {
-				     	return "rgb(" + (barGreyBase - d * barGreyMult) + ", " + (barGreyBase - d * barGreyMult) + ", " + (barGreyBase - d * barGreyMult) + ")";
-			      })
-            .style("fill-opacity", 1)
-            .attr("x", function(d, i) {
-			   		  return 825 - d * barMultiplier/10;
-			      })
-			      .attr("y", function(d,i) {
-			   	  	return yScale2Bar(i);
-			      })
-			      .attr("height", (h/maxSection/2.25 - barPadding))
-			      .attr("width", function(d) {
-			   	  	return (d * barMultiplier/10);
-			      })
-        ;
-  
-      // REMOVE any existing bars that no longer have data
-      bars.exit()
-          .style("fill", "red")
-          .transition()
-          .duration(1000*seconds)
-          .style("fill-opacity", 1e-3)
-       .remove();
-            
-/////////////////////////////////////////////////////////////////////////
-// Circles
-/////////////////////////////////////////////////////////////////////////    
-// Update absolute position plots 
-///////////////////////////////////////////////////////////////////////// 
-
-      // BIND DATA
-      var circles = g1.selectAll("circle")
-            .data(getData(inData,currentSample), keyID);
-
-      // APPEND NEW CIRCLE for each data element that doesn't already have a circle
-      circles.enter().append("circle")
-          .style("fill",  "green") //function(d  ){ return colorScale( color(d) ); })
-          .style("fill-opacity", 1e-6)
-          .call(colorAndSelect)
-          .call(moveToFrontIfSelected)
-          .on('mouseover', tip.show)   // have a conflict because there's a mouseover call in colorAndSelect()
-          .on('mouseout', tip.hide)
-          
-          ;
-
-      // UPDATE the color/position/size of each circle that has a data element
-      circles
-        .call(moveToFrontIfSelected)
-        .transition()
-          .duration(1000*seconds)
-            .style("fill", colorWithSelected)// function(d  ){ return colorScale( color(d) ); })
-            .style("fill-opacity", 1)
-            .call(position)
-        ;
-
-      // REMOVE any existing circles that no longer have data
-      circles.exit()
-          .style("fill", "red")
-          .transition()
-            .duration(1000*seconds/2)
-            .style("fill-opacity", 1e-3)
-       .remove();
-       
-/////
-
-     if (currentSample > sampSet[0]) {
-        var last = getDataAndSelected(inData,currentSample-1);
-        var current = getDataAndSelected(inData,currentSample);
-        
-        console.log(selectedID);
-        console.log(last);
-        console.log(current);
-
-        var circleLine = g1.selectAll("line")
-           .data(last,keyID);
-
-          circleLine.enter()
-            .append("line")
-            .attr("stroke", function(d){ return colorScale(color(d)); })
-            .attr("stroke-width", 2);
-
-          circleLine
-            .attr("x1",function(d) { return xScale(x(d)); })
-            .attr("y1",function(d) { return yScale(y(d)); })
-            .data(current,keyID)
-              .transition()
-              .duration(1000*seconds)
-                .attr("x2", function(d) { return xScale(x(d)); })
-                .attr("y2", function(d) { return yScale(y(d)); }) 
-
-          ;
-          
-          circleLine.exit().remove();
-      }
-     
-     
-//////////////////////////////      
-///// Relative position //////
-
-      // BIND DATA
-      var circles2 = g2.selectAll("circle")
-            .data(getData(inData,currentSample), keyID);
-
-      // APPEND NEW CIRCLE for each data element that doesn't already have a circle
-      circles2.enter().append("circle")
-          .style("fill",  "green") //function(d  ){ return colorScale( color(d) ); })
-          .style("fill-opacity", 1e-6)
-          .call(colorAndSelect)
-          .call(moveToFrontIfSelected)
-          .on('mouseover', tip.show)
-          .on('mouseout', tip.hide)
-      ;
-
-      // UPDATE the color/position/size of each circle that has a data element
-      circles2
-        .call(moveToFrontIfSelected)
-        .transition()
-          .duration(1000*seconds)
-            .style("fill", colorWithSelected)
-            .style("fill-opacity", 1)
-            .call(position2)
-        ;
-  
-      // REMOVE any existing circles that no longer have data
-      circles2.exit()
-          .style("fill", "red")
-          .transition()
-          .duration(1000*seconds)
-          .style("fill-opacity", 1e-3)
-       .remove();
-       
-
-    };
-
-///////////////////////////////////////////////////////
-// run //
-///////////////////////////////////////////////////////
-
-    d3.csv("coreDataOut.csv", type,  function (allData){  
-      
-        selectedRiver = "WB";  //set default river
-        
-        //Map year to array
-        var years = allData.map(function(d) { return d.year; }),
-            yearSet=[];
-
-        //Construct set of samples
-        years.forEach(function(year) { 
-          if (yearSet.indexOf(year) == -1) {
-            yearSet.push(year);
-          }
-        });
- console.log(yearSet);
- 
+         selectedRiver = "WB";   //set default
+         currentSample = d3.min(sampSet);
          
-        
-        //Map river to array
-        var rivers = allData.map(function(d) { return d.river; }),
-            riverSet=[];
+         getDataNewRiver(allData,currentSample,selectedRiver);
+         
+         sampSlider.on("slideStop", function(d) {
+           console.log(sampleSlider.value);
+           currentSample = sampleSlider.value;
+           getDataNewSample(allData,currentSample,selectedRiver);
+         });
+         
 
-        //Construct set of samples
-        rivers.forEach(function(river) { 
-          if (riverSet.indexOf(river) == -1) {
-            riverSet.push(river);
-          }
-        });
+         
+         
+         
 
-        var ddRiver = d3.select("body")
-          .append("select");
-          
-        var optionsriver = ddRiver.selectAll("option")
-           .data(riverSet)
-         .enter()
-           .append("option");
-           
-        optionsriver.text(function (d) { return d; })
-          .attr("value", function (d) { return d; });   
-           
-        ddRiver.on("change", function(d) {
- /*         d3.select(this)
-            .selectAll("option")
-            .filter(function (d, i) { 
-                return this.selected;
-                
-*/         selectedRiver = d3.event.target.value; 
-            console.log(selectedRiver);
-          // inData = getDataRiver(inData,selectedRiver);
-              inData = getDataAndPrevious(allData, currentSample);
-              inData = getDataRiver(inData,selectedRiver);
-              
-              maxLength = d3.max(getDataRiver(allData,selectedRiver), function(d) { return d.len; })
-              console.log(maxLength);  
-              maxSection = d3.max(getDataRiver(allData,selectedRiver), function(d) { return d.section; })
-              console.log(maxSection);
-         //     getScales(maxLength,maxSection);
-                         // Scales for absolute position.
-                  xScale = d3.scale.linear().domain([50, maxLength]).range([xPadding, w/2-xPadding/1]);
-                  yScale = d3.scale.linear().domain([0.5, maxSection]).range([h-yPadding, yPadding]);
-           
-           // Scales for relative position.
-                  xScale2 = d3.scale.linear().domain([50, maxLength]).range([w/2 + xPadding + tweenPadding, w - xPadding + tweenPadding]);
-                  yScale2 = d3.scale.linear().domain([-maxSection, maxSection]).range([h - yPadding, yPadding]);
-                  yScale2Bar = d3.scale.linear().domain([-0.75, maxSection * 2]).range([h - yPadding, yPadding]); // not sure why 0.75 works
-          
-                  radiusScale = d3.scale.linear().domain([50, maxLength]).range([2, 8]);
-                  colorScale = d3.scale.category10(); 
-              
-                  var yAxis1 = d3.svg.axis().scale(yScale).orient("left").ticks(maxSection, d3.format(",d"));
-    y.domain([0.5, maxSection]);
-    svg.append("g")
-        .attr("class", "axis")
-        .attr("transform","translate(" + xPadding  + ",0)")
-        .call(yAxis1);
-        
-        
-            
- //   var t1 = t0.transition();
-//    t1.selectAll(".line").attr("d", line);
-//    t1.selectAll(".label").attr("transform", transform);
-//    t1.selectAll(".y.axis").call(yAxis);
-        
-              
-           render();
-           
-        } );   
-
-        //Map sample num to array
-        var samps = allData.map(function(d) { return d.sample; });
-
-        //Construct set of samples
-        samps.forEach(function(samp) { 
-          if (sampSet.indexOf(samp) == -1) {
-            sampSet.push(samp);
-          }
-        });
-        
+         
+         
+         
+         
+         
+       });
        
-        //Sort samples in ascending order
-        sampSet.sort(compareNumbers)
        
-    //    getScales(220,14);//maxLength,maxSection);
-       
-        //Add slider to control samples
-        d3.select("#chart")
-          .append("input")
-          .attr({type: "range", name: "Sample", min: sampSet[0], max: sampSet[sampSet.length - 1], value: sampSet[0]})
-          .attr("id", "sampSlider")
-          .property("title", "Sample: " + sampSet[sampSet.length - 1])
-          .on("input", function() { 
-     //       inData = getData(allData,Math.floor(this.value));
-              inData = getDataAndPrevious(allData, Math.floor(this.value));
-              inData = getDataRiver(inData,selectedRiver);
-          //    getScales(maxLength,maxSection);
-              label.text(inData[inData.length-1].season); //grab season of the last fish - make sure don't get 'previous' sample
-              labelY.text(inData[inData.length-1].year);
-              currentSample = Math.floor(this.value);
-              render();
-              this.title = "Sample: " + Math.floor(this.value);
-          console.log(currentSample);
-          });
-
-        maxLength = d3.max(getDataRiver(allData,selectedRiver), function(d) { return d.len; })
-        console.log(maxLength);  
-        maxSection = d3.max(getDataRiver(allData,selectedRiver), function(d) { return d.section; })
-        console.log(maxSection); 
-       
-       // getScales(maxLength,maxSection);
-           // Scales for absolute position.
-          xScale = d3.scale.linear().domain([50, maxLength]).range([xPadding, w/2-xPadding/1]);
-          yScale = d3.scale.linear().domain([0.5, maxSection]).range([h-yPadding, yPadding]);
-   
-   // Scales for relative position.
-          xScale2 = d3.scale.linear().domain([50, maxLength]).range([w/2 + xPadding + tweenPadding, w - xPadding + tweenPadding]);
-          yScale2 = d3.scale.linear().domain([-maxSection, maxSection]).range([h - yPadding, yPadding]);
-          yScale2Bar = d3.scale.linear().domain([-0.75, maxSection * 2]).range([h - yPadding, yPadding]); // not sure why 0.75 works
-  
-          radiusScale = d3.scale.linear().domain([50, maxLength]).range([2, 8]);
-          colorScale = d3.scale.category10(); 
-
-        //Position first sample
-        inData = getData(allData,sampSet[0]);
-        inData = getDataRiver(inData,selectedRiver);
-        label.text(inData[0].season);
-        labelY.text(inData[0].year);
-        currentSample = sampSet[0]
-        render();
-
-        //Move through samples     
- /*       sampSet.forEach(function(samp, i) {
-          if (i > 0) {
-           setInterval(function(){
-              updateRender(getData(inData, samp));
-            }, 2000);
-          };  
-        });
-*/
-//      });
-      
-      
-// ----------------------------------------------
-// Define axes for Absolute plot
-    var xAxis1 = d3.svg.axis().orient("bottom").scale(xScale).ticks(6);//, d3.format(",d"));
-    svg.append("g")
-        .attr("class", "axis")
-        .attr("transform","translate(0," + (h- yPadding) +")")
-        .call(xAxis1);
         
-    yAxis1 = d3.svg.axis().scale(yScale).orient("left").ticks(maxSection, d3.format(",d"));
-    svg.append("g")
-        .attr("class", "axis")
-        .attr("transform","translate(" + xPadding  + ",0)")
-        .transition()
-        .call(yAxis1);
-  //  yAxis1.exit().remove();        
- 
- // Add x-axis1 label 
-    svg.append("text")
-        .attr("class", "x label")
-        .attr("text-anchor", "middle")
-        .attr("x", xScale(120))
-        .attr("y", h - 6)
-        .text("Fish length (mm)");
-        
- // Add y-axis1 label 
-    svg.append("text")
-        .attr("class", "y label")
-        .attr('transform', 'translate(' + 10 + ',' + h / 1.8 + ') rotate(-90)')
-        .text("Section number (20 m)");
- 
-// ---------------------------------------------        
-// Define axes for Relative plot
-    var xAxis2 = d3.svg.axis().orient("bottom").scale(xScale2).ticks(6);//, d3.format(",d"));
-    svg.append("g")
-        .attr("class", "axis")
-        .attr("transform","translate(0," + (h- yPadding) +")")
-        .call(xAxis2);
-        
-    var yAxis2 = d3.svg.axis().scale(yScale2).orient("left").ticks(maxSection, d3.format(",d"));
-    svg.append("g")
-        .attr("class", "axis")
-        .attr("transform","translate(" + (w/2 + xPadding + tweenPadding)  + ",0)")
-    //    .attr("transform","translate(40,0)")
-        .call(yAxis2); 
-        
- // Add x-axis2 label 
-    svg.append("text")
-        .attr("class", "x label")
-        .attr("text-anchor", "middle")
-        .attr("x", xScale2(120))
-        .attr("y", h - 6)
-        .text("Fish length (mm)");
-        
- // Add y-axis2 label 
-    svg.append("text")
-        .attr("class", "y label")
-        .attr('transform', 'translate(' + (w/2 + xPadding + tweenPadding - 30) + ',' + h / 1.6 + ') rotate(-90)')
-        .text("Distance to move (20 m sections)");
-    });
-// ----------------------------------------------
-// Add the season label; the value is set on transition.
-var label = svg.append("text")
-    .attr("class", "season label")
-    .attr("text-anchor", "end")
-    .attr("y", h-8)
-    .attr("x", w-32)
-    //.text("Spring")
-    ;
-
-var labelY = svg.append("text")
-    .attr("class", "year label")
-    .attr("text-anchor", "end")
-    .attr("y", h-8)
-    .attr("x", w-5)
-    //.text("Spring")
-    ;
-
-
     </script>
-      </body> 
+
+
+
+</body>
 </html>
-
-
