@@ -1,3 +1,12 @@
+#chart1 {
+  width: 500px;
+  height: 500px;
+}
+
+#chart2 {
+  width: 500px;
+  height: 500px;
+}
 
 .container-fluid {
     padding-top: 40px;
@@ -36,18 +45,29 @@
 
     }
 
-    .axis path,
-    .axis line {
+    .xAxis path, 
+    .xAxis line {
       fill: none;
       stroke: rgb(81, 81, 81);
       shape-rendering: crispEdges;
     }
 
-    .axis text {
+    .xAxis text {
         font-family: sans-serif;
         font-size: 11px;
     }
- 
+    
+    .yAxis path, 
+    .yAxis line {
+      fill: none;
+      stroke: rgb(81, 81, 81);
+      shape-rendering: crispEdges;
+    }
+
+    .yAxis text {
+        font-family: sans-serif;
+        font-size: 11px;
+    } 
 
     
     .d3-tip {
@@ -80,7 +100,7 @@
     }
     
    .slider.slider-horizontal {
-     width: 800px;
+     width: 1000px;
      height: 20px;
    }
    

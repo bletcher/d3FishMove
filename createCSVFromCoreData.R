@@ -4,8 +4,8 @@ library(dplyr)
 load('coreDataForD3.RData')
 
 out <- cd %>%
-         filter(year %in% 2003:2004
-                #&  riverOrdered == "IL" 
+         filter(# year %in% 2003:2004
+                # &  riverOrdered == "IL" 
                 ) %>%
          mutate( tagFactor = as.numeric(factor(tag))) %>%
          select( tag = tag,
