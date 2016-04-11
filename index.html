@@ -56,40 +56,44 @@
                 </h3>
             </div>
 
-            <div class="col-lg-5">
-              <select id="selectedSpeciesDD">
-                <option selected="selected" value="bkt">BrookT</option>
-                <option value="bnt">BrownT</option>
-                <option value="ats">Salmon</option>
-              </select>
-              <select id="selectedRiverDD">
-                <option selected="selected" value="WB">WB</option>
-                <option value="OL">OL</option>
-                <option value="OS">OS</option>
-                <option value="IL">IL</option>
-              </select>
-         
-              <div class="btn-group btn-group-sm">
-                <button type="button" class="btn btn-default" id="unselectAll">Unselect all</button>
-                <select id="dotOptionDD">
-                  <option selected="selected" value="all">All</option>
-                  <option value="selected">Selected</option>
-                </select>
-              </div>
-     
-              <div class="btn-group btn-group-sm">
-                <select id="barOptionDD">
-                  <option selected="selected" value="yes">Show Bars</option>
-                  <option value="no">No Bars</option>
-                </select>
-                <select id="barVariableDD">
-                  <option selected="selected" value="count">Count</option>
-                  <option value="biomass">Biomass</option>
-                </select>
-              </div>
+           <div class="col-lg-5">
+             <form class="form-inline"> 
               
+                <select class="form-control" id="selectedSpeciesDD">
+                  <option selected="selected" value="bkt">BrookT</option>
+                  <option value="bnt">BrownT</option>
+                  <option value="ats">Salmon</option>
+                </select>
+                <select class="form-control" id="selectedRiverDD">
+                  <option selected="selected" value="WB">WB</option>
+                  <option value="OL">OL</option>
+                  <option value="OS">OS</option>
+                  <option value="IL">IL</option>
+                </select>
+           
+                <div class="btn-group btn-group-sm">
+                  <button type="button" class="btn btn-default" id="unselectAll">Unselect all</button>
+                  <select class="form-control" id="dotOptionDD">
+                    <option selected="selected" value="all">All</option>
+                    <option value="selected">Selected</option>
+                  </select>
+                </div>
+       
+                <div class="btn-group btn-group-sm">
+                  <select class="form-control" id="barOptionDD">
+                    <option selected="selected" value="yes">Show Bars</option>
+                    <option value="no">No Bars</option>
+                  </select>
+                  <select class="form-control" id="barVariableDD">
+                    <option selected="selected" value="count">Count</option>
+                    <option value="biomass">Biomass</option>
+                  </select>
+                </div>
+                
+              </form>
             </div>
-        </div>
+         
+        
     
         <!-- /.row -->
 

@@ -61,12 +61,12 @@
 	     barScale1,
 	     barScale2,
 	     maxBarRange = 125,
-	     barGreyBase,              // these could be replaced with scales
+	     barGreyBase,             
 	     barGreyBaseCount = 200,
 	     barGreyBaseSumWt = 250,
 	     barGreyMult,
-	     barGreyMultCount = 4,
-	     barGreyMultSumWt = 0.4;
+	     barGreyMultCount = 1,
+	     barGreyMultSumWt = 0.1;
 
 // Slider bar
   var sliderLabelsMaxNum = 20;
