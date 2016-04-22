@@ -44,6 +44,19 @@
       </div>
     </nav>
 
+    <!-- Selecting scheme
+      
+      Selected group   Selection action                     Response    
+      None             None                                 All grey
+      Individual       onClick circle                       Individual colors and history
+      Section          onClick bar                          Individual colors and history
+      Family           on cntl-click circle or dropdown     Individual colors and history
+        
+    
+    
+    -->    
+
+
     <!-- Page Content -->
     <div class="container-fluid">
 
@@ -51,7 +64,7 @@
         <div class="row">
           
             <div class="col-lg-7">
-                <h3 class="page-header">Brook trout in a small stream in western MA, USA
+                <h3 class="page-header">Trout and salmon in a small stream in western MA, USA
                     <small></small>
                 </h3>
             </div>
@@ -140,10 +153,11 @@
             <div class="col-lg-12">
                 <div class="infoSection">
                     
-                        <p> Dots are individual fish, with radius proportional to body length. Move the slider to advance seasonal samples. Recaptured fish will change y-axis position if they were observed to move and change x-axis position based on body growth. Newly tagged fish on the sample will initially appear as green and fish that are never seen again will turn red and disappear.  </p>
-  <p>Select individual fish by clicking on a dot. Selected fish will trace out a body size/location vector for the previous sampling interval. View just the selected fish by choosing selected in the dropdown.</p>
+                        <p> Dots are individual fish, with radius proportional to body length. Pick a species (Brook trout, Brown trout, Atlantic salmon) and a river (West Brook [WB], and the tributaries Open large [OL], Open small [OS], Isolated large [IL]) to show using dropdowns.</p>
+                        <p>Move the slider to advance seasonal samples. Recaptured fish will change y-axis position if they were observed to move and change x-axis position based on body growth. Newly tagged fish on the sample will initially appear as green and fish that are never seen again will turn red and disappear.  </p>
+  <p>Select individual fish by clicking on a dot. Unselect a selected individual by clicking on it again. Select an individual and other fish from the same full-sib family (brook trout only, at this point) by holding down the 'control' key and clicking. Selected fish will trace out a body size/location vector for the previous sampling interval. Circles of fish that were captured on an occasion are filled in and fish that were not captured (current sample location set equal to previous sample and length interpolated linearly) are filled with grey. View just the selected fish by choosing 'Selected' in the dropdown. Show all individuals by chossing 'All'</p>
   
-  <p> Bars on the sides of the graphs sum up the count or biomass (depending on which radio button is selected) for each section (left) or distance moved (right).</p>
+  <p> Bars on the sides of the graphs sum up the count or biomass (depending on which dropdowns are selected) for each section (left) or distance moved (right).</p>
                     
                 </div>
             </div>
@@ -205,6 +219,7 @@
       // APPEND NEW bar for each data element that doesn't already have a bar
       bars.enter().append("rect")
             .style("fill-opacity", 1e-6)
+            .on("click", clickBar)
             .on('mouseover', tipBar.show)
             .on('mouseout', tipBar.hide)
       ;
@@ -250,6 +265,7 @@
       // APPEND NEW CIRCLE for each data element that doesn't already have a circle
       circles.enter().append("circle")
         .style("fill",  "green") //function(d  ){ return colorScale( color(d) ); })
+        .style("stroke","darkgrey")
         .style("fill-opacity", 1e-6)
         
         .on("click", clickDot)
@@ -265,6 +281,8 @@
         .transition()
         .duration(1000*seconds)
           .style("fill", colorWithSelected)// function(d  ){ return colorScale( color(d) ); })
+          .style("stroke",strokeWithSelected)
+          .style("stroke-width",1)
           .style("fill-opacity", 1)
           .call(position)
       ;
@@ -272,9 +290,12 @@
       // REMOVE any existing circles that no longer have data
       circles.exit()
         .style("fill", "red")
+        .style("stroke", "red")
         .transition()
         .duration(1000*seconds/3)
+          .style("stroke",strokeWithSelected) 
           .style("fill-opacity", 1e-3)
+          .style("stroke-opacity", 1e-3)
         .remove();
        
 /////Trace lines
@@ -303,7 +324,112 @@
           ;
           
           circleLine.exit().remove();
-      }
+      
+// add paths for all samples of selected fish
+//
+        var tmp = [{xx:100, yy:15},
+                   {xx:130, yy:5},
+                   {xx:180, yy:15}];
+                   
+        selectedPaths = state.selectedID.map(function (id) {
+          return {
+            id: id,
+            samples: getDataID(state.allSamplesSelected, id).map(function (d) {
+              return {
+                xx: d.len,
+                yy: d.section
+              }
+            })
+          }
+        });  
+console.log(selectedPaths);
+        
+        var line = d3.svg.line()
+          .x(function(d,i) { return xScale(d.samples.xx); })
+          .y(function(d,i) { return yScale(d.samples.yy); })
+        ;  
+        
+        svg1.append("path")
+          .data(selectedPaths)
+          .attr("class", "line")
+          .attr("d", line)
+          .attr("stroke", function(d){ return colorScale(function(d) {return d.id}); })
+     //     .attr("stroke", function(d){ return colorScale(color(d)); })
+        ;   
+          
+    //      
+          
+        
+          
+  /*      var lineSelected = svg1.selectAll("path")
+           .datum(objForPath.samples[0])
+           ;
+           
+        lineSelected.enter()
+            .append("path")
+            .attr("d", line)
+            .attr("class", "line")
+            .attr("stroke", "blue")//function(d){ return colorScale(color(d)); })
+            .attr("stroke-width", 5)
+            .attr("fill", "none")
+            ;
+ */ ///          ;
+            
+   //     lineSelected            
+
+  //      var lineFunction = d3.line()
+  //                       .x(function(d) { return xScale(d.xx); })
+  //                       .y(function(d) { return yScale(d.yy); })
+  //                       .interpolate("linear");
+                         
+                
+            
+
+/*
+svg.selectAll("path")
+        .data(array).enter()
+        .append("path")
+    .attr("d", function() { return line(array) }) // replacing line with M0,0l100,100 draws a line 
+            .attr("class", "line")
+            .style("stroke", "black" )
+            .attr('fill', 'none');
+
+
+
+var realGDPline = svg1.append("line")
+    .attr("class", "line");
+
+var lineGen = d3.svg.line()
+    .x(function(d, i){
+      return xScale(x(d)); })
+    .y(function(d, i){
+      return yScale(y(d)); })
+      
+
+var pathLine = svg1.append('path').data(state.allSamplesSelected,keyID)
+    .attr('d', lineGen)
+    .classed('line', true)
+      
+/*    realGDPline
+//    .attr("x1", xScaleGDP(dataGDP[counter].date))
+//    .attr("y1", yScaleGDP(dataGDP[counter].GDPreal))
+//    .attr("x2", xScaleGDP(dataGDP[counter].date))
+//    .attr("y2", yScaleGDP(dataGDP[counter].GDPreal));       
+
+
+    
+  realGDPline
+    .transition()
+    .duration(1200)
+    .attr("x2", xScale(dataGDP[1].date))
+    .attr("y2", yScaleGDP(dataGDP[1].GDPreal));
+    
+  pathLine.transition().duration(1200)
+      .attr('d', lineGen)
+       
+*/       
+       
+     }
   }
   
 //////////////////////////////      
@@ -371,6 +497,7 @@
       // APPEND NEW CIRCLE for each data element that doesn't already have a circle
       circles2.enter().append("circle")
         .style("fill",  "green") //function(d  ){ return colorScale( color(d) ); })
+        .style("stroke","darkgrey")
         .style("fill-opacity", 1e-6)
         
         .on("click", clickDot)
@@ -386,6 +513,8 @@
         .transition()
         .duration(1000*seconds)
           .style("fill", colorWithSelected)// function(d  ){ return colorScale( color(d) ); })
+          .style("stroke",strokeWithSelected)
+          .style("stroke-width",1)
           .style("fill-opacity", 1)
           .call(position2)
       ;
@@ -393,9 +522,12 @@
       // REMOVE any existing circles that no longer have data
       circles2.exit()
         .style("fill", "red")
+        .style("stroke", "red")
         .transition()
         .duration(1000*seconds/3)
+          .style("stroke",strokeWithSelected) 
           .style("fill-opacity", 1e-3)
+          .style("stroke-opacity", 1e-3)
         .remove();
     
          };

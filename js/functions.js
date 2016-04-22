@@ -12,6 +12,8 @@
       d.lagSection = +d.lagSection;
       d.season = d.seasonStr;
       d.year = +d.year;
+      d.cohortFamilyID = d.cohortFamilyID;
+      d.familyID = +d.familyID;
       return d;
     }
 
@@ -22,7 +24,10 @@
       function r(d) { return d.river }
       
       function color(d){ return d.id; }
+      function colorFamilyID(d){ return d.familyID; }
       function keyID(d){ return d.id; }
+      function keyIDPath(d) {return d.map(function(d){ return(d.id)}) }
+
       
 //Processing functions
 //
@@ -44,7 +49,7 @@
             .attr('class', 'd3-tip')
             .offset([-10, 0])
             .html(function(d) {
-              return "Fish " + d.id;
+              return "Fish " + d.id + ", Family " + d.familyID;
             });
               
           tipBar = d3.tip()
@@ -170,7 +175,7 @@
            
            yScale2Bar = d3.scale.linear().domain([-0.75, state.maxSection * 2]).range([h - yPadding, yPadding]); // not sure why 0.75 works
            radiusScale = d3.scale.linear().domain([50, state.maxLength]).range([2, 8]);
-           colorScale = d3.scale.category10();
+           colorScale = colorScale;
          }
 
 //Axis functions
@@ -248,6 +253,7 @@
            
            state.currentSampleDataSelected = getSampleDataSelected( state.riverSpeciesData, state.currentSample );
            state.previousSampleDataSelected = getSampleDataSelected( state.riverSpeciesData, state.currentSample-1 );
+           state.allSamplesSelected = getSelected( state.riverSpeciesData );
            
            if( state.dotOption == "all" ) { state.renderData = state.currentSampleDataAll; }
            else if ( state.dotOption == "selected" ) { state.renderData = state.currentSampleDataSelected; }
@@ -313,6 +319,12 @@
       });
     }
 
+    function getDataID(d,id) {
+      return d.filter( function(d) {
+        return d.id == id;
+      });
+    }
+
     function getDataRiver(d,r) {
       return d.filter( function(d) {
         return d.river == r;
@@ -331,6 +343,13 @@
       });
     }
     
+    function getDataSection(inDat, d,i){
+      console.log("in get data",d,i);
+      return inDat.filter( function(inDat) {
+        return inDat.section == i + 1;
+      });
+    }
+    
     // Is id in selectedID array?
     function IDinSelectedID(arr, val) {
       return arr.some(function(arrVal) {
@@ -346,7 +365,24 @@
       return d.filter( function(d) {
         return isNaN( d.distMoved ) === false;
       });
-    }  
+    } 
+    
+    function getDataFamily(d,famID){
+      return d.filter( function(d) {
+        return d.familyID == famID;
+      });
+    }
+    
+    function emptyObjForPath(){
+       // empty the object so we can push to it without dups
+       arrForPath = {
+         id: [],
+         samples: []   
+       };
+    //   arrForPath.samples.xx = [];
+    //   arrForPath.samples.yy = [];
+       //return arrForPath;
+     }   
 ///////////////////////////////////////////// 
 // functions for showing and selecting dots  
 /////////////////////////////////////////////
@@ -388,28 +424,66 @@
      function clickDot(d){
        console.log("mouseClickDot");
        
-       // selecting new point
-       if ( !IDinSelectedID( state.selectedID,d.id ) ){
-         state.selectedID.push(d.id);
-         console.log(state.selectedID);
+       // select an individual circle when clicked without cntl
+       if (!d3.event.ctrlKey) {
        
-         this.parentElement.appendChild(this); // doesn't seem to work with a function
-         d3.select(this).style("fill", function(d){ return colorScale( color(d) ); } );
-                
-       }
-       // unselect existing selected ID
-       else if ( IDinSelectedID(state.selectedID,d.id) ){
-         unSelectThisOne(d);
-         console.log(state.selectedID);
+         // selecting new point
+         if ( !IDinSelectedID( state.selectedID,d.id ) ){
+           state.selectedID.push(d.id);
+           console.log(state.selectedID);
          
-         d3.select(this)
-           .style("fill", "lightgrey")
-           //.style("z-index", 0)
+           this.parentElement.appendChild(this); // doesn't seem to work with a function
+           d3.select(this).style("fill", function(d){ return colorScale( color(d) ); } );
+                  
+         }
+         // unselect existing selected ID
+         else if ( IDinSelectedID(state.selectedID,d.id) ){
+           unSelectThisOne(d);
+           console.log(state.selectedID);
+           
+           d3.select(this)
+             .style("fill", "lightgrey")
            ;
+         }
+       }
+       
+       // Select IDs of all individuals in the selected individual's family
+       else if (d3.event.ctrlKey) {
+         console.log("mouseClickDot-family selection",d ,d.familyID);
+         // Empty selectedID array
+         state.selectedID = [];
+         
+         // get all data from the family of the selected individual
+         state.familyData = getDataFamily(state.riverSpeciesData,d.familyID);
+         // Add ID's of the selected fish's family to selectedID
+         state.selectedID = state.familyData.map( function(d){ return(d.id) } );
+         
        }
        
        render(state,0.1); //
-     }  
+     }
+     
+     
+     function clickBar(d,i){
+
+       // If cntl-click add new section to selected
+       if (d3.event.ctrlKey) {
+         var newSel = getDataSection(state.renderData,d,i).map( function(d){ return(d.id) } );
+         state.selectedID = state.selectedID.concat(newSel);
+       }
+       
+       // If click, select this section only
+       else {
+         state.selectedID = getDataSection(state.renderData,d,i).map( function(d){ return(d.id) } );
+       }
+       
+       console.log("mouseClickBar",d,i,state.selectedID);
+       render(state,0.1);
+     }
+     
+     function prepareDataForPath(){
+       
+     }
       
      moveToFrontIfSelected = function(d){
        if ( IDinSelectedID(state.selectedID,d.id) ){ moveToFront(d); }
@@ -421,14 +495,32 @@
      }
  
      function colorWithSelected(d) { 
-        if ( IDinSelectedID(state.selectedID,d.id) ) {
+        if ( IDinSelectedID(state.selectedID,d.id) & d.enc == 1 ) {
            return colorScale( color(d) );  
         }                 
         else { 
            return "lightgrey"; 
         }
      }
-
+     
+     function strokeWithSelected(d) { 
+        if ( IDinSelectedID(state.selectedID,d.id) ) {
+           return colorScale( color(d) );  
+        }                 
+        else { 
+           return "darkgrey"; 
+        }
+     }
+     
+     function colorWithFamilyID(d) { 
+        if ( !isNaN(d.familyID) ) {
+           return colorScale20( colorFamilyID(d) );  
+        }                 
+        else { 
+           return "lightgrey"; 
+        }
+     }
+     
 // Bar data
 //
 
@@ -444,7 +536,7 @@
                  };
               })
               .map(state.renderData);
-              console.log(summarizeBySection);
+         //     console.log(summarizeBySection);
               var sectArrCount = [];
               var sectArrSumWt = [];
               
@@ -487,7 +579,7 @@
                  };
               })
               .map(state.renderData2);
-              console.log("getBarData2",summarizeBySection);
+       //       console.log("getBarData2",summarizeBySection);
               var sectArrCount2 = [];
               var sectArrSumWt2 = [];
               
@@ -516,4 +608,6 @@
           barScale2 = d3.scale.linear().domain([0, d3.max(state.barData2)]).range([0, maxBarRange]); //proportional
           //barScale2 = d3.scale.linear().domain([0, 100]).range([0, maxBarRange]); //absolute
     }
- 
+    
+// for paths
+//

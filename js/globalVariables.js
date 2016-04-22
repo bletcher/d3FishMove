@@ -20,6 +20,8 @@
      previousSampleDataAll: [],
      currentSampleDataSelected: [],
      previousSampleDataSelected: [],
+     allSamplesSelected: [],
+     familyData: [],
      selectedID: [], //filter for these in render
      maxLength: undefined,
      maxSection: undefined,
@@ -30,8 +32,17 @@
 
  // some global variables //
     var sampSet = [],
-        summarizeBySection
+        summarizeBySection,
+        selectedPaths
         ;
+        
+/*    var arrForPath = {
+      id: [],
+      samples: {}
+    };
+    arrForPath.samples.xx = [];
+    arrForPath.samples.yy = [];    
+*/    
         
  // Global scale values       
     var xScale,
@@ -41,6 +52,8 @@
         yScale2Bar,
         radiusScale,
         colorScale,
+        colorScale = d3.scale.category10(),
+        colorScale20 = d3.scale.category20(),
         xAxis1,
         yAxis1,
         maxSection,
@@ -65,7 +78,7 @@
 	     barGreyBaseCount = 200,
 	     barGreyBaseSumWt = 250,
 	     barGreyMult,
-	     barGreyMultCount = 1,
+	     barGreyMultCount = 0.1,
 	     barGreyMultSumWt = 0.1;
 
 // Slider bar

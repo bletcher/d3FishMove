@@ -22,7 +22,9 @@ out <- cd %>%
                  wt = observedWeight,
                  river = riverOrdered,
                  year = year,
-                 season = season) %>%
+                 season = season,
+                 familyID = familyIDContinuous,
+                 cohortFamilyID = cohort_familyID) %>%
          filter( !is.na(len) ) # have one fish right now
 
 out$seasonStr <- ifelse(out$season == 1, "Spring", 
