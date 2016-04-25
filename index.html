@@ -155,9 +155,9 @@
                     
                         <p> Dots are individual fish, with radius proportional to body length. Pick a species (Brook trout, Brown trout, Atlantic salmon) and a river (West Brook [WB], and the tributaries Open large [OL], Open small [OS], Isolated large [IL]) to show using dropdowns.</p>
                         <p>Move the slider to advance seasonal samples. Recaptured fish will change y-axis position if they were observed to move and change x-axis position based on body growth. Newly tagged fish on the sample will initially appear as green and fish that are never seen again will turn red and disappear.  </p>
-  <p>Select individual fish by clicking on a dot. Unselect a selected individual by clicking on it again. Select an individual and other fish from the same full-sib family (brook trout only, at this point) by holding down the 'control' key and clicking. Selected fish will trace out a body size/location vector for the previous sampling interval. Circles of fish that were captured on an occasion are filled in and fish that were not captured (current sample location set equal to previous sample and length interpolated linearly) are filled with grey. View just the selected fish by choosing 'Selected' in the dropdown. Show all individuals by chossing 'All'</p>
+  <p>Select individual fish by clicking on a dot. Unselect a selected individual by clicking on it again. Select an individual and other fish from the same full-sib family (brook trout only, at this point, 2001-2009) by holding down the 'control' key and clicking. Selected fish will trace out a body size/location vector for the previous sampling interval. Circles of fish that were captured on an occasion are filled in and fish that were not captured (current sample location set equal to previous sample and length interpolated linearly) are filled with grey. View just the selected fish by choosing 'Selected' in the dropdown. Show all individuals by chossing 'All'</p>
   
-  <p> Bars on the sides of the graphs sum up the count or biomass (depending on which dropdowns are selected) for each section (left) or distance moved (right).</p>
+  <p> Bars on the sides of the graphs sum up the count or biomass (depending on which dropdowns are selected) for each section (left) or distance moved (right). Click on a bar to select the fish in that section. control-click on a different bar to add fish from another section</p>
                     
                 </div>
             </div>
@@ -219,18 +219,20 @@
       // APPEND NEW bar for each data element that doesn't already have a bar
       bars.enter().append("rect")
             .style("fill-opacity", 1e-6)
+
             .on("click", clickBar)
-            .on('mouseover', tipBar.show)
-            .on('mouseout', tipBar.hide)
+
+            .on("mouseover.Tip", tipBar.show)
+            .on("mouseover.Color", mouseOverColorBar)
+            .on('mouseout.Tip', tipBar.hide)
+            .on('mouseout.Color', mouseOutColorBar)
       ;
 
       // UPDATE the color/position/size of each bar that has a data element
       bars
         .transition()
           .duration(1000*seconds)
-            .attr("fill", function(d) {
-				     	return "rgb(" + (barGreyBase - d * barGreyMult) + ", " + (barGreyBase - d * barGreyMult) + ", " + (barGreyBase - d * barGreyMult) + ")";
-			      })
+            .attr("fill", "lightgrey")
             .style("fill-opacity", 1)
             .attr("x", function(d, i) {
 			   		  return xScale(state.maxLength) - barScale1(d);
@@ -459,9 +461,7 @@ var pathLine = svg1.append('path').data(state.allSamplesSelected,keyID)
       bars
         .transition()
           .duration(1000*seconds)
-            .attr("fill", function(d) {
-				     	return "rgb(" + (barGreyBase - d * barGreyMult) + ", " + (barGreyBase - d * barGreyMult) + ", " + (barGreyBase - d * barGreyMult) + ")";
-			      })
+            .attr("fill", "lightgrey")
             .style("fill-opacity", 1)
             .attr("x", function(d, i) {
 			   		  return xScale2(state.maxLength) - barScale2(d + 0.0001) ;

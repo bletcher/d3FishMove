@@ -57,7 +57,8 @@
             .offset([-10, 0])
             .html(function(d) {
               return Math.round(d);// + " g" ;
-            });
+            })
+            ;
             
            svg1.call(tip),svg2.call(tip);
            svg1.call(tipBar),svg2.call(tipBar);  
@@ -463,6 +464,20 @@
        render(state,0.1); //
      }
      
+     function mouseOverColorBar(d,i){
+       d3.select(this).style("fill", "darkgrey");
+ //      console.log("mouseOverColorBar",d,i,this);
+     }
+     
+     function mouseOutColorBar(d){
+			 d3.select(this).style("fill", "lightgrey");
+			      
+ //      console.log("mouseOutColorBar",d,i,getBarColor(d),this);
+     }
+     
+ //    function getBarColor(d){
+ //      return "rgb(" + (barGreyBase - d * barGreyMult) + ", " + (barGreyBase - d * barGreyMult) + ", " + (barGreyBase - d * barGreyMult) + ")"
+ //    }
      
      function clickBar(d,i){
 
