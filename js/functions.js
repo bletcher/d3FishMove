@@ -14,6 +14,8 @@
       d.year = +d.year;
       d.cohortFamilyID = d.cohortFamilyID;
       d.familyID = +d.familyID;
+      d.minSample = +d.minSample;
+      d.maxSample = +d.maxSample;
       return d;
     }
 
@@ -49,9 +51,10 @@
             .attr('class', 'd3-tip')
             .offset([-10, 0])
             .html(function(d) {
-              return "Fish " + d.id + ", Family " + d.familyID;
+              return "Fish " + d.id + ", Family " + d.familyID + " [" + summarizeByFamily[d.familyID]+ "]"
+              ;
             });
-              
+           
           tipBar = d3.tip()
             .attr('class', 'd3-tip')
             .offset([-10, 0])
@@ -241,20 +244,18 @@
                 .attr("class", "y label")
                 .attr('transform', 'translate(' + ( xPadding - 30) + ',' + h / 1.6 + ') rotate(-90)')
                 .text("Distance to move (20 m sections)");
-          
-                
-                
          }
 
          function updateRenderData(state){
            console.log('updateRenderData',state);
            
-           state.currentSampleDataAll = getSampleData( state.riverSpeciesData, state.currentSample );
+           state.currentSampleDataAll =  getSampleData( state.riverSpeciesData, state.currentSample );
            state.previousSampleDataAll = getSampleData( state.riverSpeciesData, state.currentSample-1 );
            
-           state.currentSampleDataSelected = getSampleDataSelected( state.riverSpeciesData, state.currentSample );
+           state.currentSampleDataSelected =  getSampleDataSelected( state.riverSpeciesData, state.currentSample );
            state.previousSampleDataSelected = getSampleDataSelected( state.riverSpeciesData, state.currentSample-1 );
            state.allSamplesSelected = getSelected( state.riverSpeciesData );
+           state.aliveSamplesSelected = getSelectedAndAlive( state.allSamplesSelected );
            
            if( state.dotOption == "all" ) { state.renderData = state.currentSampleDataAll; }
            else if ( state.dotOption == "selected" ) { state.renderData = state.currentSampleDataSelected; }
@@ -314,12 +315,33 @@
       });
     }
      
+
     function getSelected(dd) {
       return dd.filter( function(d) {
         return IDinSelectedID(state.selectedID,d.id);
       });
     }
 
+    function getSelectedAndAlive(dd) {
+      return dd.filter( function(d) {
+        return IDinSelectedID(state.selectedID,d.id) & 
+                              state.currentSample >= d.minSample & 
+                              state.currentSample <= d.maxSample;
+      });
+    }
+    
+    function filterSampleDataBefore(d,s) {
+      return d.filter( function(d) {
+        return d.sample <= s;
+      });
+    }
+    
+    function filterSampleDataAfter(d,s) {
+      return d.filter( function(d) {
+        return d.sample >= s;
+      });
+    }
+    
     function getDataID(d,id) {
       return d.filter( function(d) {
         return d.id == id;
@@ -345,7 +367,6 @@
     }
     
     function getDataSection(inDat, d,i){
-      console.log("in get data",d,i);
       return inDat.filter( function(inDat) {
         return inDat.section == i + 1;
       });
@@ -374,16 +395,32 @@
       });
     }
     
-    function emptyObjForPath(){
-       // empty the object so we can push to it without dups
-       arrForPath = {
-         id: [],
-         samples: []   
-       };
-    //   arrForPath.samples.xx = [];
-    //   arrForPath.samples.yy = [];
-       //return arrForPath;
-     }   
+        function getFamilyData(state){  
+      // Get counts by family and id into an object. This part gets IDs nested within families
+            var summarizeByFamilyID = d3.nest()
+              .key(function(d) { return d.familyID; })
+              .key(function(d) { return d.id; })
+              .rollup(function(d) { 
+                 return { 
+                   count: Object.keys(d).length //d.length
+                 };
+              })
+              .map(state.riverData)//,d3.map)
+              ;
+           
+    // This part counts ids for each family. Must be simpler way to do this...          
+           for( i = 1;
+                i <= d3.max(state.allData,function(d) {return d.familyID;}) ;
+                i++){  
+             if( summarizeByFamilyID[i] != undefined ){
+        //       console.log(i,summarizeByFamilyID[i],Object.keys(summarizeByFamilyID[i]).length);
+               summarizeByFamily[i] = Object.keys(summarizeByFamilyID[i]).length;
+           //    summarizeByFamily[i] = summarizeByFamilyID[i].map.length;
+             }
+             else{ summarizeByFamily[i] = 0; }           }        
+    }
+    
+        
 ///////////////////////////////////////////// 
 // functions for showing and selecting dots  
 /////////////////////////////////////////////
@@ -426,8 +463,8 @@
        console.log("mouseClickDot");
        
        // select an individual circle when clicked without cntl
-       if (!d3.event.ctrlKey) {
-       
+       if (!d3.event.ctrlKey && !macKeys.ctrlKey) {
+
          // selecting new point
          if ( !IDinSelectedID( state.selectedID,d.id ) ){
            state.selectedID.push(d.id);
@@ -449,7 +486,7 @@
        }
        
        // Select IDs of all individuals in the selected individual's family
-       else if (d3.event.ctrlKey) {
+       else if (d3.event.ctrlKey || macKeys.ctrlKey) {
          console.log("mouseClickDot-family selection",d ,d.familyID);
          // Empty selectedID array
          state.selectedID = [];
@@ -464,15 +501,12 @@
        render(state,0.1); //
      }
      
-     function mouseOverColorBar(d,i){
+     function mouseOverColorBar(d){
        d3.select(this).style("fill", "darkgrey");
- //      console.log("mouseOverColorBar",d,i,this);
      }
      
      function mouseOutColorBar(d){
 			 d3.select(this).style("fill", "lightgrey");
-			      
- //      console.log("mouseOutColorBar",d,i,getBarColor(d),this);
      }
      
  //    function getBarColor(d){
@@ -482,7 +516,7 @@
      function clickBar(d,i){
 
        // If cntl-click add new section to selected
-       if (d3.event.ctrlKey) {
+       if (d3.event.ctrlKey || macKeys.ctrlKey) {
          var newSel = getDataSection(state.renderData,d,i).map( function(d){ return(d.id) } );
          state.selectedID = state.selectedID.concat(newSel);
        }
@@ -491,15 +525,10 @@
        else {
          state.selectedID = getDataSection(state.renderData,d,i).map( function(d){ return(d.id) } );
        }
-       
-       console.log("mouseClickBar",d,i,state.selectedID);
+
        render(state,0.1);
      }
-     
-     function prepareDataForPath(){
-       
-     }
-      
+
      moveToFrontIfSelected = function(d){
        if ( IDinSelectedID(state.selectedID,d.id) ){ moveToFront(d); }
      };
@@ -538,6 +567,8 @@
      
 // Bar data
 //
+
+//Array.from(new Set(d))//Array.from(new Set(function(d) { return d.id;}))
 
 // for svg1
     function getBarData1(state){  
@@ -626,3 +657,78 @@
     
 // for paths
 //
+
+// for keybindings to get keys working on macs
+// https://github.com/MichaelZelensky/jsLibraries/blob/master/macKeys.js
+/*
+ * window.onclick = function (event) {
+ *     if (event.ctrlKey || macKeys.ctrlKey) {
+ *         //do something
+ *     }
+ * }
+*/ 
+(function(){
+    var saywho, isMac, webkit, mozilla, opera, kC;
+    isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+    window.macKeys = {
+        cmdKey : false,
+        ctrlKey : false,
+        shiftKey : false,
+        altKey : false,
+        reset : function(){
+            this.cmdKey = false;
+            this.ctrlKey = false;
+            this.shiftKey = false;
+            this.altKey = false;
+        }
+    };
+    if (isMac) {
+        //browser detection, originates from: http://stackoverflow.com/questions/2400935/browser-detection-in-javascript
+        saywho = (function(){
+            var ua = navigator.userAgent, tem,
+                M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+            if (/trident/i.test(M[1])) {
+                tem = /\brv[ :]+(\d+)/g.exec(ua) || [];
+                return { 'browser': 'IE', 'version': (tem[1] || '') };
+            }
+            if (M[1] === 'Chrome') {
+                tem = ua.match(/\b(OPR|Edge)\/(\d+)/);
+                //if(tem != null) return tem.slice(1).join(' ').replace('OPR', 'Opera');
+                if (tem != null) return {'browser':tem.slice(1)[0].replace('OPR', 'Opera'), 'version': tem.slice(1)[1]}
+            }
+            M = M[2] ? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
+            if ((tem = ua.match(/version\/(\d+)/i))!= null) M.splice(1, 1, tem[1]);
+            return { 'browser': M[0], 'version': M[1] };
+        })();
+        webkit = (saywho.browser === 'Chrome' || saywho.browser === 'Safari');
+        mozilla = saywho.browser === 'Firefox';
+        opera = saywho.browser === 'Opera';
+        window.onkeydown = function(e){
+            kC = e.keyCode;
+            if (((webkit || opera) && (kC === 91 || kC === 93)) || (mozilla && kC === 224)) {
+                macKeys.cmdKey = true;
+            } else if (kC === 16) {
+                macKeys.shiftKey = true;
+            } else if (kC === 17) {
+                macKeys.ctrlKey = true;
+            } else if (kC === 18) {
+                macKeys.altKey = true;
+            }
+        };
+        window.onkeyup = function(e){
+            kC = e.keyCode;
+            if (((webkit || opera) && (kC === 91 || kC === 93)) || (mozilla && kC === 224)) {
+                macKeys.cmdKey = false;
+            } else if (kC === 16) {
+                macKeys.shiftKey = false;
+            } else if (kC === 17) {
+                macKeys.ctrlKey = false;
+            } else if (kC === 18) {
+                macKeys.altKey = false;
+            }
+        };
+        window.onblur = function(){
+            macKeys.reset();
+        };
+    }
+})();

@@ -24,7 +24,9 @@ out <- cd %>%
                  year = year,
                  season = season,
                  familyID = familyIDContinuous,
-                 cohortFamilyID = cohort_familyID) %>%
+                 cohortFamilyID = cohort_familyID,
+                 minSample = minSample,
+                 maxSample = maxSample) %>%
          filter( !is.na(len) ) # have one fish right now
 
 out$seasonStr <- ifelse(out$season == 1, "Spring", 

@@ -21,6 +21,8 @@
      currentSampleDataSelected: [],
      previousSampleDataSelected: [],
      allSamplesSelected: [],
+     aliveSamplesSelected: [],
+     filteredAliveSamplesSelected: [],
      familyData: [],
      selectedID: [], //filter for these in render
      maxLength: undefined,
@@ -33,6 +35,7 @@
  // some global variables //
     var sampSet = [],
         summarizeBySection,
+        summarizeByFamily = [],
         selectedPaths
         ;
         
