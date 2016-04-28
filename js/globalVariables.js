@@ -8,6 +8,8 @@
      barOption: undefined,        //set in initializeState(), reset in initializeInterface()     
      barVariable: undefined,      //set in initializeState(), reset in initializeInterface()
      currentSample: undefined,
+     onClick: undefined,
+     lines: undefined,
      allData: [],
      riverData: [],
      speciesData: [],
@@ -35,7 +37,6 @@
  // some global variables //
     var sampSet = [],
         summarizeBySection,
-        summarizeByFamily = [],
         selectedPaths
         ;
         

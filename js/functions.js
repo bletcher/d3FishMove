@@ -16,6 +16,7 @@
       d.familyID = +d.familyID;
       d.minSample = +d.minSample;
       d.maxSample = +d.maxSample;
+      d.familyCount = +d.familyCount;
       return d;
     }
 
@@ -51,7 +52,7 @@
             .attr('class', 'd3-tip')
             .offset([-10, 0])
             .html(function(d) {
-              return "Fish " + d.id + ", Family " + d.familyID + " [" + summarizeByFamily[d.familyID]+ "]"
+              return "Fish " + d.id + ", Family " + d.familyID + " [" + d.familyCount + "]"
               ;
             });
            
@@ -71,9 +72,11 @@
            console.log('initializeState()');
            state.selectedRiver = $("#selectedRiverDD").val();
            state.selectedSpecies = $("#selectedSpeciesDD").val();
-           state.dotOption = $("#dotOptionDD").val();   //use for state of dropdowns
+           state.dotOption = $("#dotOptionDD").val();   
            state.barOption = $("#barOptionDD").val();
            state.barVariable = $("#barVariableDD").val();
+           state.onClick = $("#onClickDD").val();
+           state.lines = $("#linesDD").val();
            console.log('state: ', state);
          }
          
@@ -111,6 +114,16 @@
            $("#barVariableDD").on("change", function () {
              console.log("#barVariableDD change");
              state.barVariable = $("#barVariableDD").val();
+             render(state,2);
+           });
+           $("#onClickDD").on("change", function () {
+             console.log("#onClickDD change");
+             state.onClick = $("#onClickDD").val();
+             render(state,2);
+           });
+           $("#linesDD").on("change", function () {
+             console.log("#linesDD change");
+             state.lines = $("#linesDD").val();
              render(state,2);
            });
          }
@@ -395,6 +408,7 @@
       });
     }
     
+ /* This function is VERY slow. Doing the counting by family in R with the raw data
         function getFamilyData(state){  
       // Get counts by family and id into an object. This part gets IDs nested within families
             var summarizeByFamilyID = d3.nest()
@@ -419,7 +433,7 @@
              }
              else{ summarizeByFamily[i] = 0; }           }        
     }
-    
+ */   
         
 ///////////////////////////////////////////// 
 // functions for showing and selecting dots  
@@ -463,7 +477,7 @@
        console.log("mouseClickDot");
        
        // select an individual circle when clicked without cntl
-       if (!d3.event.ctrlKey && !macKeys.ctrlKey) {
+       if (state.onClick == "ind") {
 
          // selecting new point
          if ( !IDinSelectedID( state.selectedID,d.id ) ){
@@ -486,7 +500,7 @@
        }
        
        // Select IDs of all individuals in the selected individual's family
-       else if (d3.event.ctrlKey || macKeys.ctrlKey) {
+       else if (state.onClick == "fam") {
          console.log("mouseClickDot-family selection",d ,d.familyID);
          // Empty selectedID array
          state.selectedID = [];

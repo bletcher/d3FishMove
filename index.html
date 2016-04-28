@@ -8,7 +8,9 @@
   <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
   <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
   
-  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css">
+  
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
   <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 
@@ -44,67 +46,118 @@
       </div>
     </nav>
 
-    <!-- Selecting scheme
-      
-      Selected group   Selection action                     Response    
-      None             None                                 All grey
-      Individual       onClick circle                       Individual colors and history
-      Section          onClick bar                          Individual colors and history
-      Family           on cntl-click circle or dropdown     Individual colors and history
-
-    -->    
-
     <!-- Page Content -->
     <div class="container-fluid">
 
         <!-- Page Header -->
         <div class="row">
           
-            <div class="col-lg-7">
-                <h4 class="page-header">Trout and salmon in a small stream in western MA, USA
+            <div class="col-lg-10">
+                <h3 class="page-header">Trout and salmon in a small stream in western MA, USA
                     <small></small>
-                </h4>
+                </h3>
             </div>
 
-           <div class="col-lg-5">
-             <form class="form-inline"> 
-              
-                <select class="form-control" id="selectedSpeciesDD">
-                  <option selected="selected" value="bkt">BrookT</option>
-                  <option value="bnt">BrownT</option>
-                  <option value="ats">Salmon</option>
-                </select>
-                <select class="form-control" id="selectedRiverDD">
-                  <option selected="selected" value="WB">WB</option>
-                  <option value="OL">OL</option>
-                  <option value="OS">OS</option>
-                  <option value="IL">IL</option>
-                </select>
-           
-                <div class="btn-group btn-group-sm">
-                  <button type="button" class="btn btn-default" id="unselectAll">Unselect all</button>
-                  <select class="form-control" id="dotOptionDD">
-                    <option selected="selected" value="all">All</option>
-                    <option value="selected">Selected</option>
-                  </select>
-                </div>
+           <div class="col-lg-2">
+
+             <form class="form-inline-vertical"> 
+             
+             
+         <!--    <div class="btn-toolbar">  -->
+               <div class="form-group form-group-sm">
        
-                <div class="btn-group btn-group-sm">
-                  <select class="form-control" id="barOptionDD">
-                    <option selected="selected" value="yes">Show Bars</option>
-                    <option value="no">No Bars</option>
+          <!--        <select class="form-control" id="selectedSpeciesDD">
+                    <option selected="selected" value="bkt">BrookT</option>
+                    <option value="bnt">BrownT</option>
+                    <option value="ats">Salmon</option>
                   </select>
-                  <select class="form-control" id="barVariableDD">
-                    <option selected="selected" value="count">Count</option>
-                    <option value="biomass">Biomass</option>
-                  </select>
-                </div>
-                
-              </form>
-            </div>
+           -->       
+                  
+                  
+                   <div class="form-group">
+                    <label for="selectedSpeciesDD" class="col-xs-4">Species</label>
+                      <div class="col-xs-8">
+                      
+                        <select class="form-control" id="selectedSpeciesDD">
+                          <option selected="selected" value="bkt">BrookT</option>
+                          <option value="bnt">BrownT</option>
+                          <option value="ats">Salmon</option>
+                        </select>
+                      </div>
+                   </div>
+
+                   <div class="form-group">
+                    <label for="selectedRiverDD" class="col-xs-4">River</label>
+                      <div class="col-xs-8">
+                        <select class="form-control" id="selectedRiverDD">
+                          <option selected="selected" value="WB">WB</option>
+                          <option value="OL">OL</option>
+                          <option value="OS">OS</option>
+                          <option value="IL">IL</option>
+                        </select>
+                      </div>
+                   </div>
+                  
+                   <div class="form-group">
+                    <label for="dotOptionDD" class="col-xs-4">Dots</label>
+                      <div class="col-xs-8">
+                        <select class="form-control" id="dotOptionDD">
+                          <option selected="selected" value="all">All</option>
+                          <option value="selected">Selected</option>
+                        </select>
+                      </div>
+                   </div>
+             
+
+                  <div class="form-group">
+                    <label for="barOptionDD" class="col-xs-4">Bars?</label>
+                      <div class="col-xs-8">
+                        <select class="form-control" id="barOptionDD">
+                          <option selected="selected" value="yes">Yes</option>
+                          <option value="no">No</option>
+                        </select>
+                     </div>
+                   </div>
+                  
+                  <div class="form-group">
+                    <label for="barVariableDD" class="col-xs-4">Bar</label>
+                      <div class="col-xs-8">
+                        <select class="form-control" id="barVariableDD">
+                          <option selected="selected" value="count">Count</option>
+                          <option value="biomass">Biomass</option>
+                        </select>
+                     </div>
+                   </div>                      
+                  
+
+                  <div class="form-group">
+                    <label for="linesDD" class="col-xs-4">Lines</label>
+                      <div class="col-xs-8">
+                        <select class="form-control" id="linesDD">
+                          <option selected="selected" value="all">All</option>
+                          <option value="before">Before</option>
+                          <option value="after">After</option>
+                          <option value="none">None</option>
+                        </select>
+                     </div>
+                   </div>    
+
+                  <div class="form-group">
+                    <label for="onClickDD" class="col-xs-4">Click</label>
+                      <div class="col-xs-8">  
+                        <select class="form-control" id="onClickDD">
+                          <option selected="selected" value="ind">Individual</option>
+                          <option value="fam">Family</option>
+                        </select>
+                     </div>
+                   </div>
+                   
+                   <button type="button" class="btn btn-default col-xs-8" id="unselectAll">Unselect all</button>
+                   
+               </div>
+             </form>
+           </div>
          
-        
-    
         <!-- /.row -->
 
         <!-- Graphs Row -->
@@ -152,7 +205,7 @@
                     
                         <p> Dots are individual fish, with radius proportional to body length. Pick a species (Brook trout, Brown trout, Atlantic salmon) and a river (West Brook [WB], and the tributaries Open large [OL], Open small [OS], Isolated large [IL]) to show using dropdowns.</p>
                         <p>Move the slider to advance seasonal samples. Recaptured fish will change y-axis position if they were observed to move and change x-axis position based on body growth. Newly tagged fish on the sample will initially appear as green and fish that are never seen again will turn red and disappear.  </p>
-  <p>Select individual fish by clicking on a dot. Unselect a selected individual by clicking on it again. Select an individual and other fish from the same full-sib family (brook trout only, at this point, 2001-2009) by holding down the 'control' key and clicking. Selected fish will trace out a body size/location vector for the previous sampling interval. Circles of fish that were captured on an occasion are filled in and fish that were not captured (current sample location set equal to previous sample and length interpolated linearly) are filled with grey. View just the selected fish by choosing 'Selected' in the dropdown. Show all individuals by chossing 'All'</p>
+  <p>Select individual fish by clicking on a dot. Unselect a selected individual by clicking on it again. Select an individual and other fish from the same full-sib family (brook trout only, at this point, 2001-2009) by selecting 'Family' in the 'Click' dropdown and clicking. Selected fish will show a trace of all sizes/locations for each fish either for all samples the fish was known to be alive ("All" in the "Lines" dropdown) or for past ("Before"), future ("After"), or no ("None") samples. Circles of fish that were captured on an occasion are filled in and fish that were not captured (current sample location set equal to previous sample and length interpolated linearly, for now) are filled with grey. View just the selected fish or show all individuals by choosing 'Selected' in the 'Dots' dropdown. </p>
   
   <p> Bars on the sides of the graphs sum up the count or biomass (depending on which dropdowns are selected) for each section (left) or distance moved (right). Click on a bar to select the fish in that section. control-click on a different bar to add fish from another section</p>
                     
@@ -173,6 +226,7 @@
             <!-- /.row -->
         </footer>
 
+    
     </div>
     <!-- /.container -->
 
@@ -181,10 +235,9 @@
     
     <script>
 
-
-         
      function render(state,seconds) {
        console.log('render', state);
+       
        updateAxes(state,seconds);
        updateRenderData(state);
        $("#seasonLabel").html(state.currentSampleDataAll[0].season);
@@ -328,19 +381,21 @@
 */      
 // add paths for all samples of selected fish
 //
-
-       
-       
-       var whichFiltered = "after";
-             
-       switch(whichFiltered) {
+       // set in linesDD
+       switch(state.lines) {
           case "before":
               state.filteredAliveSamplesSelected = filterSampleDataBefore(state.aliveSamplesSelected,state.currentSample);
               break;
           case "after":
               state.filteredAliveSamplesSelected = filterSampleDataAfter(state.aliveSamplesSelected,state.currentSample);
               break;
-          default: //before and after
+          case "all": //before and after ("all")
+              state.filteredAliveSamplesSelected = state.aliveSamplesSelected; 
+              break;
+          case "none":
+              state.filteredAliveSamplesSelected = [];
+              break;
+          default: 
               state.filteredAliveSamplesSelected = state.aliveSamplesSelected;
        }
 
@@ -493,10 +548,8 @@
          initializeState();
          initializeInterface();
          updateRiverSpecies(state);
-                    getFamilyData(state);
          initializeAxes(state);
          render(state,1);
-
 
        });
         
