@@ -256,7 +256,7 @@
             svg2.append("text")
                 .attr("class", "y label")
                 .attr('transform', 'translate(' + ( xPadding - 30) + ',' + h / 1.6 + ') rotate(-90)')
-                .text("Distance to move (20 m sections)");
+                .text("Distance moved (20 m sections)");
          }
 
          function updateRenderData(state){

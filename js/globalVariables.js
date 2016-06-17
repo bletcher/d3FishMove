@@ -64,7 +64,7 @@
         maxLength;
         
  // set up svg element data //
-    var w = 500,
+    var w = 600,
 		    h = 500,
 		    xPadding = 40,
 		    yPadding = 40,

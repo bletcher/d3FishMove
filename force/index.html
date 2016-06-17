@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.node {
+  stroke-width: 1.5px;
+}
+
+</style>
+<body>
+<button id="btnNext">Next</button>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script>
+
+var width = 960,
+    height = 500;
+
+var timestep = 0,
+    maxTimestep = 3;
+
+var fill = d3.scale.category10();
+
+var allData = [
+  {id: 1, family: 0, foci: [0, 0, 1, 2]},
+  {id: 2, family: 0, foci: [0, 0, 2, 0]},
+  {id: 3, family: 2, foci: [0, 0, 1, 2]},
+  {id: 4, family: 1, foci: [0, 1, 2, 1]},
+  {id: 5, family: 1, foci: [0, 1, 1, 1]},
+  {id: 6, family: 2, foci: [0, 1, 0, 2]},
+  {id: 7, family: 0, foci: [0, 2, 0, 1]},
+  {id: 8, family: 1, foci: [0, 2, 1, 1]}
+]
+
+var nodes = [],
+    foci = [{x: 100, y: 300}, {x: 450, y: 300}, {x: 800, y: 300}];
+
+var pathData = d3.range(100, 800, 1)
+    .map(function (x) {
+      return {
+        x: x,
+        y: 300 + yFunction(x)
+      };
+    });
+
+function yFunction(x) {
+  return 100*Math.sin(2*Math.PI*(x - 100)/700);
+}
+
+nodes = allData.map(function (d) {
+  return {
+    index: d.id,
+    foci: d.foci,
+    family: d.family,
+    x: foci[d.foci[timestep]].x,
+    y: foci[d.foci[timestep]].y
+  }
+});
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+var line = d3.svg.line()
+    .x(function (d) { return d.x; })
+    .y(function (d) { return d.y; });
+
+var paths = svg.selectAll("path")
+    // .data([foci]);
+    .data([pathData]);
+
+paths.enter()
+    .append('path')
+    .style('fill', 'none')
+    .style('stroke', 'black')
+    .attr('d', line);
+
+var force = d3.layout.force()
+    .nodes(nodes)
+    .links([])
+    .gravity(0)
+    .size([width, height])
+    .on("tick", tick);
+
+var node = svg.selectAll("circle")
+              .data(nodes);
+
+node.enter().append("circle")
+    .attr("class", "node")
+    .attr("cx", function(d) { return d.x; })
+    .attr("cy", function(d) { return d.y; })
+    .attr("r", 8)
+    .style("fill", function(d) { return fill(d.family); })
+    .style("stroke", function(d) { return d3.rgb(fill(d.family)).darker(2); });
+
+force.start();
+
+function tick(e) {
+  var k = .1 * e.alpha;
+
+  // Push nodes toward their designated focus.
+  nodes.forEach(function(o, i) {
+    o.y += (foci[o.foci[timestep]].y - o.y) * k;
+    o.x += (foci[o.foci[timestep]].x - o.x) * k;
+  });
+
+  node
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) {
+        return d.y + 100*Math.sin(2*Math.PI*(d.x - 100)/700);
+      });
+}
+
+d3.select('#btnNext')
+  .on('click', function(e) {
+    timestep = timestep === maxTimestep ? 0 : timestep + 1;
+    force.start();
+  });
+
+
+
+
+// for collision avoidance - later
+/*
+
+    console.log(timestep,o,i,o.y,o.x);
+
+
+
+  var padding = 1, // separation between circles
+    radius=8;
+    
+function collide(alpha) {
+  var quadtree = d3.geom.quadtree(nodes);
+  return function(d) {
+    var rb = 2 * (function(d) { return d.size * 1; }) + padding,
+        nx1 = d.x - rb,
+        nx2 = d.x + rb,
+        ny1 = d.y - rb,
+        ny2 = d.y + rb;
+    quadtree.visit(function(quad, x1, y1, x2, y2) {
+      if (quad.point && (quad.point !== d)) {
+        var x = d.x - quad.point.x,
+            y = d.y - quad.point.y,
+            l = Math.sqrt(x * x + y * y);
+          if (l < rb) {
+          l = (l - rb) / l * alpha;
+          d.x -= x *= l;
+          d.y -= y *= l;
+          quad.point.x += x;
+          quad.point.y += y;
+        }
+      }
+      return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
+    });
+  };
+}
+*/
+</script>

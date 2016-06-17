@@ -1,4 +1,5 @@
 library(dplyr)
+library(lubridate)
 
 # coreData created in the git/getWBCoreDataForD3FishMove subdir on Osensei
 load('coreDataForD3.RData')
@@ -27,12 +28,16 @@ out <- cd %>%
                  cohortFamilyID = cohort_familyID,
                  minSample = minSample,
                  maxSample = maxSample,
-                 familyCount = familyCount) %>%
+                 familyCount = familyCount, 
+                 cohort = cohort
+               ) %>%
          filter( !is.na(len) ) # have one fish right now
 
 out$seasonStr <- ifelse(out$season == 1, "Spring", 
                  ifelse(out$season == 2, "Summer",
                  ifelse(out$season == 3, "Autumn","Winter")))
+
+out$age <- year( out$date ) - out$cohort
 
 write.csv(out,file='coreDataOut.csv', row.names = F)
 

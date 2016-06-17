@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<a target="_blank" style="outline:none;"><canvas width="960" height="900"></canvas></a>
+
+<script src="https://d3js.org/d3.v4.0.0-alpha.40.min.js"></script>
+<script src="http://davidbau.com/encode/seedrandom-min.js"></script>
+<button id="btnNext">Next</button>
+
+<script type='text/javascript' src="js/functionsV4.js"></script>
+
+<script>
+Math.seedrandom('abcde')
+//
+
+var canvas = document.querySelector("canvas"),
+    context = canvas.getContext("2d"),
+//    width = canvas.width,
+//    height = canvas.height,
+    searchRadius = 40;
+
+var timeStep = 0,
+    maxTimeStep = 10;
+    
+var numFish = 10;    
+
+var intervalDur = 200,
+    strengthAdj = 0.95;
+
+var color = d3.scaleCategory10();
+
+// Contiguous downstream river for each index (river #)
+// needs to be defined by hand for any network
+var nextDown = [ 2,2,4,4,6,6,0 ];
+// Is the river a terminal trib (eg.g no upstream movement possible)
+// needs to be defined by hand for any network
+var terminalTrib = [ 1,1,0,1,0,1,0 ];
+
+// variable that holds the paths and coordinates for each start river/end river combo
+var paths = [];
+var xy = [];
+
+// set up graphics
+var margin = {top: 20, right: 20, bottom: 30, left: 50},
+    width = canvas.width - margin.left - margin.right,
+    height = canvas.height - margin.top - margin.bottom;
+
+var yScale = d3.scaleLinear()
+    .range([height, 0]);
+    
+var xScale = d3.scaleLinear()
+    .range([0, width]);
+
+// get xy data: file from D:\PITTAGMAIN\West Brook data\ on ben's computer
+d3.csv("WBCoordsForD3JSOut.csv", type, function (xyIn){
+console.log(d3.extent(xyIn, function(d) { return d.lat; }),d3.extent(xyIn, function(d) { return d.lon; }))
+
+  yScale.domain(d3.extent(xyIn, function(d) { return d.lat; }));
+  xScale.domain(d3.extent(xyIn, function(d) { return d.lon; }));
+
+////////////////////////////////////////////////////////////////////////////
+// set up xy coordinates from csv file
+  var byRiver = d3.nest()
+                  .key(function(d){return d.river;}).sortKeys(d3.ascending)
+                  .entries(xyIn); 
+  
+
+  xy = byRiver.map(function (d) {
+               return {
+                 river: Number(d.key),
+                 coordinates: d.values.map(function(dd) {
+                   return [dd.lat,dd.lon]
+                 })
+               }
+             }); 
+             
+  console.log(byRiver,xy) 
+
+  getPathsCoords(xy,nextDown,terminalTrib);
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// create fish data
+
+var nodes = d3.range(numFish).map(function (index) {
+    return {
+      index: index,
+      type: ~~(Math.random()*9),
+      river: d3.range(maxTimeStep).map(function() {
+        return ~~(Math.random()*xy.length) 
+      })
+    }
+  });
+
+nodes.forEach(function (d) {
+  d.color = color(d.type);                     // assign color
+  d.r = ~~(Math.random() * 3 + 2);             // assign radius
+  
+  d.coordinateIndices = d3.range(maxTimeStep).map(function(i) {    // assign coordinate based on river for each timestep
+    return ~~(Math.random()*xy[d.river[i]].coordinates.length)
+  });
+  
+})
+//////////////////////////////////////////////////////////////////////////////
+
+getPath(nodes); //initialize paths
+nodes.forEach(function(d){ d.coordinate = d.pathStart });
+
+// force simulation
+var simulation = d3.forceSimulation(nodes)
+   .drag(0.75)
+ // .alphaDecay(0.01)
+  .force("charge", d3.forceManyBody()
+                     .strength(1) //strength of attraction among points [ - repels, + attracts ]
+                 //    .theta(0.8)
+                     .distanceMax(10)
+        )
+  .force("collide", d3.forceCollide().radius(function(d) { return d.r + 1.25; }).iterations(1))
+  .force("x", d3.forceX().x(function(d) { return yScale(d.coordinate[0]); }).strength(intervalDur / 1000 * strengthAdj)) //bigger strength means faster
+  .force("y", d3.forceY().y(function(d) { return xScale(d.coordinate[1]); }).strength(intervalDur / 1000 * strengthAdj)) 
+  
+  .on("tick", ticked)
+
+function ticked() {
+  context.clearRect(0, 0, width, height);
+  context.save();
+  context.translate(100, 100);//height / 4);
+
+  context.beginPath();
+  xy.forEach(drawcoordinate);
+  context.fillStyle = "#bbb";
+  context.fill();
+  context.strokeStyle = "#bbb";
+  context.stroke();
+
+  nodes.forEach(drawNode);
+
+  context.restore();
+}
+
+
+////////////////////////////////////////////////////////////////////////
+// Increment by timeStep
+d3.select('#btnNext')
+  .on('click', function() {
+
+      getPath(nodes);
+    
+      var indexSegNum = 0;
+      
+      // increment segments until all fish have moved
+      var intervalNum = setInterval(function(){ 
+           indexSegNum = indexSegNum + 1;
+           console.log("Next segment",indexSegNum)
+           
+           var indexNumDone = 0;
+           nodes.forEach(function (d,i) {
+             if(indexSegNum < d.nodePath.length){
+               d.coordinate = d.nodePath[indexSegNum];
+               console.log(timeStep,i,indexSegNum,d.coordinate)
+             }
+             else { 
+               d.coordinate = d.coordinate;
+               indexNumDone = indexNumDone + 1;
+               console.log(timeStep,i,indexSegNum,d.coordinate, "done moving")
+             }
+           });
+           console.log("Prop done moving", indexNumDone/numFish, timeStep)
+           simulation.alpha(1).alphaMin(0.1).nodes(nodes).restart(); //alphaMin > 0 shortens the simulation - keeps the dots from jiggling near end as they find the packing solution
+    
+           if (indexNumDone/numFish == 1) clearInterval(intervalNum);
+           
+       },intervalDur); 
+       
+      timeStep = timeStep === (maxTimeStep - 2) ? 0 : timeStep + 1;
+      console.log("timeStep =",timeStep);
+  });
+  
+}); //csv  
+
+</script>
