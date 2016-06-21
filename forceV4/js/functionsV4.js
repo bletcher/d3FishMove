@@ -28,9 +28,435 @@
       d.maxSample = +d.maxSample;
       d.familyCount = +d.familyCount;
       d.riverAbbr = d.river;
-      d.age = +d.age
+      d.age = +d.age;
       return d;
     }
+
+function color(d){ return d.id; }
+
+         function initializeState() {
+           console.log('initializeState()');
+ /*          state.selectedRiver = $("#selectedRiverDD").val();
+           state.selectedSpecies = $("#selectedSpeciesDD").val();
+      */     state.dotOption = $("#dotOptionDD").val();   
+     //      state.barOption = $("#barOptionDD").val();
+        //   state.barVariable = $("#barVariableDD").val();
+           state.onClick = $("#onClickDD").val();
+   //        state.lines = $("#linesDD").val();
+           console.log('state: ', state);
+         }
+         
+         function initializeInterface() {
+           console.log('initializeInterface()');
+           
+ /*          $("#selectedSpeciesDD").on("change", function () {
+            console.log("#selectedspeciesDD change");
+            state.selectedSpecies = $("#selectedSpeciesDD").val();
+            updateRiverSpecies(state);
+            ticked();
+           });
+           $("#selectedRiverDD").on("change", function () {
+            console.log("#selectedRiverDD change");
+            state.selectedRiver = $("#selectedRiverDD").val();
+            updateRiverSpecies(state);
+            ticked();
+           });
+    */       $("#unselectAll").on("click", function () {
+             console.log("#unselectAll click");
+             resetColors();
+             state.selectedID = [];
+             updateRenderData();
+             ticked();
+           });
+           $("#dotOptionDD").on("change", function () {
+             console.log("#dotOption change");
+             state.dotOption = $("#dotOptionDD").val();
+        //     resetColors();
+        //     state.selectedID = [];
+             updateRenderData();
+             ticked();
+           });
+/*
+           $("#barOptionDD").on("change", function () {
+             console.log("#barOption change");
+             state.barOption = $("#barOptionDD").val();
+             ticked();
+           });
+           $("#barVariableDD").on("change", function () {
+             console.log("#barVariableDD change");
+             state.barVariable = $("#barVariableDD").val();
+             ticked();
+           });
+  */         $("#onClickDD").on("change", function () {
+             console.log("#onClickDD change");
+             state.onClick = $("#onClickDD").val();
+             resetColors();
+             state.selectedID = [];
+             updateRenderData();
+             ticked();
+           });
+  /*        $("#linesDD").on("change", function () {
+             console.log("#linesDD change");
+             state.lines = $("#linesDD").val();
+             ticked();
+           });
+  */       }
+
+
+
+function initializeNetwork(xyIn){
+  console.log("initializeNetwork");
+    ////////////////////////////////////////////////////////////////////////////
+    // set up xy coordinates from csv file
+    byRiver = d3.nest()
+                .key(function(d){return d.riverN;}).sortKeys(d3.ascending)
+                .entries(xyIn); 
+    
+  
+    xy = byRiver.map(function (d) {
+                 return {
+                   riverN: Number(d.key),
+                   coordinates: d.values.map(function(dd) {
+                     return [dd.lat,dd.lon];
+                   }),
+                   minSection: d3.min( d.values.map(function(dd) { return dd.section; }) ),
+                   maxSection: d3.max( d.values.map(function(dd) { return dd.section; }) )
+                 };
+               }); 
+               
+    console.log("byRiver/xy",byRiver,xy); 
+  
+    getPathsCoords(xy,nextDown,terminalTrib);
+}
+
+
+function initializeFishData(cd,xyIn){
+    console.log("initializefishData");
+    // massage fish data
+    minTimeStep =    d3.min(cd, function(d) { return d.sample; }) - 1;
+    timeStep = minTimeStep+1;
+    maxTimeStep = d3.max(cd, function(d) { return d.sample; });
+    console.log("timeStep",timeStep,maxTimeStep);
+    
+    assignSectionN(cd,xyIn);
+    
+    byFish = d3.nest()
+               .key(function(d){return d.id;}).sortKeys(d3.ascending)
+               .entries(cd);
+  
+    var spp = uniques( cd.map( function(d) {return d.species}) ); // array of unique species
+    console.log("spp",spp);
+    
+    state.nodes = byFish.map(function (d) {
+                 return {
+                   id: d.values[0].id,
+                   riverN: d.values.map(function(dd) {
+                     return dd.riverN;
+                   }),
+                   river: d.values.map(function(dd) {
+                     return dd.river;
+                   }),
+                   section: d.values.map(function(dd) {
+                     return dd.section;
+                   }),
+                   sectionN: d.values.map(function(dd) {
+                     return dd.sectionN;
+                   }),
+                   sample: d.values.map(function(dd) {
+                     return dd.sample;
+                   }),
+                   len: d.values.map(function(dd) {
+                     return dd.len;
+                   }),
+                   age: d.values.map(function(dd) {
+                     return dd.age;
+                   }),
+                   species: d.values[0].species,
+                   speciesIndex: spp.indexOf(d.values[0].species), // integer value of spp
+                   color: colorScale( spp.indexOf(d.values[0].species) ),
+                   familyID: d.values[0].familyID
+                 };
+               });
+  
+  state.nodes.forEach( function(d){ d.firstSample = d.sample[0]; } );
+}
+
+function incrementSegments(){
+  
+  var indexSegNum = 0;
+  var intDur = timeStep == minTimeStep ? 2 : intervalDur; //probably not needed now
+  
+  // increment segments until all fish have moved
+  var intervalNum = setInterval(function(){ 
+       indexSegNum = indexSegNum + 1;
+       
+       var indexNumDone = 0;
+       
+       state.nodesRender.forEach(function (d,i) {
+         if(indexSegNum < d.nodePath.length){
+           d.coordinate = d.nodePath[indexSegNum];
+         }
+         else { 
+           d.coordinate = d.coordinate;
+           indexNumDone = indexNumDone + 1;
+         }
+
+       });
+       
+       console.log("Prop done moving", indexNumDone/state.nodesRender.length, timeStep);
+       
+       var aMin = timeStep == minTimeStep ? 0.00001 : 0.01;
+       simulation.alpha(1).alphaMin(aMin).nodes(state.nodesRender).restart(); //alphaMin > 0 shortens the simulation - keeps the dots from jiggling near end as they find the packing solution
+
+       if (state.nodesRender.length === 0 || indexNumDone/state.nodesRender.length == 1) clearInterval(intervalNum);
+       
+   },intDur);
+  
+}
+
+function ticked() {
+//  console.log(timeStep,simulation.alpha())
+  
+  context.clearRect(0, 0, width, height);
+  context.save();
+  context.translate(margin.left, margin.top); // subtract the margin valules whenever use simulation.find()
+
+  context.beginPath();
+  xy.forEach(drawcoordinate);
+  context.fillStyle = "#bbb";
+  context.fill();
+  context.strokeStyle = "#bbb";
+  context.stroke();
+
+  state.nodesRender.forEach(drawNode);
+
+  context.restore();
+}
+
+
+function drawcoordinate (d, i) {
+  d.coordinates.forEach( function (dd,ii) {
+    context.moveTo(xScale(dd[0]), yScale(dd[1]));
+    context.arc(   xScale(dd[0]), yScale(dd[1]), 10, 0, 2 * Math.PI);
+  });
+}
+
+function drawNode (d, i) {
+//if (simulation.alpha()< 0.01) console.log("drawnode",simulation.alpha(),i,timeStep,d);
+
+  context.beginPath();
+        
+  context.moveTo(d.x, d.y );
+
+  if( d.isFirstSample && simulation.alpha() < 0.2 ){  // keep new fish from entering from the upper left
+    context.arc(   d.x, d.y, ageScale(d.currentAge)*(1-simulation.alpha()/0.2), 0, 2 * Math.PI);
+
+    if(!IDinSelectedID(state.selectedID,d.id)) {  
+      context.strokeStyle = d.color;
+      context.stroke();
+    }
+    else {
+      context.strokeStyle = "black";
+      context.stroke();      
+    }
+    
+    context.fillStyle = d.color;
+    context.fill();
+  }  
+  else if (!d.isFirstSample) {
+    
+    context.arc(d.x, d.y, ageScale(d.currentAge), 0, 2 * Math.PI);
+
+    if(!IDinSelectedID(state.selectedID,d.id)) {  
+      context.strokeStyle = d.color;
+      context.stroke();
+    }
+    else {
+      context.strokeStyle = "black";
+      context.stroke();    
+      context.linewidth = 4;
+      context.stroke();
+    }
+    
+    context.fillStyle = d.color;
+    context.fill();
+  } 
+  
+//  if(d.once){
+//    context.strokeStyle = "black";
+//    context.stroke();
+//  }
+
+}
+
+
+function getNodesCurrent(){
+  
+  nodesFirstSampleOnly = state.nodes.filter( function(d) { return d.sample.includes( timeStep ) && d.sample.length == 1 });
+  getPathFirstOnly(nodesFirstSampleOnly);
+  
+  nodesCurrentTmp = state.nodes.filter( function(d) { return d.sample.includes( timeStep ) && d.sample.includes( timeStep + 1 ) });
+  getPath(nodesCurrentTmp);
+  
+  state.nodesCurrent = nodesCurrentTmp.concat(nodesFirstSampleOnly);
+  
+//  console.log("nodes length",state.nodesCurrent.length);
+  
+  state.nodesCurrent.forEach(function(d){ d.coordinate = d.pathEnd;//d.pathStart;
+                                          d.isFirstSample = (d.firstSample == timeStep ); 
+                                        });
+
+//  console.log("nodesCurrent",timeStep,state.nodesCurrent);
+}
+
+function selectedIDIsNotAlive(){
+  state.selectedID.forEach( function(d){
+    console.log("selectedIsAlive",d);
+    if( !state.nodesRender.map(function(d){ return d.id }).includes(d) ){ console.log("selectedIsNOTAlive",d);state.selectedID.splice(state.selectedID.indexOf(d),1)  }
+  });
+}
+
+function getNodesRender(){
+  if ( state.dotOption == "all" ) { state.nodesRender = state.nodesCurrent; }
+  else if ( state.dotOption == "selected" ) { state.nodesRender = getSelected(state.nodesCurrent); }
+}
+
+function updateRenderData(){
+  
+  getNodesCurrent();
+  state.nodesCurrent.forEach(function(d) { updateCurrentAge(d); });
+  getNodesRender();
+  
+}
+
+function updateCurrentAge(d){
+   var indx = d.sample.indexOf(timeStep); 
+       d.currentAge = d.age[indx];
+}
+
+  function resetColors(){  //this resets colors of all decsendents of nodes; nodesCurrent, nodesRender
+    state.selectedID.forEach ( function(d){ getDataID(state.nodes,       d)[0].color = colorScale( getDataID(state.nodes,d)[0].speciesIndex ); } );
+   // state.selectedID.forEach ( function(d){console.log("reset colors",d); getDataID(state.nodesCurrent,d)[0].color = colorScale( getDataID(state.nodes,d)[0].speciesIndex ); } );
+  }
+
+  function clickSubject() {
+    console.log("mouseClickSubject",d3.event.x,d3.event.y,simulation.find(d3.event.x - margin.left, d3.event.y - margin.top, searchRadius));
+    return simulation.find(d3.event.x - margin.left, d3.event.y - margin.top, searchRadius);
+  }
+
+   function clickDot(){
+
+     var d = clickSubject();
+     console.log("selected",d.id);
+     
+     // select an individual circle when clicked 
+     if (state.onClick == "ind") {
+
+       // Empty selectedID array
+   //    state.selectedID = [];
+
+       // selecting new point
+       if ( !IDinSelectedID( state.selectedID,d.id ) ){
+         state.selectedID.push(d.id);
+         console.log("selected",state.selectedID);
+   //      getDataID(state.nodes,d.id)[0].color = colorScale20( d.id );              ///could update nodes just before next timeStep
+         getDataID(state.nodesRender,d.id)[0].color = colorScale20( d.id );
+       }
+       
+       // unselect existing selected ID
+       else if ( IDinSelectedID(state.selectedID,d.id) ){
+         unSelectThisOne(d);
+         console.log("UNselected",state.selectedID);
+   //      getDataID(state.nodes,d.id)[0].color = colorScale( d.speciesIndex );
+         getDataID(state.nodesRender,d.id)[0].color = colorScale( d.speciesIndex );
+       }
+     }
+     
+     else if (state.onClick == "sec") {
+
+       resetColors();
+       
+       // Empty selectedID array
+       state.selectedID = [];
+       
+       // get all data from the section of the selected individual
+       state.sectionData = getDataSection(state.nodesRender,d.coordinate);
+       console.log(state.sectionData, d.coordinate)
+       // Add ID's of the selected fish's family to selectedID
+       state.selectedID = state.sectionData.map( function(d){ return(d.id) } );
+       
+       state.selectedID.forEach ( function(d){ //getDataID(state.nodesCurrent, d)[0].color = colorScale20( d ); 
+                                               getDataID(state.nodesRender,  d)[0].color = colorScale20( d );
+                                             });
+       
+       console.log("section",state.selectedID, getDataSample(state.sectionData,timeStep)//.map(function(d) {return d.section}) 
+       );
+        
+     }
+     // Select IDs of all individuals in the selected individual's family
+     else if (state.onClick == "fam") {
+
+       resetColors();
+
+       // Empty selectedID array
+       state.selectedID = [];
+       
+       // get all data from the family of the selected individual
+       state.familyData = getDataFamily(state.nodesRender,d.familyID);
+       // Add ID's of the selected fish's family to selectedID
+       state.selectedID = state.familyData.map( function(d){ return(d.id) } );
+       
+    //   state.selectedID.forEach ( function(d){ getDataID(state.nodes,       d)[0].color = colorScale20( d ); } );
+       state.selectedID.forEach ( function(d){ getDataID(state.nodesRender,d)[0].color = colorScale20( d ); } );
+       
+        console.log("family",state.selectedID);
+       
+     }
+     
+     updateRenderData();
+     ticked();
+   }
+   
+  // Is id in selectedID array?
+  function IDinSelectedID(arr, val) {
+    return arr.some(function(arrVal) {
+      return val === arrVal;
+    });
+  }
+  
+  function unSelectThisOne(d){ 
+    state.selectedID.splice(state.selectedID.indexOf(d.id),1);
+  }
+
+  function getDataSection(d,coord){
+    return d.filter( function(dd) {
+      return dd.coordinate == coord;
+    });
+  }
+  
+  function getDataFamily(d,famID){
+    return d.filter( function(d) {
+      return d.familyID == famID;
+    });
+  }
+
+  function getDataID(d,id) {
+    return d.filter( function(d) {
+      return d.id == id;
+    });
+  }
+
+  function getSelected(dd) {
+    return dd.filter( function(d) {
+      return IDinSelectedID(state.selectedID,d.id);
+    });
+  }
+
+  function getDataSample(dd,s) {
+    return dd.filter( function(d) {
+      return d.sample.includes(s);
+    });
+  }
 
 function uniques(array) {
    return Array.from(new Set(array));
@@ -40,8 +466,8 @@ function assignSectionN(cd,xyIn){
 // assign sectionN based on riverAbbr and section# 
 // need to check lat/lon sor sections -1 and 0 in OS - just subtracted from the last decimal for now
   cd.forEach(function (d,i) {
-    d.sectionN = xyIn.filter( function(dd) { return d.riverAbbr == dd.riverAbbr && d.section == dd.section })[0].sectionN
-    d.riverN =   xyIn.filter( function(dd) { return d.riverAbbr == dd.riverAbbr && d.section == dd.section })[0].riverN
+    d.sectionN = xyIn.filter( function(dd) { return d.riverAbbr == dd.riverAbbr && d.section == dd.section })[0].sectionN;
+    d.riverN =   xyIn.filter( function(dd) { return d.riverAbbr == dd.riverAbbr && d.section == dd.section })[0].riverN;
   
   });
 }
@@ -82,7 +508,7 @@ function getPathsCoords(xy,nextDown,terminalTrib){
            // or if mainstem, reverse dir of coordinates
            if ( (terminalTrib[path[d]] == 1 && d == 0) ||
                 (terminalTrib[path[d]] == 0)){
-             riverHold = xy[path[d]].coordinates.slice().reverse()
+             riverHold = xy[path[d]].coordinates.slice().reverse();
            }
            // do not reverse if terminalTrib is last step (i.e not the first) 
            else if (terminalTrib[path[d]] == 1 && d > 0) { riverHold = xy[path[d]].coordinates }
@@ -115,43 +541,8 @@ function getPathsCoords(xy,nextDown,terminalTrib){
    }  
   }
   
-  console.log(paths)
-  return paths
-}
-
-function drawcoordinate (d, i) {
-  d.coordinates.forEach( function (dd,ii) {
-    context.moveTo(xScale(dd[0]), yScale(dd[1]));
-    context.arc(   xScale(dd[0]), yScale(dd[1]), 10, 0, 2 * Math.PI);
-  });
-}
-
-function drawNode (d, i) {
-//console.log("drawnode",i,d);
-
-  context.beginPath();
-  context.moveTo(d.x, d.y );
-  
-
-  if( d.isFirstSample && simulation.alpha() < 0.2 ){  // keep new fish from entering from the upper left
-    context.arc(   d.x, d.y, ageScale(d.age)*(1-simulation.alpha()/0.2), 0, 2 * Math.PI);
-    context.fillStyle = d.color;
-    context.fill();
-    context.strokeStyle = d.color;
-    context.stroke();
-  }  
-  else if (!d.isFirstSample) {
-    context.arc(   d.x, d.y, ageScale(d.age), 0, 2 * Math.PI);
-    context.fillStyle = d.color;
-    context.fill();
-    context.strokeStyle = d.color;
-    context.stroke();
-  } 
-  
-//  if(d.once){
-//    context.strokeStyle = "black";
-//    context.stroke();
-//  }
+//  console.log("paths",paths);
+  return paths;
 }
 
 // get path between the current and next time step
@@ -203,3 +594,32 @@ function getPathFirstOnly (nodesFirstSampleOnly) {
     return nodesFirstSampleOnly;
 }
 
+
+
+    
+   
+  function mouseMoved() {
+    var a = this.parentNode, m = d3.mouse(this), d = simulation.find(m[0]- margin.left , m[1]- margin.top , searchRadius);
+  //  console.log("mouseMoved",d)
+    if (!d) return a.removeAttribute("title"), tooltip.style('visibility','hidden');
+    a.setAttribute("title",d.id + " " + d.familyID + " " + d.section); 	
+
+    tooltip
+      .style("visibility", "visible");
+  }
+
+
+ /*        function initializeChart(){
+           
+            // Define tool tips //
+          tip = d3.tip()
+            .attr('class', 'd3-tip')
+            .offset([-10, 0])
+            .html(function(d) {
+              return "Fish " + d.id + ", Family " + d.familyID //+ " [" + d.familyCount + "]"
+              ;
+            });
+           
+           canvas.call(tip);  
+         }  
+*/

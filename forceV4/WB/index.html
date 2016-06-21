@@ -1,261 +1,155 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<a target="_blank" style="outline:none;"><canvas width="900" height="900"></canvas></a>
+<html lang="en">
+  
+<head>
+  <title>Fish Movement</title>
+  <meta charset="utf-8">
+  
+  <a target="_blank" style="outline:none;"><canvas width="900" height="900"></canvas></a>
+  
+  <script src="https://d3js.org/d3.v4.0.0-alpha.40.min.js"></script>
+  <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+  
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css">
+  
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 
-<script src="https://d3js.org/d3.v4.0.0-alpha.40.min.js"></script>
-<button id="btnNext">Next</button>
+  <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/js/functionsV4.js"></script>
+  <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/js/globalVariablesV4.js"></script>
+  
+  <link rel="stylesheet" href="http://felek.cns.umass.edu:4444/forceV4/css/movementV4.css">
+  
+</head>
 
-<script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/js/functionsV4.js"></script>
+<body>
+
+
+    <!-- Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Header -->
+        <div class="row">
+          
+    <!--        <div class="col-lg-10">
+                <h3 class="page-header">Trout and salmon in a small stream network in western MA, USA
+                    <small></small>
+                </h3>
+     -->       </div>
+
+
+  
+            <div class="col-lg-2">
+
+             <form class="form-inline-vertical"> 
+             
+             
+         <!--    <div class="btn-toolbar">  -->
+               <div class="form-group form-group-sm">
+                 
+                  <div class="form-group">
+                    <label for="dotOptionDD" class="col-xs-4">Fish</label>
+                      <div class="col-xs-8">
+                        <select class="form-control" id="dotOptionDD">
+                          <option selected="selected" value="all">All</option>
+                          <option value="selected">Selected</option>
+                        </select>
+                      </div>
+                   </div>
+
+                  <div class="form-group">
+                    <label for="onClickDD" class="col-xs-4">Click</label>
+                      <div class="col-xs-8">  
+                        <select class="form-control" id="onClickDD">
+                          <option value="ind">Individual</option>
+                          <option selected="selected" value="sec">Section</option>
+                          <option value="fam">Family</option>
+                        </select>
+                     </div>
+                   </div>
+                   
+                   <button type="button" class="btn btn-default btn-sm  pull-right" id="unselectAll">Unselect all</button>
+                   
+               </div>
+             </form>
+           </div>
+         </div> 
+       </div>
+  
+  
+  
+  
+   <button id="btnNext">Next</button> 
+</body>
 
 <script>
-//
 
 // Network-specific info ///////////////////////////////////
+
 // Contiguous downstream river for each index (river #)
 // needs to be defined by hand for any network
 var nextDown = [ 2,2,4,4,6,6,0 ];
+
 // Is the river a terminal trib (eg.g no upstream movement possible)
 // needs to be defined by hand for any network
 var terminalTrib = [ 1,1,0,1,0,1,0 ];
 
-function assignSectionN(cd,xyIn){
-// assign sectionN based on riverAbbr and section# 
-// need to check lat/lon sor sections -1 and 0 in OS - just subtracted from the last decimal for now
-  cd.forEach(function (d,i) {
-    d.sectionN = xyIn.filter( function(dd) { return d.riverAbbr == dd.riverAbbr && d.section == dd.section })[0].sectionN
-    d.riverN =   xyIn.filter( function(dd) { return d.riverAbbr == dd.riverAbbr && d.section == dd.section })[0].riverN
-  
-  });
-}
-
 //////////////////////////////////////////////////////////
 
-var canvas = document.querySelector("canvas"),
-    context = canvas.getContext("2d"),
-//    width = canvas.width,
-//    height = canvas.height,
-    searchRadius = 40;
-
-var timeStep,
-    minTimeStep,
-    maxTimeStep;
-    
-var numFish = 100;    
-
-var intervalDur = 200,
-    strengthAdj = 0.95;
-
-var color = d3.scaleCategory10();
-
-// variable that holds the paths and coordinates for each start river/end river combo
-var paths = [], nodes, nodesCurrent, nodesFirstSampleOnly;
-var xy = [], byRiver = [], byFish = [],cdTemp,xyInTemp;
-
-var simulation;
-
-// set up graphics
-var margin = {top: 50, right: 50, bottom: 50, left: 50},
-    width = canvas.width - margin.left - margin.right,
-    height = canvas.height - margin.top - margin.bottom;
-
-var xScale = d3.scaleLinear()
-    .range([0,height]);
-    
-var yScale = d3.scaleLinear()
-    .range([0,width]);
-    
-var ageScale = d3.scaleOrdinal().domain(d3.range(5)).range([1,1.5,2,2.5,3])
+d3.select(canvas)
+  .on("mousemove", mouseMoved)
+  .call(d3.drag()
+    .container(canvas)
+    .subject(clickDot)  // acts as 'onclick'
+    );
 
 // get xy data: file from D:\PITTAGMAIN\West Brook data\ on ben's computer
 d3.csv("http://felek.cns.umass.edu:4444/forceV4/WBCoordsForD3JS.csv", type, function (xyIn){
   d3.csv("http://felek.cns.umass.edu:4444/coreDataOut.csv", typeCoreData, function (cd){
 
-cdTemp=cd; 
-xyInTemp=xyIn;
+    xScale.domain(d3.extent(xyIn, function(d) { return d.lat; }));
+    yScale.domain(d3.extent(xyIn, function(d) { return d.lon; }));
 
-console.log("xyIn",xyIn);
-console.log("cd",cd);
-
-  xScale.domain(d3.extent(xyIn, function(d) { return d.lat; }));
-  yScale.domain(d3.extent(xyIn, function(d) { return d.lon; }));
-
-////////////////////////////////////////////////////////////////////////////
-// set up xy coordinates from csv file
-  byRiver = d3.nest()
-              .key(function(d){return d.riverN;}).sortKeys(d3.ascending)
-              .entries(xyIn); 
-  
-
-  xy = byRiver.map(function (d) {
-               return {
-                 riverN: Number(d.key),
-                 coordinates: d.values.map(function(dd) {
-                   return [dd.lat,dd.lon]
-                 }),
-                 minSection: d3.min( d.values.map(function(dd) { return dd.section; }) ),
-                 maxSection: d3.max( d.values.map(function(dd) { return dd.section; }) )
-               }
-             }); 
-             
-  console.log("byRiver/xy",byRiver,xy) 
-
-  getPathsCoords(xy,nextDown,terminalTrib);
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
-// massage fish data
-  minTimeStep =    d3.min(cd, function(d) { return d.sample; });
-  timeStep = minTimeStep;
-  maxTimeStep = d3.max(cd, function(d) { return d.sample; });
-  console.log("timeStep",timeStep,maxTimeStep)
-  
-  assignSectionN(cd,xyIn);
-  
-  byFish = d3.nest()
-             .key(function(d){return d.id;}).sortKeys(d3.ascending)
-             .entries(cd);
-
-  console.log("byFish",byFish)
-  var spp = uniques( cd.map( function(d) {return d.species}) ) // array of unique species
-  console.log("spp",spp)
-  
-  nodes = byFish.map(function (d) {
-               return {
-                 id: d.values[0].id,
-                 riverN: d.values.map(function(dd) {
-                   return dd.riverN
-                 }),
-                 river: d.values.map(function(dd) {
-                   return dd.river
-                 }),
-                 section: d.values.map(function(dd) {
-                   return dd.section
-                 }),
-                 sectionN: d.values.map(function(dd) {
-                   return dd.sectionN
-                 }),
-                 sample: d.values.map(function(dd) {
-                   return dd.sample
-                 }),
-                 len: d.values.map(function(dd) {
-                   return dd.len
-                 }),
-                 age: d.values.map(function(dd) {
-                   return dd.age
-                 }),
-                 species: d.values[0].species,
-                 sppIndex: spp.indexOf(d.values[0].species), // integer value of spp
-                 color: color( spp.indexOf(d.values[0].species) )
-               }
-             });
-
-nodes.forEach( function(d){ d.firstSample = d.sample[0]; } )
-console.log("nodes",nodes)
-
-//////////////////////////////////////////////////////////////////////////////
-//nodesCurrent = nodes.filter( function(d) { return d.sample.includes( timeStep ) && d.sample.includes( timeStep + 1 ) });
-nodesFirstSampleOnly = nodes.filter( function(d) { return d.sample.includes( timeStep ) && d.sample.length == 1 });
-getPathFirstOnly(nodesFirstSampleOnly);
-
-nodesCurrentTmp = nodes.filter( function(d) { return d.sample.includes( timeStep ) && d.sample.includes( timeStep + 1 ) });
-getPath(nodesCurrentTmp);
-
-nodesCurrent = nodesCurrentTmp.concat(nodesFirstSampleOnly)
-
-nodesCurrent.forEach(function(d){ d.coordinate = d.pathStart,
-                                  d.isFirstSample = (d.firstSample == timeStep ) 
-                                });
-
-console.log("nodesCurrent",nodesCurrent)
-
-// force simulation
-simulation = d3.forceSimulation(nodesCurrent)
-   .drag(0.75)
- // .alphaDecay(0.01)
-  .force("charge", d3.forceManyBody()
-                     .strength(1) //strength of attraction among points [ - repels, + attracts ]
-                 //    .theta(0.8)
-                     .distanceMax(10)
-        )
-  .force("collide", d3.forceCollide().radius(function(d) { return ageScale(d.age) + 1.2; }).iterations(1))
-  .force("x", d3.forceX().x(function(d) { return xScale(d.coordinate[0]); }).strength(intervalDur / 1000 * strengthAdj)) //bigger strength means faster
-  .force("y", d3.forceY().y(function(d) { return yScale(d.coordinate[1]); }).strength(intervalDur / 1000 * strengthAdj)) 
-  .on("tick", ticked)
-
-function ticked() {
-//  console.log(simulation.alpha())
-  
-  context.clearRect(0, 0, width, height);
-  context.save();
-  context.translate(margin.left, margin.top);
-
-  context.beginPath();
-  xy.forEach(drawcoordinate);
-  context.fillStyle = "#bbb";
-  context.fill();
-  context.strokeStyle = "#bbb";
-  context.stroke();
-
-  nodesCurrent.forEach(drawNode);
-
-  context.restore();
-}
-
-////////////////////////////////////////////////////////////////////////
-// Increment by timeStep
-d3.select('#btnNext')
-  .on('click', function() {
+    // Initialize state and initializeInterface
+    initializeState();
+    initializeInterface();
     
-      // fish that were sampled once, on current (timeStep) sample. No path, just current location.    
-      nodesFirstSampleOnly = nodes.filter( function(d) { return d.sample.includes( timeStep ) && d.sample.length == 1 });
-      getPathFirstOnly(nodesFirstSampleOnly);
-      
-      // fish caught at least current sample and next. Get a path for them.
-      nodesCurrentTmp = nodes.filter( function(d) { return d.sample.includes( timeStep ) && d.sample.includes( timeStep + 1 ) });
-      getPath(nodesCurrentTmp);
-      
-      nodesCurrent = nodesCurrentTmp.concat(nodesFirstSampleOnly)
-      
-      console.log("nodes length",nodesCurrent.length)
+    // Initialize network and fish data
+    initializeNetwork(xyIn);
+    initializeFishData(cd,xyIn);
 
-   //   nodesCurrent = nodesCurrent.filter( function(d) { return d.id == 27711 });
-
-      nodesCurrent.forEach(function(d){ d.coordinate = d.pathStart, 
-                                        d.isFirstSample = ( d.firstSample == timeStep ) 
-                                      });
+    updateRenderData();
     
-      var indexSegNum = 0;
-      
-      // increment segments until all fish have moved
-      var intervalNum = setInterval(function(){ 
-           indexSegNum = indexSegNum + 1;
-           
-           var indexNumDone = 0;
-           
-           nodesCurrent.forEach(function (d,i) {
-             if(indexSegNum < d.nodePath.length){
-               d.coordinate = d.nodePath[indexSegNum];
-             }
-             else { 
-               d.coordinate = d.coordinate;
-               indexNumDone = indexNumDone + 1;
-             }
+    // force simulation
+    simulation = d3.forceSimulation()
+      .drag(0.75)
+     // .alphaDecay(0.01)
+      .force("charge", d3.forceManyBody()
+                         .strength(1) //strength of attraction among points [ - repels, + attracts ]
+                     //    .theta(0.8)
+                         .distanceMax(10)
+            )
+      .force("collide", d3.forceCollide().radius(function(d) { return ageScale(d.currentAge) + 1.025; })
+                           .iterations(1))
+      .force("x", d3.forceX().x(function(d) { return xScale(d.coordinate[0]); }).strength(intervalDur / 1000 * strengthAdj)) //bigger strength means faster
+      .force("y", d3.forceY().y(function(d) { return yScale(d.coordinate[1]); }).strength(intervalDur / 1000 * strengthAdj)) 
+      .on("tick", ticked)
+    
+  //  simulation.nodes(state.nodesRender).alphaDecay(.05).restart();
+    
+    // Increment by timeStep
+    d3.select('#btnNext')
+      .on('click', function() {
 
-           });
-           
-           console.log("Prop done moving", indexNumDone/nodesCurrent.length, timeStep)
-           
-           var aMin = timeStep == minTimeStep ? 0.00001 : 0.01;
-           simulation.alpha(1).alphaMin(aMin).nodes(nodesCurrent).restart(); //alphaMin > 0 shortens the simulation - keeps the dots from jiggling near end as they find the packing solution
+          timeStep = timeStep === (maxTimeStep - 2) ? 0 : timeStep + 1;
 
-           if (indexNumDone/nodesCurrent.length == 1) clearInterval(intervalNum);
-           
-       },intervalDur); 
-       
-      timeStep = timeStep === (maxTimeStep - 2) ? 0 : timeStep + 1;
-      console.log("timeStep =",timeStep);
-  });
+          updateRenderData();
+          incrementSegments();
+          
+          console.log("timeStep =",timeStep);
+
+      });
   
   }); //coreData
 }); //csv  
