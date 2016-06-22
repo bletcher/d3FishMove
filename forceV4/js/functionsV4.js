@@ -133,9 +133,12 @@ function initializeFishData(cd,xyIn){
     console.log("initializefishData");
     // massage fish data
     minTimeStep =    d3.min(cd, function(d) { return d.sample; }) - 1;
-    timeStep = minTimeStep+1;
+    state.currentSample = minTimeStep+1;
     maxTimeStep = d3.max(cd, function(d) { return d.sample; });
-    console.log("timeStep",timeStep,maxTimeStep);
+    console.log("timeStep",state.currentSample,maxTimeStep);
+    
+    state.sampSet = sortUnique( cd.map( function(d){ return d.sample; }) );
+    console.log("sampSet",state.sampSet);
     
     assignSectionN(cd,xyIn);
     
@@ -170,6 +173,12 @@ function initializeFishData(cd,xyIn){
                    age: d.values.map(function(dd) {
                      return dd.age;
                    }),
+                   year: d.values.map(function(dd) {
+                     return dd.year;
+                   }),
+                   season: d.values.map(function(dd) {
+                     return dd.season;
+                   }),
                    species: d.values[0].species,
                    speciesIndex: spp.indexOf(d.values[0].species), // integer value of spp
                    color: colorScale( spp.indexOf(d.values[0].species) ),
@@ -183,7 +192,7 @@ function initializeFishData(cd,xyIn){
 function incrementSegments(){
   
   var indexSegNum = 0;
-  var intDur = timeStep == minTimeStep ? 2 : intervalDur; //probably not needed now
+  var intDur = state.currentSample == minTimeStep ? 2 : intervalDur; //probably not needed now
   
   // increment segments until all fish have moved
   var intervalNum = setInterval(function(){ 
@@ -202,11 +211,11 @@ function incrementSegments(){
 
        });
        
-       console.log("Prop done moving", indexNumDone/state.nodesRender.length, timeStep);
+       console.log("Prop done moving", indexNumDone/state.nodesRender.length, state.currentSample);
        $("#propDoneLabel").html((indexNumDone/state.nodesRender.length).toFixed(2));
        $("#simAlphaLabel").html(simulation.alpha().toFixed(2));
        
-       var aMin = timeStep == minTimeStep ? 0.00001 : 0.01;
+       var aMin = state.currentSample == minTimeStep ? 0.00001 : 0.01;
        simulation.alpha(1).alphaMin(aMin).nodes(state.nodesRender).restart(); //alphaMin > 0 shortens the simulation - keeps the dots from jiggling near end as they find the packing solution
 
        if (state.nodesRender.length === 0 || indexNumDone/state.nodesRender.length == 1) clearInterval(intervalNum);
@@ -216,7 +225,7 @@ function incrementSegments(){
 }
 
 function ticked() {
-//  console.log(timeStep,simulation.alpha())
+//  console.log(state.currentSample,simulation.alpha())
   
   context.clearRect(0, 0, canvas.width, canvas.height);
   context.save();
@@ -292,10 +301,10 @@ function drawNode (d, i) {
 
 function getNodesCurrent(){
   
-  nodesFirstSampleOnly = state.nodes.filter( function(d) { return d.sample.includes( timeStep ) && d.sample.length == 1 });
+  nodesFirstSampleOnly = state.nodes.filter( function(d) { return d.sample.includes( state.currentSample ) && d.sample.length == 1 });
   getPathFirstOnly(nodesFirstSampleOnly);
   
-  nodesCurrentTmp = state.nodes.filter( function(d) { return d.sample.includes( timeStep ) && d.sample.includes( timeStep + 1 ) });
+  nodesCurrentTmp = state.nodes.filter( function(d) { return d.sample.includes( state.currentSample ) && d.sample.includes( state.currentSample + 1 ) });
   getPath(nodesCurrentTmp);
   
   state.nodesCurrent = nodesCurrentTmp.concat(nodesFirstSampleOnly);
@@ -303,10 +312,10 @@ function getNodesCurrent(){
 //  console.log("nodes length",state.nodesCurrent.length);
   
   state.nodesCurrent.forEach(function(d){ d.coordinate = d.pathEnd;//d.pathStart;
-                                          d.isFirstSample = (d.firstSample == timeStep ); 
+                                          d.isFirstSample = (d.firstSample == state.currentSample ); 
                                         });
 
-//  console.log("nodesCurrent",timeStep,state.nodesCurrent);
+//  console.log("nodesCurrent",state.currentSample,state.nodesCurrent);
 }
 
 function selectedIDIsNotAlive(){
@@ -327,11 +336,26 @@ function updateRenderData(){
   state.nodesCurrent.forEach(function(d) { updateCurrentAge(d); });
   getNodesRender();
   
+  state.nodesCurrent.forEach(function(d) { updateCurrentSeason(d); });
+  state.nodesCurrent.forEach(function(d) { updateCurrentYear(d); });
+  $("#seasonLabel").html(state.nodesCurrent[0].currentSeason);
+  $("#yearLabel").html(state.nodesCurrent[0].currentYear);
+  
 }
 
 function updateCurrentAge(d){
-   var indx = d.sample.indexOf(timeStep); 
+   var indx = d.sample.indexOf(state.currentSample); 
        d.currentAge = d.age[indx];
+}
+
+function updateCurrentSeason(d){
+   var indx = d.sample.indexOf(state.currentSample); 
+       d.currentSeason = d.season[indx];
+}
+
+function updateCurrentYear(d){
+   var indx = d.sample.indexOf(state.currentSample); 
+       d.currentYear = d.year[indx];
 }
 
   function resetColors(){  //this resets colors of all decsendents of nodes; nodesCurrent, nodesRender
@@ -364,7 +388,7 @@ function updateCurrentAge(d){
        if ( !IDinSelectedID( state.selectedID,d.id ) ){
          state.selectedID.push(d.id);
          console.log("selected",state.selectedID);
-   //      getDataID(state.nodes,d.id)[0].color = colorScale20( d.id );              ///could update nodes just before next timeStep
+   //      getDataID(state.nodes,d.id)[0].color = colorScale20( d.id );              ///could update nodes just before next state.currentSample
          getDataID(state.nodesRender,d.id)[0].color = colorScale20( d.id );
        }
        
@@ -394,7 +418,7 @@ function updateCurrentAge(d){
                                                getDataID(state.nodesRender,  d)[0].color = colorScale20( d );
                                              });
        
-       console.log("section",state.selectedID, getDataSample(state.sectionData,timeStep)//.map(function(d) {return d.section}) 
+       console.log("section",state.selectedID, getDataSample(state.sectionData,state.currentSample)//.map(function(d) {return d.section}) 
        );
         
      }
@@ -467,6 +491,15 @@ function updateCurrentAge(d){
 function uniques(array) {
    return Array.from(new Set(array));
 }
+
+    function sortUnique(arr) {
+        arr.sort();
+        var last_i;
+        for (var i=0;i<arr.length;i++)
+            if ((last_i = arr.lastIndexOf(arr[i])) !== i)
+                arr.splice(i+1, last_i-i);
+        return arr;
+    }
 
 function assignSectionN(cd,xyIn){
 // assign sectionN based on riverAbbr and section# 
@@ -555,7 +588,7 @@ function getPathsCoords(xy,nextDown,terminalTrib){
 function getPath (nodesCurrentTmp) {
     nodesCurrentTmp.forEach(function (d,i) {
       
-        var timeStepIndex = d.sample.indexOf(timeStep); // for all arrays in d
+        var timeStepIndex = d.sample.indexOf(state.currentSample); // for all arrays in d
         
         d.nodePossiblePath = paths.filter( function(dd){ return dd.startRiver == d.riverN[timeStepIndex] & dd.endRiver == d.riverN[timeStepIndex + 1] } );
 
@@ -582,7 +615,7 @@ function getPath (nodesCurrentTmp) {
 function getPathFirstOnly (nodesFirstSampleOnly) {
     nodesFirstSampleOnly.forEach(function (d,i) {
       
-        var timeStepIndex = d.sample.indexOf(timeStep); // for all arrays in d
+        var timeStepIndex = d.sample.indexOf(state.currentSample); // for all arrays in d
         
         d.nodePossiblePath = paths.filter( function(dd){ return dd.startRiver == d.riverN[timeStepIndex] & dd.endRiver == d.riverN[timeStepIndex + 0] } );
 
@@ -629,3 +662,40 @@ function getPathFirstOnly (nodesFirstSampleOnly) {
            canvas.call(tip);  
          }  
 */
+
+         function updateSlider() {
+           console.log('updateSlider', state);
+           
+           if ($("#slider").children().length > 1) {
+             console.log("destroying slider");
+             $("#sampleSlider").slider('destroy');
+           }
+
+           console.log('children', $('#sampleSlider').children().length);
+
+           var sampSetLegend = state.sampSet.slice(state.sampSet); //create a clone
+           
+           if( state.sampSet.length-1 > sliderLabelsMaxNum ){
+             var sliderInterval = Math.round( (state.sampSet.length-1)/sliderLabelsMaxNum );
+             for(i = 0;  i < state.sampSet.length-1; i++){
+               if( i % sliderInterval !== 0 ) sampSetLegend[i] = null;
+             }   
+           }
+
+           state.currentSample = d3.min(state.sampSet);
+           
+           var slider = $('#sampleSlider').slider({   
+            ticks: state.sampSet,
+            ticks_labels: sampSetLegend,
+            ticks_snap_bounds: 1,
+            value: state.currentSample
+          });
+          
+          $('#sampleSlider').on("slideStop", function () {
+            state.currentSample = $('#sampleSlider').slider("getValue");
+          
+            updateRenderData();
+            incrementSegments();
+          });
+          
+         }

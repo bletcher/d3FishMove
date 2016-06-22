@@ -15,7 +15,10 @@
   
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
   <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
-
+  
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/6.1.5/css/bootstrap-slider.css" rel="stylesheet">
+  <script type='text/javascript' src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/6.1.5/bootstrap-slider.js"></script>
+   
   <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/js/functionsV4.js"></script>
   <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/js/globalVariablesV4.js"></script>
   
@@ -81,10 +84,28 @@
          </div> 
        </div>
   
+        <hr>
+
+        <!-- Slider section -->
+        <div class="row">
+            <div class="col-lg-11">
+                <div class="sliderSection" id="slider">
+                  <input id="sampleSlider">
+
+                </div>
+            </div>
+            <div class="col-lg-1">
+
+                <div id="yearLabel">year</div>
+                <div id="seasonLabel">season</div>
+
+            </div>  
+        </div>
+        <!-- /.slider -->
   
+        <hr>
   
-  
-   <button id="btnNext">Next</button> 
+ <!--  <button id="btnNext">Next</button> -->
 </body>
 
 <script>
@@ -122,6 +143,8 @@ d3.csv("http://felek.cns.umass.edu:4444/forceV4/WBCoordsForD3JS.csv", type, func
     // Initialize network and fish data
     initializeNetwork(xyIn);
     initializeFishData(cd,xyIn);
+    
+    updateSlider();
 
     // update and render first interval. Dots will settle on second sample of the interval
     updateRenderData();
@@ -142,19 +165,19 @@ d3.csv("http://felek.cns.umass.edu:4444/forceV4/WBCoordsForD3JS.csv", type, func
       .force("y", d3.forceY().y(function(d) { return yScale(d.coordinate[1]); }).strength(intervalDur / 1000 * strengthAdj)) 
       .on("tick", ticked)
     
-    // Increment by timeStep
+/*    // Increment by state.currentSample
     d3.select('#btnNext')
       .on('click', function() {
 
-          timeStep = timeStep === (maxTimeStep - 1) ? 0 : timeStep + 1;
+          state.currentSample = state.currentSample === (maxTimeStep - 1) ? 0 : state.currentSample + 1;
 
           updateRenderData();
           incrementSegments();
           
-          console.log("timeStep =",timeStep);
+          console.log("timeStep =",state.currentSample);
 
       });
-  
+*/  
   }); //coreData
 }); //csv  
 

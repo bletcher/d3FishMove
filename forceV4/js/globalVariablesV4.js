@@ -27,7 +27,7 @@
      aliveSamplesSelected: [],
      filteredAliveSamplesSelected: [],
  */  familyData: [],
-     selectedID: [], //filter for these in render
+     selectedID: [], 
      maxLength: undefined,
      maxSection: undefined,
      sampSet: []
@@ -41,7 +41,7 @@ var canvas = document.querySelector("canvas"),
 //    height = canvas.height,
     searchRadius = 5;
 
-var timeStep,
+var //timeStep,
     minTimeStep,
     maxTimeStep;
     
@@ -81,3 +81,6 @@ var tooltip = d3.select("body")
     .style("z-index", "10")
     .style("visibility", "hidden");
 
+// Slider bar
+  var sliderLabelsMaxNum = 20;
+  var sampSetLegend;
