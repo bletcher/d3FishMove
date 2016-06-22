@@ -62,22 +62,22 @@ var xy = [], byRiver = [], byFish = [];
 var simulation;
 
 // set up graphics
-var margin = {top: 40, right: 50, bottom: 0, left: 50},
+var margin = {top: 40, right: 40, bottom: 0, left: 40},
     width = canvas.width - margin.left - margin.right,
     height = canvas.height - margin.top - margin.bottom;
 
 var xScale = d3.scaleLinear()
-    .range([0,height-margin.top]);
+    .range([0,height - margin.top - margin.bottom]);
     
 var yScale = d3.scaleLinear()
-    .range([0,width]);
+    .range([0,width - margin.left - margin.right]);
     
 var ageScale = d3.scaleOrdinal().domain(d3.range(5)).range([2,3,4,5,6]); //[1,1.5,2,2.5,3]
 
 var tooltip = d3.select("body")
-    .append("div")
-      .attr("class", "tooltip")
-      .style("position", "absolute")
-      .style("z-index", "10")
-      .style("visibility", "hidden");
+  .append("div")
+    .attr("class", "tooltip")
+    .style("position", "absolute")
+    .style("z-index", "10")
+    .style("visibility", "hidden");
 

@@ -5,7 +5,7 @@
   <title>Fish Movement</title>
   <meta charset="utf-8">
   
-  <a target="_blank" style="outline:none;"><canvas width="900" height="900"></canvas></a>
+  <a target="_blank" style="outline:none;"><canvas width="900" height="700"></canvas></a>
   
   <script src="https://d3js.org/d3.v4.0.0-alpha.40.min.js"></script>
   <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
@@ -32,11 +32,11 @@
         <!-- Page Header -->
         <div class="row">
           
-    <!--        <div class="col-lg-10">
+            <div class="col-lg-10">
                 <h3 class="page-header">Trout and salmon in a small stream network in western MA, USA
                     <small></small>
                 </h3>
-     -->       </div>
+            </div>
 
 
   
@@ -49,7 +49,7 @@
                <div class="form-group form-group-sm">
                  
                   <div class="form-group">
-                    <label for="dotOptionDD" class="col-xs-4">Fish</label>
+                    <label for="dotOptionDD" class="col-xs-4">Show</label>
                       <div class="col-xs-8">
                         <select class="form-control" id="dotOptionDD">
                           <option selected="selected" value="all">All</option>
@@ -59,7 +59,7 @@
                    </div>
 
                   <div class="form-group">
-                    <label for="onClickDD" class="col-xs-4">Click</label>
+                    <label for="onClickDD" class="col-xs-4">Select</label>
                       <div class="col-xs-8">  
                         <select class="form-control" id="onClickDD">
                           <option value="ind">Individual</option>
@@ -70,6 +70,10 @@
                    </div>
                    
                    <button type="button" class="btn btn-default btn-sm  pull-right" id="unselectAll">Unselect all</button>
+                   <div id="propDoneLabel">prop done moving</div>
+                   <div id="simAlphaLabel">alpha</div>
+ 
+          
                    
                </div>
              </form>
@@ -102,7 +106,7 @@ d3.select(canvas)
   .call(d3.drag()
     .container(canvas)
     .subject(clickDot)  // acts as 'onclick'
-    );
+  );
 
 // get xy data: file from D:\PITTAGMAIN\West Brook data\ on ben's computer
 d3.csv("http://felek.cns.umass.edu:4444/forceV4/WBCoordsForD3JS.csv", type, function (xyIn){
@@ -111,7 +115,7 @@ d3.csv("http://felek.cns.umass.edu:4444/forceV4/WBCoordsForD3JS.csv", type, func
     xScale.domain(d3.extent(xyIn, function(d) { return d.lat; }));
     yScale.domain(d3.extent(xyIn, function(d) { return d.lon; }));
 
-    // Initialize state and initializeInterface
+    // Initialize state and interface
     initializeState();
     initializeInterface();
     
@@ -119,7 +123,9 @@ d3.csv("http://felek.cns.umass.edu:4444/forceV4/WBCoordsForD3JS.csv", type, func
     initializeNetwork(xyIn);
     initializeFishData(cd,xyIn);
 
+    // update and render first interval. Dots will settle on second sample of the interval
     updateRenderData();
+    incrementSegments();
     
     // force simulation
     simulation = d3.forceSimulation()
@@ -136,13 +142,11 @@ d3.csv("http://felek.cns.umass.edu:4444/forceV4/WBCoordsForD3JS.csv", type, func
       .force("y", d3.forceY().y(function(d) { return yScale(d.coordinate[1]); }).strength(intervalDur / 1000 * strengthAdj)) 
       .on("tick", ticked)
     
-  //  simulation.nodes(state.nodesRender).alphaDecay(.05).restart();
-    
     // Increment by timeStep
     d3.select('#btnNext')
       .on('click', function() {
 
-          timeStep = timeStep === (maxTimeStep - 2) ? 0 : timeStep + 1;
+          timeStep = timeStep === (maxTimeStep - 1) ? 0 : timeStep + 1;
 
           updateRenderData();
           incrementSegments();

@@ -90,7 +90,7 @@ function color(d){ return d.id; }
   */         $("#onClickDD").on("change", function () {
              console.log("#onClickDD change");
              state.onClick = $("#onClickDD").val();
-             resetColors();
+             resetColorsToSpp();
              state.selectedID = [];
              updateRenderData();
              ticked();
@@ -111,7 +111,6 @@ function initializeNetwork(xyIn){
     byRiver = d3.nest()
                 .key(function(d){return d.riverN;}).sortKeys(d3.ascending)
                 .entries(xyIn); 
-    
   
     xy = byRiver.map(function (d) {
                  return {
@@ -204,6 +203,8 @@ function incrementSegments(){
        });
        
        console.log("Prop done moving", indexNumDone/state.nodesRender.length, timeStep);
+       $("#propDoneLabel").html((indexNumDone/state.nodesRender.length).toFixed(2));
+       $("#simAlphaLabel").html(simulation.alpha().toFixed(2));
        
        var aMin = timeStep == minTimeStep ? 0.00001 : 0.01;
        simulation.alpha(1).alphaMin(aMin).nodes(state.nodesRender).restart(); //alphaMin > 0 shortens the simulation - keeps the dots from jiggling near end as they find the packing solution
@@ -217,9 +218,9 @@ function incrementSegments(){
 function ticked() {
 //  console.log(timeStep,simulation.alpha())
   
-  context.clearRect(0, 0, width, height);
+  context.clearRect(0, 0, canvas.width, canvas.height);
   context.save();
-  context.translate(margin.left, margin.top); // subtract the margin valules whenever use simulation.find()
+  context.translate(margin.left, margin.top); // subtract the margin values whenever use simulation.find()
 
   context.beginPath();
   xy.forEach(drawcoordinate);
@@ -242,7 +243,6 @@ function drawcoordinate (d, i) {
 }
 
 function drawNode (d, i) {
-//if (simulation.alpha()< 0.01) console.log("drawnode",simulation.alpha(),i,timeStep,d);
 
   context.beginPath();
         
@@ -335,9 +335,14 @@ function updateCurrentAge(d){
 }
 
   function resetColors(){  //this resets colors of all decsendents of nodes; nodesCurrent, nodesRender
-    state.selectedID.forEach ( function(d){ getDataID(state.nodes,       d)[0].color = colorScale( getDataID(state.nodes,d)[0].speciesIndex ); } );
+    state.selectedID.forEach( function(d){ getDataID(state.nodes,       d)[0].color = colorScale( getDataID(state.nodes,d)[0].speciesIndex ); } );
    // state.selectedID.forEach ( function(d){console.log("reset colors",d); getDataID(state.nodesCurrent,d)[0].color = colorScale( getDataID(state.nodes,d)[0].speciesIndex ); } );
   }
+  
+  function resetColorsToSpp(){  //this resets colors of all decsendents of nodes; nodesCurrent, nodesRender
+    state.nodes.forEach( function(d){ d.color = colorScale( d.speciesIndex ); } );
+  }
+
 
   function clickSubject() {
     console.log("mouseClickSubject",d3.event.x,d3.event.y,simulation.find(d3.event.x - margin.left, d3.event.y - margin.top, searchRadius));
@@ -396,8 +401,9 @@ function updateCurrentAge(d){
      // Select IDs of all individuals in the selected individual's family
      else if (state.onClick == "fam") {
 
-       resetColors();
-
+      //resetColors();
+       state.nodes.forEach(function(d){d.color="lightgrey"})
+       
        // Empty selectedID array
        state.selectedID = [];
        
@@ -435,8 +441,8 @@ function updateCurrentAge(d){
   }
   
   function getDataFamily(d,famID){
-    return d.filter( function(d) {
-      return d.familyID == famID;
+    return d.filter( function(dd) {
+      return dd.familyID == famID;
     });
   }
 
