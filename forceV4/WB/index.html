@@ -5,8 +5,6 @@
   <title>Fish Movement</title>
   <meta charset="utf-8">
   
-  <a target="_blank" style="outline:none;"><canvas width="900" height="700"></canvas></a>
-  
   <script src="https://d3js.org/d3.v4.0.0-alpha.40.min.js"></script>
   <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
   
@@ -29,84 +27,116 @@
 <body>
 
 
-    <!-- Page Content -->
-    <div class="container-fluid">
+  <!-- Page Content -->
+  <div class="container-fluid">
 
-        <!-- Page Header -->
-        <div class="row">
-          
-            <div class="col-lg-10">
-                <h3 class="page-header">Trout and salmon in a small stream network in western MA, USA
-                    <small></small>
-                </h3>
-            </div>
-
-
-  
-            <div class="col-lg-2">
-
-             <form class="form-inline-vertical"> 
-             
-             
-         <!--    <div class="btn-toolbar">  -->
-               <div class="form-group form-group-sm">
-                 
-                  <div class="form-group">
-                    <label for="dotOptionDD" class="col-xs-4">Show</label>
-                      <div class="col-xs-8">
-                        <select class="form-control" id="dotOptionDD">
-                          <option selected="selected" value="all">All</option>
-                          <option value="selected">Selected</option>
-                        </select>
-                      </div>
-                   </div>
-
-                  <div class="form-group">
-                    <label for="onClickDD" class="col-xs-4">Select</label>
-                      <div class="col-xs-8">  
-                        <select class="form-control" id="onClickDD">
-                          <option value="ind">Individual</option>
-                          <option selected="selected" value="sec">Section</option>
-                          <option value="fam">Family</option>
-                        </select>
-                     </div>
-                   </div>
-                   
-                   <button type="button" class="btn btn-default btn-sm  pull-right" id="unselectAll">Unselect all</button>
-                   <div id="propDoneLabel">prop done moving</div>
-                   <div id="simAlphaLabel">alpha</div>
- 
-          
-                   
-               </div>
-             </form>
-           </div>
-         </div> 
-       </div>
-  
-        <hr>
-
-        <!-- Slider section -->
-        <div class="row">
-            <div class="col-lg-11">
-                <div class="sliderSection" id="slider">
-                  <input id="sampleSlider">
-
-                </div>
-            </div>
-            <div class="col-lg-1">
-
-                <div id="yearLabel">year</div>
-                <div id="seasonLabel">season</div>
-
-            </div>  
+      <!-- Page Header -->
+    <div class="row">
+      
+        <div class="col-lg-10">
+            <h3 class="page-header">Trout and salmon in a small stream network in western MA, USA
+                <small></small>
+            </h3>
         </div>
-        <!-- /.slider -->
-  
-        <hr>
-  
- <!--  <button id="btnNext">Next</button> -->
-</body>
+
+     </div> 
+
+
+     <div class="row" id="main">
+        <div class="col-lg-10">
+    <!--      <div class="container-canvas"> class='img-responsive' using these changes xy coords so clicking doesn't work without modifiction  -->
+
+           <canvas id="myCanvas" width="960" height="700">
+           </canvas>
+         
+        </div>
+       
+       
+         <div class="col-lg-2">
+           <form class="form-inline-vertical"> 
+
+     <!--    <div class="btn-toolbar">  -->
+             <div class="form-group form-group-sm">
+               
+                <div class="form-group">
+                  <label for="selectedSpeciesDD" class="col-xs-4">Species</label>
+                    <div class="col-xs-8">
+                    
+                      <select class="form-control" id="selectedSpeciesDD">
+                        <option selected="selected" value="all">All</option>
+                        <option value="ats">Salmon</option>
+                        <option value="bnt">BrownT</option>
+                        <option value="bkt">BrookT</option>
+                        
+                      </select>
+                    </div>
+                 </div>
+               
+                <div class="form-group">
+                  <label for="dotOptionDD" class="col-xs-4">Show</label>
+                    <div class="col-xs-8">
+                      <select class="form-control" id="dotOptionDD">
+                        <option selected="selected" value="all">All</option>
+                        <option value="selected">Selected</option>
+                      </select>
+                    </div>
+                 </div>
+
+                <div class="form-group">
+                  <label for="onClickDD" class="col-xs-4">Select</label>
+                    <div class="col-xs-8">  
+                      <select class="form-control" id="onClickDD">
+                        <option value="ind">Individual</option>
+                        <option selected="selected" value="sec">Section</option>
+                        <option value="fam">Family</option>
+                      </select>
+                   </div>
+                 </div>
+                 
+                <div class="form-group">
+                  <label for="addLastSampleDD" class="col-xs-4">Color last obs?</label>
+                    <div class="col-xs-8">  
+                      <select class="form-control" id="addLastSampleDD">
+                        <option selected="selected" value="yes">Yes</option>
+                        <option value="no">No</option>
+                      </select>
+                   </div>
+                 </div>
+                 
+                 <button type="button" class="btn btn-default btn-sm  pull-right" id="unselectAll">Unselect all</button>
+                 <button type="button" class="btn btn-default btn-sm  pull-right" id="resetSppColors">Recolor species</button>
+
+                 <div id="propDoneLabel">prop done moving</div>
+                 <div id="simAlphaLabel">alpha</div>
+                 
+             </div>
+           </form>
+         </div> 
+         
+       </div>
+       
+    <hr>
+
+    <!-- Slider section -->
+    <div class="row">
+        <div class="col-lg-10">
+            <div class="sliderSection" id="slider">
+              <input id="sampleSlider">
+
+            </div>
+        </div>
+        <div class="col-lg-2">
+
+            <div id="yearLabel">year</div>
+            <div id="seasonLabel">season</div>
+
+        </div>
+    </div>
+
+  <hr>
+  </div> 
+<!--  <button id="btnNext">Next</button> -->
+
 
 <script>
 
@@ -120,7 +150,26 @@ var nextDown = [ 2,2,4,4,6,6,0 ];
 // needs to be defined by hand for any network
 var terminalTrib = [ 1,1,0,1,0,1,0 ];
 
+var sppScale = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(["Atlantic salmon", "Brown trout", "Brook trout"]);
+//var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range([d3.rgb(162,205,174), d3.rgb(92,151,150), d3.rgb(36,45,66)]);
+//var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(['rgb(31,120,180)','rgb(178,223,138)','rgb(51,160,44)']);
+var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(['rgb(190,0,0)','rgb(0,200,0)','rgb(160,200,255)']);
 //////////////////////////////////////////////////////////
+
+var canvas = document.getElementById("myCanvas"), //getElementByIdquerySelector
+    context = canvas.getContext("2d");
+    
+// set up graphics
+var margin = {top: 40, right: 40, bottom: 0, left: 40},
+    width = canvas.width - margin.left - margin.right,
+    height = canvas.height - margin.top - margin.bottom;
+    
+var xScale = d3.scaleLinear()
+    .range([0, width - margin.top - margin.bottom]);
+    
+var yScale = d3.scaleLinear()
+    .range([0, height - margin.left - margin.right]);    
+
 
 d3.select(canvas)
   .on("mousemove", mouseMoved)
@@ -128,6 +177,7 @@ d3.select(canvas)
     .container(canvas)
     .subject(clickDot)  // acts as 'onclick'
   );
+
 
 // get xy data: file from D:\PITTAGMAIN\West Brook data\ on ben's computer
 d3.csv("http://felek.cns.umass.edu:4444/forceV4/WBCoordsForD3JS.csv", type, function (xyIn){
@@ -164,6 +214,7 @@ d3.csv("http://felek.cns.umass.edu:4444/forceV4/WBCoordsForD3JS.csv", type, func
       .force("x", d3.forceX().x(function(d) { return xScale(d.coordinate[0]); }).strength(intervalDur / 1000 * strengthAdj)) //bigger strength means faster
       .force("y", d3.forceY().y(function(d) { return yScale(d.coordinate[1]); }).strength(intervalDur / 1000 * strengthAdj)) 
       .on("tick", ticked)
+      .on("end",  ended)
     
 /*    // Increment by state.currentSample
     d3.select('#btnNext')
@@ -181,4 +232,6 @@ d3.csv("http://felek.cns.umass.edu:4444/forceV4/WBCoordsForD3JS.csv", type, func
   }); //coreData
 }); //csv  
 
-</script>
+    </script>
+  </body>
+</html>
