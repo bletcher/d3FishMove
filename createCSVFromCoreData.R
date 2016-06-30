@@ -2,6 +2,7 @@ library(dplyr)
 library(lubridate)
 
 # coreData created in the git/getWBCoreDataForD3FishMove subdir on Osensei
+# need to export coreDataForD3.RData from Osensei and then upload here to felek 
 load('coreDataForD3.RData')
 
 out <- cd %>%
@@ -29,15 +30,20 @@ out <- cd %>%
                  minSample = minSample,
                  maxSample = maxSample,
                  familyCount = familyCount, 
-                 cohort = cohort
+                 cohort = cohort,
+                 dateEmigrated = dateEmigrated
                ) %>%
-         filter( !is.na(len) ) # have one fish right now
+         filter( !is.na(len),
+                 tag != "1bf0e00a52"     #temporary
+                 ) # have one fish right now
 
 out$seasonStr <- ifelse(out$season == 1, "Spring", 
                  ifelse(out$season == 2, "Summer",
                  ifelse(out$season == 3, "Autumn","Winter")))
 
 out$age <- year( out$date ) - out$cohort
+
+
 
 write.csv(out,file='coreDataOut.csv', row.names = F)
 

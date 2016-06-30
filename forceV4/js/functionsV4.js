@@ -29,394 +29,456 @@
       d.familyCount = +d.familyCount;
       d.riverAbbr = d.river;
       d.age = +d.age;
+      d.dateEmigrated = Date.parse(d.dateEmigrated);
       return d;
     }
 
-function color(d){ return d.id; }
-
-         function initializeState() {
-           console.log('initializeState()');
- /*          state.selectedRiver = $("#selectedRiverDD").val();
-     */    state.selectedSpecies = $("#selectedSpeciesDD").val();
-           state.dotOption = $("#dotOptionDD").val();   
-     //      state.barOption = $("#barOptionDD").val();
-        //   state.barVariable = $("#barVariableDD").val();
-           state.onClick = $("#onClickDD").val();
-           state.addLastSample = $("#addLastSampleDD").val();
-   //        state.lines = $("#linesDD").val();
-           console.log('state: ', state);
-         }
-         
-         function initializeInterface() {
-           console.log('initializeInterface()');
-           
-           $("#selectedSpeciesDD").on("change", function () {
-            console.log("#selectedspeciesDD change");
-            state.selectedSpecies = $("#selectedSpeciesDD").val();
-            updateRenderData();
-            ticked();
-            ended();
-           });
- /*          $("#selectedRiverDD").on("change", function () {
-            console.log("#selectedRiverDD change");
-            state.selectedRiver = $("#selectedRiverDD").val();
-            updateRiverSpecies(state);
-            ticked();
-           });
-    */       $("#unselectAll").on("click", function () {
-             console.log("#unselectAll click");
-             resetColorsToSpp();
-             state.selectedID = [];
-             updateRenderData();
-             ticked();
-             ended();
-           });
-           $("#resetSppColors").on("click", function () {
-             console.log("#resetSppColors click");
-             resetColorsToSppUnSelected();
-        //     state.selectedID = [];
-             updateRenderData();
-             ticked();
-             ended();
-           });
-           $("#dotOptionDD").on("change", function () {
-             console.log("#dotOption change");
-             state.dotOption = $("#dotOptionDD").val();
-             updateRenderData();
-             ticked();
-             ended();
-           });
-/*
-           $("#barOptionDD").on("change", function () {
-             console.log("#barOption change");
-             state.barOption = $("#barOptionDD").val();
-             ticked();
-           });
-           $("#barVariableDD").on("change", function () {
-             console.log("#barVariableDD change");
-             state.barVariable = $("#barVariableDD").val();
-             ticked();
-           });
-  */         $("#onClickDD").on("change", function () {
-             console.log("#onClickDD change");
+  function color(d){ return d.id; }
+  
+           function initializeState() {
+             console.log('initializeState()');
+   /*          state.selectedRiver = $("#selectedRiverDD").val();
+       */    state.selectedSpecies = $("#selectedSpeciesDD").val();
+             state.dotOption = $("#dotOptionDD").val();   
+       //      state.barOption = $("#barOptionDD").val();
+          //   state.barVariable = $("#barVariableDD").val();
              state.onClick = $("#onClickDD").val();
-             resetColorsToSpp();
-             state.selectedID = [];
-             updateRenderData();
-             ticked();
-             ended();
-           });
-          $("#addLastSampleDD").on("change", function () {
-             console.log("#addLastSampleDD change");
              state.addLastSample = $("#addLastSampleDD").val();
-             ended();
-           });
-         }
-
-function initializeNetwork(xyIn){
-  console.log("initializeNetwork");
-    ////////////////////////////////////////////////////////////////////////////
-    // set up xy coordinates from csv file
-    byRiver = d3.nest()
-                .key(function(d){return d.riverN;}).sortKeys(d3.ascending)
-                .entries(xyIn); 
+     //        state.lines = $("#linesDD").val();
+             console.log('state: ', state);
+           }
+           
+           function initializeInterface() {
+             console.log('initializeInterface()');
+             
+             $("#selectedSpeciesDD").on("change", function () {
+              console.log("#selectedspeciesDD change");
+              state.selectedSpecies = $("#selectedSpeciesDD").val();
+              updateRenderData();
+              ticked();
+              ended();
+             });
+   /*          $("#selectedRiverDD").on("change", function () {
+              console.log("#selectedRiverDD change");
+              state.selectedRiver = $("#selectedRiverDD").val();
+              updateRiverSpecies(state);
+              ticked();
+             });
+      */       $("#unselectAll").on("click", function () {
+               console.log("#unselectAll click");
+               resetColorsToSpp();
+               state.selectedID = [];
+               updateRenderData();
+               ticked();
+               ended();
+             });
+             $("#resetSppColors").on("click", function () {
+               console.log("#resetSppColors click");
+               resetColorsToSppUnSelected();
+          //     state.selectedID = [];
+               updateRenderData();
+               ticked();
+               ended();
+             });
+             $("#dotOptionDD").on("change", function () {
+               console.log("#dotOption change");
+               state.dotOption = $("#dotOptionDD").val();
+               updateRenderData();
+               ticked();
+               ended();
+             });
+  /*
+             $("#barOptionDD").on("change", function () {
+               console.log("#barOption change");
+               state.barOption = $("#barOptionDD").val();
+               ticked();
+             });
+             $("#barVariableDD").on("change", function () {
+               console.log("#barVariableDD change");
+               state.barVariable = $("#barVariableDD").val();
+               ticked();
+             });
+    */         $("#onClickDD").on("change", function () {
+               console.log("#onClickDD change");
+               state.onClick = $("#onClickDD").val();
+               resetColorsToSpp();
+               state.selectedID = [];
+               updateRenderData();
+               ticked();
+               ended();
+             });
+            $("#addLastSampleDD").on("change", function () {
+               console.log("#addLastSampleDD change");
+               state.addLastSample = $("#addLastSampleDD").val();
+               ended();
+             });
+           }
   
-    xy = byRiver.map(function (d) {
-                 return {
-                   riverN: Number(d.key),
-                   coordinates: d.values.map(function(dd) {
-                     return [dd.lat,dd.lon];
-                   }),
-                   minSection: d3.min( d.values.map(function(dd) { return dd.section; }) ),
-                   maxSection: d3.max( d.values.map(function(dd) { return dd.section; }) )
-                 };
-               }); 
-               
-    console.log("byRiver/xy",byRiver,xy); 
-  
-    getPathsCoords(xy,nextDown,terminalTrib);
-}
-
-
-function initializeFishData(cd,xyIn){
-    console.log("initializefishData");
-    // massage fish data
-    minTimeStep =    d3.min(cd, function(d) { return d.sample; }) - 1;
-    state.currentSample = minTimeStep + 1;
-    maxTimeStep = d3.max(cd, function(d) { return d.sample; });
-    console.log("timeStep",state.currentSample,maxTimeStep);
+  function initializeNetwork(xyIn){
+    console.log("initializeNetwork");
+      ////////////////////////////////////////////////////////////////////////////
+      // set up xy coordinates from csv file
+      byRiver = d3.nest()
+                  .key(function(d){return d.riverN;}).sortKeys(d3.ascending)
+                  .entries(xyIn); 
     
-    // get set of unique samples with year and season - must be a better way...
-    cd.forEach(function(d,i){
-      d.uniqueString = d.sample.toString().concat("_" + d.year.toString()).concat("_" + d.season.toString());
-    });
-    var uString = sortUnique(cd.map( function(d) { return d.uniqueString } ));
-    state.sampleInfo = uString.map(function(d){
-      return {
-        sample: +d.split("_")[0],
-        year: +d.split("_")[1],
-        season: d.split("_")[2]
-      };
-    });
-
-    // put into separate arrays so they are easy to read for repeated calls
-    state.sampSet = state.sampleInfo.map(function(d){return d.sample});
-    state.yearSet = state.sampleInfo.map(function(d){return d.year});
-    state.seasonSet = state.sampleInfo.map(function(d){return d.season});
-        
-  //  console.log("sampSet",state);
-
-    spp = uniques( cd.map( function(d) {return d.species}) ); // array of unique species
-    console.log("spp",spp);
+      xy = byRiver.map(function (d) {
+                   return {
+                     riverN: Number(d.key),
+                     coordinates: d.values.map(function(dd) {
+                       return [dd.lat,dd.lon];
+                     }),
+                     minSection: d3.min( d.values.map(function(dd) { return dd.section; }) ),
+                     maxSection: d3.max( d.values.map(function(dd) { return dd.section; }) )
+                   };
+                 }); 
+                 
+      console.log("byRiver/xy",byRiver,xy); 
     
-    assignSectionN(cd,xyIn);
-    
-    byFish = d3.nest()
-               .key(function(d){return d.id;}).sortKeys(d3.ascending)
-               .entries(cd);
-    
-    state.nodes = byFish.map(function (d) {
-                 return {
-                   id: d.values[0].id,
-                   riverN: d.values.map(function(dd) {
-                     return dd.riverN;
-                   }),
-                   river: d.values.map(function(dd) {
-                     return dd.river;
-                   }),
-                   section: d.values.map(function(dd) {
-                     return dd.section;
-                   }),
-                   sectionN: d.values.map(function(dd) {
-                     return dd.sectionN;
-                   }),
-                   sample: d.values.map(function(dd) {
-                     return dd.sample;
-                   }),
-                   len: d.values.map(function(dd) {
-                     return dd.len;
-                   }),
-                   age: d.values.map(function(dd) {
-                     return dd.age;
-                   }),
-                   year: d.values.map(function(dd) {
-                     return dd.year;
-                   }),
-                   season: d.values.map(function(dd) {
-                     return dd.season;
-                   }),
-                   species: d.values[0].species,
-                   speciesIndex: spp.indexOf(d.values[0].species), // integer value of spp
-                   color: sppScaleColor( d.values[0].species ),// colorScale( spp.indexOf(d.values[0].species) ),
-                   familyID: d.values[0].familyID
-             //      uniqueString: d.values[0].uniqueString
-                 };
-               });
-  
-  state.nodes.forEach( function(d){ d.firstSample = d3.min(d.sample);//d.sample[0];
-                                    d.lastSample  = d3.max(d.sample);} );
-}
-
-function incrementSegments(){
-  
-  var indexSegNum = 0;
-  var intDur = state.currentSample == minTimeStep ? 2 : intervalDur; //probably not needed now
-  
-  // increment segments until all fish have moved
-  var intervalNum = setInterval(function(){ 
-       indexSegNum = indexSegNum + 1;
-       
-       var indexNumDone = 0;
-       
-       state.nodesRender.forEach(function (d,i) {
-         if(indexSegNum < d.nodePath.length){
-           d.coordinate = d.nodePath[indexSegNum];
-         }
-         else { 
-           d.coordinate = d.coordinate;
-           indexNumDone = indexNumDone + 1;
-         }
-
-       });
-       
-       console.log("Prop done moving", indexNumDone/state.nodesRender.length, state.currentSample);
-       $("#propDoneLabel").html((indexNumDone/state.nodesRender.length).toFixed(2));
-       $("#simAlphaLabel").html(simulation.alpha().toFixed(2));
-       
-       var aMin = state.currentSample == minTimeStep ? 0.00001 : 0.01;
-       simulation.alpha(1).alphaMin(aMin).nodes(state.nodesRender).restart(); //alphaMin > 0 shortens the simulation - keeps the dots from jiggling near end as they find the packing solution
-
-       if (state.nodesRender.length === 0 || indexNumDone/state.nodesRender.length == 1) clearInterval(intervalNum);
-       
-   },intDur);
-  
-}
-
-function ticked() {
-//  console.log(state.currentSample,simulation.alpha())
-  
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  context.save();
-  context.translate(margin.left, margin.top); // subtract the margin values whenever use simulation.find()
-
-  context.beginPath();
-  xy.forEach(drawcoordinate);
-  context.fillStyle = "lightgrey";
-  context.fill();
-  context.strokeStyle = "lightgrey";
-  context.stroke();
-
-  spp.forEach(drawLegend);
-
-  state.nodesRender.forEach(drawNode);
-
-  context.restore();
-}
-
-
-function drawcoordinate (d, i) {
-  d.coordinates.forEach( function (dd,ii) {
-    context.moveTo(xScale(dd[0]), yScale(dd[1]));
-    context.arc(   xScale(dd[0]), yScale(dd[1]), 10, 0, 2 * Math.PI);
-  });
-}
-
-
-function drawLegend(d,i){
-  // move to global variables?
-  var vOffset = 20, radius = 7; vOffsetText = radius/2;
-  var w = width - 100, h = height - vOffset * i - 20;
-  
-  context.beginPath();
-  context.moveTo(w, h );
-  context.arc(   w, h, radius, 0, 2 * Math.PI);
-  context.strokeStyle = d3.rgb(sppScaleColor( d )).darker(2);
-  context.stroke();
-  context.fillStyle = sppScaleColor( d );
-  context.fill();
-  context.font = "15px Arial";
-  context.fillText(sppScale(d) ,w + 20, h + vOffsetText);
-//  console.log(d,sppScaleColor( d ))
-}
-
-function drawNode (d, i) {
-
-  context.beginPath();
-  context.moveTo(d.x, d.y );
-
-  if( d.isFirstSample && (simulation.alpha() < 0.2) ){  // keep new fish from entering from the upper left
-    context.arc(   d.x, d.y, ageScale(d.currentAge)*(1-simulation.alpha()/0.2), 0, 2 * Math.PI);
-
-    if(!IDinSelectedID(state.selectedID,d.id)) {  
-      context.strokeStyle = d3.rgb(sppScaleColor( d )).darker(1);
-      context.stroke();
-    }
-    else {
-      context.strokeStyle = "black";
-      context.stroke();      
-    }
-    
-    context.fillStyle = d.color;
-    context.fill();
-  }  
-  else if (!d.isFirstSample) {
-    
-    context.arc(d.x, d.y, ageScale(d.currentAge), 0, 2 * Math.PI);
-
-    if(!IDinSelectedID(state.selectedID,d.id)) {  
-      context.strokeStyle = d3.rgb(sppScaleColor( d )).darker(1);
-      context.stroke();
-    }
-    else {
-      context.strokeStyle = "black";
-      context.stroke();    
-      context.linewidth = 4;
-      context.stroke();
-    }
-    
-    context.fillStyle = d.color;// d3.rgb(sppScaleColor( d ));
-    context.fill();
+      getPathsCoords(xy,nextDown,terminalTrib);
   }
-
-//  if(d.once){
-//    context.strokeStyle = "black";
-//    context.stroke();
-//  }
-
-}
-
-function ended(){
-
-  if( state.addLastSample == "yes" ){
+  
+  
+  function initializeFishData(cd,xyIn){
+      console.log("initializefishData");
+      
+      // massage fish data
+      minTimeStep =    d3.min(cd, function(d) { return d.sample; }) - 1;
+      state.currentSample = minTimeStep + 1;
+      maxTimeStep = d3.max(cd, function(d) { return d.sample; });
+      console.log("timeStep",state.currentSample,maxTimeStep,cd);
+      
+      // get set of unique samples with year and season - must be a better way...
+      cd.forEach(function(d,i){
+        d.uniqueString = d.sample.toString().concat("_" + d.year.toString()).concat("_" + d.season.toString());
+      });
+      
+      var uString = sortUnique(cd.map( function(d) { return d.uniqueString } ));
+      
+      state.sampleInfo = uString.map(function(d){
+        return {
+          sample: +d.split("_")[0],
+          year: +d.split("_")[1],
+          season: d.split("_")[2]
+        };
+      });
+  
+      // put into separate arrays so they are easy to read for repeated calls
+      state.sampSet = state.sampleInfo.map(function(d){return d.sample});
+      state.yearSet = state.sampleInfo.map(function(d){return d.year});
+      state.seasonSet = state.sampleInfo.map(function(d){return d.season});
+      
+      // Define starting sample #
+      state.currentSample = d3.min(state.sampSet);
+          
+    //  console.log("sampSet",state);
+  
+      spp = uniques( cd.map( function(d) {return d.species}) ); // array of unique species
+      console.log("spp",spp);
+      
+      assignSectionN(cd,xyIn);
+      
+      // add extra row for fish that emigrated. Put them in section 0 in the WB [river 7]
+      addEmigrants(cd);
+  
+      byFish = d3.nest()
+                 .key(function(d){return d.id;}).sortKeys(d3.ascending)
+                 .entries(cd);
+      
+      state.nodes = byFish.map(function (d) {
+                   return {
+                     id: d.values[0].id,
+                     riverN: d.values.map(function(dd) {
+                       return dd.riverN;
+                     }),
+                     river: d.values.map(function(dd) {
+                       return dd.river;
+                     }),
+                     section: d.values.map(function(dd) {
+                       return dd.section;
+                     }),
+                     sectionN: d.values.map(function(dd) {
+                       return dd.sectionN;
+                     }),
+                     sample: d.values.map(function(dd) {
+                       return dd.sample;
+                     }),
+                     len: d.values.map(function(dd) {
+                       return dd.len;
+                     }),
+                     age: d.values.map(function(dd) {
+                       return dd.age;
+                     }),
+                     year: d.values.map(function(dd) {
+                       return dd.year;
+                     }),
+                     season: d.values.map(function(dd) {
+                       return dd.season;
+                     }),
+                     date: d.values.map(function(dd) {
+                       return dd.date;
+                     }),
+                     species: d.values[0].species,
+                     speciesIndex: spp.indexOf(d.values[0].species), // integer value of spp
+                     color: sppScaleColor( d.values[0].species ),// colorScale( spp.indexOf(d.values[0].species) ),
+                     familyID: d.values[0].familyID,
+                     dateEmigrated: d.values[0].dateEmigrated
+               //      uniqueString: d.values[0].uniqueString
+                   };
+                 });
+    
+    state.nodes.forEach( function(d){ d.firstSample = d3.min(d.sample);//d.sample[0];
+                                      d.lastSample  = d3.max(d.sample);
+                                    }
+                       );
+                                    
+  }
+  
+  function ticked() {
+  //  console.log(state.currentSample,simulation.alpha())
+    
+    context.clearRect(0, 0, canvas.width, canvas.height);
     context.save();
-  //  context.clearRect(0, 0, canvas.width, canvas.height);
     context.translate(margin.left, margin.top); // subtract the margin values whenever use simulation.find()
   
-    state.nodesRender.forEach(fillInLastSample);
-    
+    context.beginPath();
+    xy.forEach(drawcoordinate);
+    context.fillStyle = 'rgb(245, 245, 245)';//"lightgrey";
+    context.fill();
+    context.strokeStyle = 'rgb(245, 245, 245)';//"lightgrey";
+    context.stroke();
+  
+    spp.forEach(drawLegend);
+  
+    state.nodesRender.forEach(drawNode);
+  
     context.restore();
   }
-  else if( state.addLastSample == "no" ){
-    ticked();
+  
+  
+  function drawcoordinate (d, i) {
+    d.coordinates.forEach( function (dd,ii) {
+      context.moveTo(xScale(dd[0]), yScale(dd[1]));
+      context.arc(   xScale(dd[0]), yScale(dd[1]), 10, 0, 2 * Math.PI);
+    });
   }
   
-}
-
-function fillInLastSample(d){
-    if ( d.isLastSample ){
-
-      context.beginPath();
-      context.moveTo(d.x, d.y );
-      context.arc(d.x, d.y, 2, 0, 2 * Math.PI);
-      context.fillStyle = "yellow";
+  
+  function drawLegend(d,i){
+    // move to global variables?
+    var vOffset = 20, radius = 7; vOffsetText = radius/2;
+    var w = width - 100, h = height - vOffset * i - 20;
+    
+    context.beginPath();
+    context.moveTo(w, h );
+    context.arc(   w, h, radius, 0, 2 * Math.PI);
+    context.strokeStyle = d3.rgb(sppScaleColor( d )).darker(2);
+    context.stroke();
+    context.fillStyle = sppScaleColor( d );
+    context.fill();
+    context.font = "15px Arial";
+    context.fillText(sppScale(d) ,w + 20, h + vOffsetText);
+  //  console.log(d,sppScaleColor( d ))
+  }
+  
+  function drawNode (d, i) {
+  
+    context.beginPath();
+    context.moveTo(d.x, d.y );
+  
+    if( ((d.isFirstSample) && (simulation.alpha() < 0.2)) ){  // keep new fish from entering from the upper left, they emerge near the end
+        
+      context.arc(   d.x, d.y, ageScale(d.currentAge)*(1-simulation.alpha()/0.2), 0, 2 * Math.PI);
+  
+      if(!IDinSelectedID(state.selectedID,d.id)) {  
+        context.strokeStyle = d.color;//d3.rgb(sppScaleColor( d.species )).darker(1);
+        context.stroke();
+      }
+      else {
+        context.strokeStyle = "black";
+        context.stroke();      
+      }
+      
+      context.fillStyle = d.color;
       context.fill();
+    }  
+    else if (!d.isFirstSample ) {
+      
+      context.arc(d.x, d.y, ageScale(d.currentAge), 0, 2 * Math.PI);
+  
+      if(!IDinSelectedID(state.selectedID,d.id)) {  
+        context.strokeStyle = d.color;//d3.rgb(sppScaleColor( d.species )).darker(1);
+        context.stroke();
+      }
+      else {
+        context.strokeStyle = "black";
+        context.stroke();    
+        context.linewidth = 4;
+        context.stroke();
+      }
+      
+      context.fillStyle = d.color;// d3.rgb(sppScaleColor( d ));
+      context.fill();
+    }
+  
+  //  if(d.once){
+  //    context.strokeStyle = "black";
+  //    context.stroke();
+  //  }
+  
   }
+  
+  function ended(){
+  
+    if( state.addLastSample == "yes" ){
+      context.save();
+    //  context.clearRect(0, 0, canvas.width, canvas.height);
+      context.translate(margin.left, margin.top); // subtract the margin values whenever use simulation.find()
+    
+      state.nodesRender.forEach(fillInLastSample);
+      
+      context.restore();
+    }
+    else if( state.addLastSample == "no" ){
+      ticked();
+    }
+    
+  }
+  
+  function addEmigrants(cd){
+    cd.forEach(function(d,i){
+      
+      if ( !isNaN( d.dateEmigrated ) && d.sample == d.maxSample ){
+  
+        var e = jQuery.extend(true, {}, d); //clone
+  
+        e.date = d.dateEmigrated;
+        e.lagSection = d.section;
+        e.maxSample = d.sample + 1; 
+        e.river = emigrationRiver; e.riverAbbr = emigrationRiver;
+        e.riverN = emigrationRiverN;
+        e.sample = d.sample + 1;
+        e.season = getNextSeason(d.season); e.seasonStr = e.season;
+        e.section = emigrationSection; e.sectionN = emigrationSectionN;
+        if (d.season == "Winter") { e.year = d.year + 1; e.age = d.age + 1; }
+        
+        d.maxSample = d.sample + 1;
+  
+        cd.push(e);
+      }
+    });
+  }
+  
+  function fillInLastSample(d){
+      if ( d.isLastSample ){
+  
+        context.beginPath();
+        context.moveTo(d.x, d.y );
+        context.arc(d.x, d.y, ageScale(d.currentAge) - 1, 0, 2 * Math.PI);
+        context.fillStyle = d3.rgb(253,255,204); // ICE
+    //    context.fillStyle = "#E4FB68"//"#EFEE69"//"#ffffb3";//'rgb(250,250,250)';//"yellow";
+        context.fill();
+    }
+  }
+  
+  function getNodesCurrent(){
+    
+    // get fish that were seen only once at the end of the interval (state.currentSample + 1, beginning of this one)  
+    nodesFirstSampleOnly = state.nodes.filter( function(d) { return d.sample.includes( state.currentSample + 1 ) && d.sample.length == 1 });
+    getPathFirstOnly(nodesFirstSampleOnly);
+    nodesFirstSampleOnly.forEach( function(d) { d.isFirstSample = ( d.firstSample == state.currentSample + 1 );
+                                                d.isLastSample  = ( d.lastSample  == state.currentSample + 1 );
+                                              }
+                                );
+    
+    // get fish that were seen in the beginning and end of the interval [this to next]
+    nodesCurrentTmp = state.nodes.filter( function(d) { return d.sample.includes( state.currentSample ) && d.sample.includes( state.currentSample + 1 ) });
+    getPath(nodesCurrentTmp);
+    nodesCurrentTmp.forEach( function(d) { d.isFirstSample = ( d.firstSample == state.currentSample );
+                                           d.isLastSample  = ( d.lastSample  == state.currentSample + 1 );
+                                         }
+                           );
+    
+    // Put them together
+    state.nodesCurrent = nodesCurrentTmp.concat(nodesFirstSampleOnly);
+    
+    // Update 3 variables
+    state.nodesCurrent.forEach( function(d) { d.coordinate = d.pathEnd; } );
+  
+  }
+  
+  function updateRenderData(){
+    
+    getNodesCurrent();
+    state.nodesCurrent.forEach(function(d) { updateCurrentAge(d); });
+    getNodesRender();
+    
+    state.nodesCurrent.forEach(function(d) { updateCurrentSeason(d); updateCurrentYear(d); });
+    
+    state.currentSeason = getDataSampleInfo(state.sampleInfo,state.currentSample)[0].season;
+    $("#seasonLabel").html(state.currentSeason + " - " + getNextSeason( state.currentSeason ));
+    
+    state.currentYear = getDataSampleInfo(state.sampleInfo,state.currentSample)[0].year;
+    $("#yearLabel").html(state.currentYear);
+    
+  }
+  
+  function getNodesRender(){
+    
+    if( state.selectedSpecies != "all") { state.nodesCurrent = getDataSpecies(state.nodesCurrent, state.selectedSpecies);}
+    
+    if (      state.dotOption == "all" ) {      state.nodesRender = state.nodesCurrent; }
+    else if ( state.dotOption == "selected" ) { state.nodesRender = getSelected(state.nodesCurrent); }
+  }
+
+
+function incrementSegments(){
+/*
+  // Jump to path end if first sample or skip a sample
+  if( (state.currentSample == minTimeStep + 2) || (state.currentSample != state.previousSample + 1) ){  
+    
+    state.nodesRender.forEach(function (d,i) { d.coordinate = d.pathEnd; });
+    console.log("Prop done moving all",state.nodesRender);
+    simulation.alpha(1).alphaMin(0.01).nodes(state.nodesRender).restart();
+  }
+  
+  // Step through path
+  else {  
+*/  
+    var indexSegNum = 0;
+    var intDur = state.currentSample == minTimeStep ? 2 : intervalDur; //probably not needed now
+  
+    // increment segments until all fish have moved
+    var intervalNum = setInterval(function(){ 
+         indexSegNum = indexSegNum + 1;
+         
+         var indexNumDone = 0;
+         
+         state.nodesRender.forEach(function (d,i) {
+           if(indexSegNum < d.nodePath.length){
+             d.coordinate = d.nodePath[indexSegNum];
+           }
+           else { 
+             d.coordinate = d.coordinate;
+             indexNumDone = indexNumDone + 1;
+           }
+         });
+         
+         console.log("Prop done moving", indexNumDone/state.nodesRender.length, state.currentSample);
+         $("#propDoneLabel").html((indexNumDone/state.nodesRender.length).toFixed(2));
+    //     $("#simAlphaLabel").html(simulation.alpha().toFixed(2));
+         
+         var aMin = state.currentSample == minTimeStep+1 ? 0.00001 : 0.01;
+         simulation.alpha(1).alphaMin(0.01).nodes(state.nodesRender).restart(); //alphaMin > 0 shortens the simulation - keeps the dots from jiggling near end as they find the packing solution
+  
+         if (state.nodesRender.length === 0 || indexNumDone/state.nodesRender.length == 1) clearInterval(intervalNum);
+         
+     },intDur);
+//  }
 }
 
-function getNodesCurrent(){
-  
-  nodesFirstSampleOnly = state.nodes.filter( function(d) { return d.sample.includes( state.currentSample ) && d.sample.length == 1 });
-  getPathFirstOnly(nodesFirstSampleOnly);
-  
-  nodesCurrentTmp = state.nodes.filter( function(d) { return d.sample.includes( state.currentSample ) && d.sample.includes( state.currentSample + 1 ) });
-  getPath(nodesCurrentTmp);
-  
-  state.nodesCurrent = nodesCurrentTmp.concat(nodesFirstSampleOnly);
-  
-//  console.log("nodes length",state.nodesCurrent.length);
-  
-  state.nodesCurrent.forEach(function(d){ d.coordinate = d.pathEnd;//d.pathStart;
-                                          d.isFirstSample = (d.firstSample == state.currentSample ); 
-                                          d.isLastSample  = (d.lastSample  == state.currentSample + 1 );
-                                        });
 
-//  console.log("nodesCurrent",state.currentSample,state.nodesCurrent);
-}
 
-function updateRenderData(){
-  
-  getNodesCurrent();
-  state.nodesCurrent.forEach(function(d) { updateCurrentAge(d); });
-  getNodesRender();
-  
-  state.nodesCurrent.forEach(function(d) { updateCurrentSeason(d); updateCurrentYear(d); });
-  state.nodesCurrent.forEach(function(d) { updateCurrentSeason(d); updateCurrentYear(d); });
-  
-  state.currentSeason = getDataSampleInfo(state.sampleInfo,state.currentSample)[0].season;
-  $("#seasonLabel").html(state.currentSeason + " - " + getNextSeason( state.currentSeason ));
-  
-  state.currentYear = getDataSampleInfo(state.sampleInfo,state.currentSample)[0].year;
-  $("#yearLabel").html(state.currentYear);
-  
-}
-
-function getNodesRender(){
-  
-  if( state.selectedSpecies != "all") { state.nodesCurrent = getDataSpecies(state.nodesCurrent, state.selectedSpecies);}
-  
-  if (      state.dotOption == "all" ) {      state.nodesRender = state.nodesCurrent; }
-  else if ( state.dotOption == "selected" ) { state.nodesRender = getSelected(state.nodesCurrent); }
-}
 
 function updateCurrentAge(d){
    var indx = d.sample.indexOf(state.currentSample); 
@@ -441,16 +503,16 @@ function selectedIDIsNotAlive(){
 }
 
   function resetColorsSelected(){  //this resets colors of all decsendents of nodes; nodesCurrent, nodesRender
-    state.selectedID.forEach( function(d){ getDataID(state.nodes,       d)[0].color = sppScaleColor( getDataID(state.nodes,d)[0].speciesIndex ); } );
+    state.selectedID.forEach( function(d){ getDataID(state.nodes,       d)[0].color = sppScaleColor( getDataID(state.nodes,d)[0].species ); } );
 
   }
   
   function resetColorsToSpp(){  //this resets colors of all decsendents of nodes; nodesCurrent, nodesRender
-    state.nodes.forEach( function(d){ d.color = sppScaleColor( d.speciesIndex ); } );
+    state.nodes.forEach( function(d){ d.color = sppScaleColor( d.species ); } );
   }
   
   function resetColorsToSppUnSelected(){  //this resets colors of all decsendents of nodes; nodesCurrent, nodesRender
-    state.nodes.forEach( function(d){ if(!IDinSelectedID( state.selectedID,d.id )) d.color = sppScaleColor( d.speciesIndex ); } );
+    state.nodes.forEach( function(d){ if(!IDinSelectedID( state.selectedID,d.id )) d.color = sppScaleColor( d.species ); } );
   }
 
 
@@ -484,7 +546,7 @@ function selectedIDIsNotAlive(){
          unSelectThisOne(d);
          console.log("UNselected",state.selectedID);
    //      getDataID(state.nodes,d.id)[0].color = colorScale( d.speciesIndex );
-         getDataID(state.nodesRender,d.id)[0].color = sppScaleColor( d.speciesIndex );
+         getDataID(state.nodesRender,d.id)[0].color = sppScaleColor( d.species );
        }
      }
      
@@ -497,7 +559,7 @@ function selectedIDIsNotAlive(){
        
        // get all data from the section of the selected individual
        state.sectionData = getDataSection(state.nodesRender,d.coordinate);
-       console.log(state.sectionData, d.coordinate)
+       console.log(state.sectionData, d.coordinate);
        // Add ID's of the selected fish's family to selectedID
        state.selectedID = state.sectionData.map( function(d){ return(d.id) } );
        
@@ -598,6 +660,12 @@ function selectedIDIsNotAlive(){
     });
   }
 
+  function getDataEmigrated(dd) {
+    return dd.filter( function(d) {
+      return !isNaN(d.dateEmigrated);
+    });
+  }
+
   function getNextSeason(s){
     var n;
     switch(s){
@@ -617,214 +685,195 @@ function selectedIDIsNotAlive(){
     return n;
   }
 
-function uniques(array) {
-   return Array.from(new Set(array));
-}
-
-    function sortUnique(arr) {
-        arr.sort();
-        var last_i;
-        for (var i=0;i<arr.length;i++)
-            if ((last_i = arr.lastIndexOf(arr[i])) !== i)
-                arr.splice(i+1, last_i-i);
-        return arr;
-    }
-
-function assignSectionN(cd,xyIn){
-// assign sectionN based on riverAbbr and section# 
-// need to check lat/lon sor sections -1 and 0 in OS - just subtracted from the last decimal for now
-  cd.forEach(function (d,i) {
-    d.sectionN = xyIn.filter( function(dd) { return d.riverAbbr == dd.riverAbbr && d.section == dd.section })[0].sectionN;
-    d.riverN =   xyIn.filter( function(dd) { return d.riverAbbr == dd.riverAbbr && d.section == dd.section })[0].riverN;
-  
-  });
-}
-
-function getPathsCoords(xy,nextDown,terminalTrib){
-   // set up paths
- var index = 0;
-
-  for( var i = 0; i < xy.length; i++ ){       // starting river
-    for( var j = 0; j < xy.length; j++ ){     // ending river
-
-      var path = [xy[i].riverN]; //Starting river and default for i=j - staying in river.
-      var coords = [];
-      
-      // staying in the same river
-      if (i == j) { 
-        coords = xy[i].coordinates; 
-      }
-      
-      // going downstream 
-      else if(i < j){
-        for( var ii = 1; ii < xy.length; ii++ ){
-          if ( nextDown[path[[ii - 1]]] >= j ) {
-            path[ii] = j;
-            break;
-          }
-          else {
-            path[ii] = nextDown[path[[ii - 1]]];
-          }  
-          
-        }
-        
-        var riverHold = [];          
-        
-        for( var d = 0; d < path.length; d++ ){               
-                       
-           //if terminal trib to start, reverse dir of coordinates
-           // or if mainstem, reverse dir of coordinates
-           if ( (terminalTrib[path[d]] == 1 && d == 0) ||
-                (terminalTrib[path[d]] == 0)){
-             riverHold = xy[path[d]].coordinates.slice().reverse();
-           }
-           // do not reverse if terminalTrib is last step (i.e not the first) 
-           else if (terminalTrib[path[d]] == 1 && d > 0) { riverHold = xy[path[d]].coordinates }
-
-           coords = coords.concat(riverHold);
-           
-        }
-      }
-
-      //going upstream - symmetrical with downstream. Just reverse direction for paths and coords
-      else if(i > j) { 
-        path = paths.filter( function(d) { return d.startRiver == j && d.endRiver == i;})[0].path
-                    .slice()
-                    .reverse();
-        
-        coords = paths.filter( function(d) { return d.startRiver == j && d.endRiver == i;})[0].coordinates
-                    .slice()
-                    .reverse();            
-      }
-      
-      paths[index] = { startRiver:i,
-                       endRiver: j,
-                       path: path,
-                       coordinates: coords
-                     };
-      
-      index = index + 1;
-      //console.log(i,j,path,coords) 
-    
-   }  
+  function uniques(array) {
+     return Array.from(new Set(array));
   }
   
-//  console.log("paths",paths);
-  return paths;
-}
-
-// get path between the current and next time step
-function getPath (nodesCurrentTmp) {
-    nodesCurrentTmp.forEach(function (d,i) {
-      
-        var timeStepIndex = d.sample.indexOf(state.currentSample); // for all arrays in d
-        
-        d.nodePossiblePath = paths.filter( function(dd){ return dd.startRiver == d.riverN[timeStepIndex] & dd.endRiver == d.riverN[timeStepIndex + 1] } );
-
-//console.log("inside",i,timeStepIndex)
-
-        d.pathStart = xy.filter( function(dd){ return dd.riverN == d.riverN[timeStepIndex    ] })[0].coordinates[d.sectionN[timeStepIndex    ] - 1];// -1 because of 0 indexing of sectionN
-        d.pathEnd =   xy.filter( function(dd){ return dd.riverN == d.riverN[timeStepIndex + 1] })[0].coordinates[d.sectionN[timeStepIndex + 1] - 1];
-        d.pathStartIndex = d.nodePossiblePath[0].coordinates.indexOf(d.pathStart);
-        d.pathEndIndex =   d.nodePossiblePath[0].coordinates.indexOf(d.pathEnd);
-        
-        if(d.pathStartIndex <= d.pathEndIndex){
-          d.nodePath =  d.nodePossiblePath[0].coordinates.slice(d.pathStartIndex,d.pathEndIndex + 1);
-        }
-        else d.nodePath = d.nodePossiblePath[0].coordinates.slice(d.pathEndIndex,d.pathStartIndex + 1).reverse(); //if stay in same river and go downstream
-
-        d.once = false;
- //     }
-    });
-    return nodesCurrentTmp;
-}
-
-// for fish only caught once
-// same structure as getPath, except the 'path' is just the current location
-function getPathFirstOnly (nodesFirstSampleOnly) {
-    nodesFirstSampleOnly.forEach(function (d,i) {
-      
-        var timeStepIndex = d.sample.indexOf(state.currentSample); // for all arrays in d
-        
-        d.nodePossiblePath = paths.filter( function(dd){ return dd.startRiver == d.riverN[timeStepIndex] & dd.endRiver == d.riverN[timeStepIndex + 0] } );
-
-//console.log("inside",i,timeStepIndex)
-
-        d.pathStart = xy.filter( function(dd){ return dd.riverN == d.riverN[timeStepIndex    ] })[0].coordinates[d.sectionN[timeStepIndex    ] - 1];// -1 because of 0 indexing of sectionN
-        d.pathEnd =   xy.filter( function(dd){ return dd.riverN == d.riverN[timeStepIndex + 0] })[0].coordinates[d.sectionN[timeStepIndex + 0] - 1];
-        d.pathStartIndex = d.nodePossiblePath[0].coordinates.indexOf(d.pathStart);
-        d.pathEndIndex =   d.nodePossiblePath[0].coordinates.indexOf(d.pathEnd);
-        
-        d.nodePath =  d.nodePossiblePath[0].coordinates.slice(d.pathStartIndex,d.pathEndIndex + 1);
-        
-        d.once = true;
-    });
-    return nodesFirstSampleOnly;
-}
-
-
-
+      function sortUnique(arr) {
+          arr.sort();
+          var last_i;
+          for (var i=0;i<arr.length;i++)
+              if ((last_i = arr.lastIndexOf(arr[i])) !== i)
+                  arr.splice(i+1, last_i-i);
+          return arr;
+      }
+  
+  function assignSectionN(cd,xyIn){
+  // assign sectionN based on riverAbbr and section# 
+  // need to check lat/lon sor sections -1 and 0 in OS - just subtracted from the last decimal for now
+    cd.forEach(function (d,i) {
+      d.sectionN = xyIn.filter( function(dd) { return d.riverAbbr == dd.riverAbbr && d.section == dd.section })[0].sectionN;
+      d.riverN =   xyIn.filter( function(dd) { return d.riverAbbr == dd.riverAbbr && d.section == dd.section })[0].riverN;
     
-   
+    });
+  }
+  
+  function getPathsCoords(xy,nextDown,terminalTrib){
+     // set up paths
+   var index = 0;
+  
+    for( var i = 0; i < xy.length; i++ ){       // starting river
+      for( var j = 0; j < xy.length; j++ ){     // ending river
+  
+        var path = [xy[i].riverN]; //Starting river and default for i=j - staying in river.
+        var coords = [];
+        
+        // staying in the same river
+        if (i == j) { 
+          coords = xy[i].coordinates; 
+        }
+        
+        // going downstream 
+        else if(i < j){
+          for( var ii = 1; ii < xy.length; ii++ ){
+            if ( nextDown[path[[ii - 1]]] >= j ) {
+              path[ii] = j;
+              break;
+            }
+            else {
+              path[ii] = nextDown[path[[ii - 1]]];
+            }  
+            
+          }
+          
+          var riverHold = [];          
+          
+          for( var d = 0; d < path.length; d++ ){               
+                         
+             //if terminal trib to start, reverse dir of coordinates
+             // or if mainstem, reverse dir of coordinates
+             if ( (terminalTrib[path[d]] == 1 && d == 0) ||
+                  (terminalTrib[path[d]] == 0)){
+               riverHold = xy[path[d]].coordinates.slice().reverse();
+             }
+             // do not reverse if terminalTrib is last step (i.e not the first) 
+             else if (terminalTrib[path[d]] == 1 && d > 0) { riverHold = xy[path[d]].coordinates }
+  
+             coords = coords.concat(riverHold);
+             
+          }
+        }
+  
+        //going upstream - symmetrical with downstream. Just reverse direction for paths and coords
+        else if(i > j) { 
+          path = paths.filter( function(d) { return d.startRiver == j && d.endRiver == i;})[0].path
+                      .slice()
+                      .reverse();
+          
+          coords = paths.filter( function(d) { return d.startRiver == j && d.endRiver == i;})[0].coordinates
+                      .slice()
+                      .reverse();            
+        }
+        
+        paths[index] = { startRiver:i,
+                         endRiver: j,
+                         path: path,
+                         coordinates: coords
+                       };
+        
+        index = index + 1;
+        //console.log(i,j,path,coords) 
+      
+     }  
+    }
+    
+  //  console.log("paths",paths);
+    return paths;
+  }
+
+  // get path between the current and next time step
+  function getPath (nodesCurrentTmp) {
+      nodesCurrentTmp.forEach(function (d,i) {
+        
+          var timeStepIndex = d.sample.indexOf(state.currentSample); // for all arrays in d
+          
+          d.nodePossiblePath = paths.filter( function(dd){ return dd.startRiver == d.riverN[timeStepIndex] & dd.endRiver == d.riverN[timeStepIndex + 1] } );
+  
+  //console.log("inside",i,timeStepIndex)
+  
+          d.pathStart = xy.filter( function(dd){ return dd.riverN == d.riverN[timeStepIndex    ] })[0].coordinates[d.sectionN[timeStepIndex    ] - 1];// -1 because of 0 indexing of sectionN
+          d.pathEnd =   xy.filter( function(dd){ return dd.riverN == d.riverN[timeStepIndex + 1] })[0].coordinates[d.sectionN[timeStepIndex + 1] - 1];
+          d.pathStartIndex = d.nodePossiblePath[0].coordinates.indexOf(d.pathStart);
+          d.pathEndIndex =   d.nodePossiblePath[0].coordinates.indexOf(d.pathEnd);
+          
+          if(d.pathStartIndex <= d.pathEndIndex){
+            d.nodePath =  d.nodePossiblePath[0].coordinates.slice(d.pathStartIndex,d.pathEndIndex + 1);
+          }
+          else d.nodePath = d.nodePossiblePath[0].coordinates.slice(d.pathEndIndex,d.pathStartIndex + 1).reverse(); //if stay in same river and go downstream
+  
+          d.once = false;
+   //     }
+      });
+      return nodesCurrentTmp;
+  }
+  
+  // for fish only caught once, on the second sample of the interval
+  // same structure as getPath, except the 'path' is just the current location
+  function getPathFirstOnly (nodesFirstSampleOnly) {
+      nodesFirstSampleOnly.forEach(function (d,i) {
+        
+          var timeStepIndex = d.sample.indexOf(state.currentSample); // for all arrays in d
+          
+          d.nodePossiblePath = paths.filter( function(dd){ return dd.startRiver == d.riverN[timeStepIndex + 1] & dd.endRiver == d.riverN[timeStepIndex + 1] } );
+  
+  //console.log("inside",i,timeStepIndex)
+  
+          d.pathStart = xy.filter( function(dd){ return dd.riverN == d.riverN[timeStepIndex + 1] })[0].coordinates[d.sectionN[timeStepIndex + 1] - 1];// -1 because of 0 indexing of sectionN
+          d.pathEnd =   xy.filter( function(dd){ return dd.riverN == d.riverN[timeStepIndex + 1] })[0].coordinates[d.sectionN[timeStepIndex + 1] - 1];
+          d.pathStartIndex = d.nodePossiblePath[0].coordinates.indexOf(d.pathStart);
+          d.pathEndIndex =   d.nodePossiblePath[0].coordinates.indexOf(d.pathEnd);
+          
+          d.nodePath =  d.nodePossiblePath[0].coordinates.slice(d.pathStartIndex,d.pathEndIndex + 1);
+          
+          d.once = true;
+      });
+      return nodesFirstSampleOnly;
+  }
+
   function mouseMoved() {
     var a = this.parentNode, m = d3.mouse(this), d = simulation.find(m[0]- margin.left , m[1]- margin.top , searchRadius);
   //  console.log("mouseMoved",d)
     if (!d) return a.removeAttribute("title"), tooltip.style('visibility','hidden');
-    a.setAttribute("title",d.id + " " + d.familyID + " " + d.section); 	
+    a.setAttribute("title",d.id + " " + d.familyID + " Sections " + d.section +
+                           " Samples " + d.sample); 	
 
     tooltip
       .style("visibility", "visible");
   }
 
-
- /*        function initializeChart(){
-           
-            // Define tool tips //
-          tip = d3.tip()
-            .attr('class', 'd3-tip')
-            .offset([-10, 0])
-            .html(function(d) {
-              return "Fish " + d.id + ", Family " + d.familyID //+ " [" + d.familyCount + "]"
-              ;
-            });
-           
-           canvas.call(tip);  
-         }  
-*/
-
-         function updateSlider() {
-           console.log('updateSlider', state);
-           
-           if ($("#slider").children().length > 1) {
-             console.log("destroying slider");
-             $("#sampleSlider").slider('destroy');
-           }
-
-           console.log('children', $('#sampleSlider').children().length);
-           
-           var sampSetLegend = state.yearSet.slice(state.yearSet.samps); //create a clone
-           
-           if( state.sampSet.length - 1 > sliderLabelsMaxNum ){
-             var sliderInterval = Math.round( (state.sampSet.length - 1)/sliderLabelsMaxNum );
-             for(i = 0;  i < state.sampSet.length-1; i++){
-               if( i % sliderInterval !== 0 ) sampSetLegend[i] = null;
-             }   
-           }
-
-           state.currentSample = d3.min(state.sampSet);
-           
-           var slider = $('#sampleSlider').slider({   
-            ticks: state.sampSet,
-            ticks_labels: sampSetLegend,
-            ticks_snap_bounds: 1,
-            value: state.currentSample
-          });
-          
-          $('#sampleSlider').on("slideStop", function () {
-            state.currentSample = $('#sampleSlider').slider("getValue");
-          
-            updateRenderData();
-            incrementSegments();
-          });
-          
-         }
+  function updateSlider() {
+   console.log('updateSlider', state);
+   
+   if ($("#slider").children().length > 1) {
+     console.log("destroying slider");
+     $("#sampleSlider").slider('destroy');
+   }
+  
+   console.log('children', $('#sampleSlider').children().length);
+   
+   var sampSetLegend = state.yearSet.slice(state.yearSet.samps); //create a clone
+   
+   if( state.sampSet.length - 1 > sliderLabelsMaxNum ){
+     var sliderInterval = Math.round( (state.sampSet.length - 1)/sliderLabelsMaxNum );
+     for(i = 0;  i < state.sampSet.length-1; i++){
+       if( i % sliderInterval !== 0 ) sampSetLegend[i] = null;
+     }   
+   }
+  
+   var slider = $('#sampleSlider').slider({   
+    ticks: state.sampSet,
+    ticks_labels: sampSetLegend,
+    ticks_snap_bounds: 1,
+    value: state.currentSample
+  });
+  
+  $('#sampleSlider').on("slideStop", function () {
+    state.previousSample = state.currentSample;
+    state.currentSample = $('#sampleSlider').slider("getValue");
+    console.log("samples",state.previousSample,state.currentSample)
+  
+    updateRenderData();
+    incrementSegments();
+  });
+  
+  }

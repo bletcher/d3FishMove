@@ -13,7 +13,8 @@
      maxSection: undefined,
      sampSet: [],
      seasonSet: [],
-     yearSet: []
+     yearSet: [],
+     previousSample: undefined
    };
 
 var searchRadius = 5;
@@ -26,8 +27,8 @@ var numFish = 100;
 var intervalDur = 200,
     strengthAdj = 0.95;
 
-var colorScale =   d3.scaleCategory10(),
-    colorScale20 = d3.scaleCategory20();
+var colorScale =   d3.scaleOrdinal(d3.schemeCategory10),
+    colorScale20 = d3.scaleOrdinal(d3.schemeCategory20);
 
 // variable that holds the paths and coordinates for each start river/end river combo
 var paths = [];
@@ -49,3 +50,7 @@ var tooltip = d3.select("body")
   var sliderLabelsMaxNum = 20;
   var sampSetLegend;
 
+
+
+
+var cd,cd2;

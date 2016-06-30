@@ -107,7 +107,6 @@
                  <button type="button" class="btn btn-default btn-sm  pull-right" id="resetSppColors">Recolor species</button>
 
                  <div id="propDoneLabel">prop done moving</div>
-                 <div id="simAlphaLabel">alpha</div>
                  
              </div>
            </form>
@@ -144,23 +143,32 @@
 
 // Contiguous downstream river for each index (river #)
 // needs to be defined by hand for any network
-var nextDown = [ 2,2,4,4,6,6,0 ];
+var nextDown = [ 2,2,4,4,6,6,7,0 ];
 
 // Is the river a terminal trib (eg.g no upstream movement possible)
 // needs to be defined by hand for any network
-var terminalTrib = [ 1,1,0,1,0,1,0 ];
+var terminalTrib = [ 1,1,0,1,0,1,0,0 ];
+
+// river name for emigrant 'section'
+var emigrationRiver = "WB", emigrationRiverN = 7, emigrationSection = 0; emigrationSectionN = 1;
 
 var sppScale = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(["Atlantic salmon", "Brown trout", "Brook trout"]);
-//var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range([d3.rgb(162,205,174), d3.rgb(92,151,150), d3.rgb(36,45,66)]);
+var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(['rgb(162,205,174)', 'rgb(54,96,114)', 'rgb(36,45,66)']); //ICE
 //var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(['rgb(31,120,180)','rgb(178,223,138)','rgb(51,160,44)']);
-var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(['rgb(190,0,0)','rgb(0,200,0)','rgb(160,200,255)']);
+//var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(['rgb(31,120,180)','rgb(178,223,138)','rgb(51,160,44)']);
+//var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(['rgb(190,25,25)','rgb(20,200,20)','rgb(160,200,255)']);
+//var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(['#55C585','#0B8286','#314056']);
+ 
+// From http://tristen.ca/hcl-picker/
+//#21313E,#20726E,#67B675,#EFEE69
+//#314056,#0B8286,#55C585,#E4FB68
 //////////////////////////////////////////////////////////
 
 var canvas = document.getElementById("myCanvas"), //getElementByIdquerySelector
     context = canvas.getContext("2d");
     
 // set up graphics
-var margin = {top: 40, right: 40, bottom: 0, left: 40},
+var margin = {top: 40, right: 40, bottom: 0, left: 60},
     width = canvas.width - margin.left - margin.right,
     height = canvas.height - margin.top - margin.bottom;
     
@@ -178,7 +186,6 @@ d3.select(canvas)
     .subject(clickDot)  // acts as 'onclick'
   );
 
-
 // get xy data: file from D:\PITTAGMAIN\West Brook data\ on ben's computer
 d3.csv("http://felek.cns.umass.edu:4444/forceV4/WBCoordsForD3JS.csv", type, function (xyIn){
   d3.csv("http://felek.cns.umass.edu:4444/coreDataOut.csv", typeCoreData, function (cd){
@@ -193,6 +200,8 @@ d3.csv("http://felek.cns.umass.edu:4444/forceV4/WBCoordsForD3JS.csv", type, func
     // Initialize network and fish data
     initializeNetwork(xyIn);
     initializeFishData(cd,xyIn);
+    
+ //   state.nodes = getDataID(state.nodes,7320)
     
     updateSlider();
 
@@ -209,28 +218,16 @@ d3.csv("http://felek.cns.umass.edu:4444/forceV4/WBCoordsForD3JS.csv", type, func
                      //    .theta(0.8)
                          .distanceMax(10)
             )
-      .force("collide", d3.forceCollide().radius(function(d) { return ageScale(d.currentAge) + 1.025; })
-                           .iterations(1))
+      .force("collide", d3.forceCollide().radius(function(d) { return ageScale(d.currentAge) + 1.025; }).iterations(1))
       .force("x", d3.forceX().x(function(d) { return xScale(d.coordinate[0]); }).strength(intervalDur / 1000 * strengthAdj)) //bigger strength means faster
       .force("y", d3.forceY().y(function(d) { return yScale(d.coordinate[1]); }).strength(intervalDur / 1000 * strengthAdj)) 
       .on("tick", ticked)
       .on("end",  ended)
     
-/*    // Increment by state.currentSample
-    d3.select('#btnNext')
-      .on('click', function() {
 
-          state.currentSample = state.currentSample === (maxTimeStep - 1) ? 0 : state.currentSample + 1;
-
-          updateRenderData();
-          incrementSegments();
-          
-          console.log("timeStep =",state.currentSample);
-
-      });
-*/  
   }); //coreData
 }); //csv  
+//});
 
     </script>
   </body>
