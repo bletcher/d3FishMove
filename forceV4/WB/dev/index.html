@@ -17,8 +17,8 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/6.1.5/css/bootstrap-slider.css" rel="stylesheet">
   <script type='text/javascript' src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/6.1.5/bootstrap-slider.js"></script>
    
-  <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/WB/js/functionsV4.js"></script>
-  <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/WB/js/globalVariablesV4.js"></script>
+  <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/WB/dev/js/functionsV4.js"></script>
+  <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/WB/dev/js/globalVariablesV4.js"></script>
   
   <link rel="stylesheet" href="http://felek.cns.umass.edu:4444/forceV4/css/movementV4.css">
   
@@ -143,14 +143,18 @@
 
 // Contiguous downstream river for each index (river #)
 // needs to be defined by hand for any network
-var nextDown = [ 2,2,4,4,6,6,7,0 ];
+var nextDown = [ 2,2,4,4,6,6,7,0 ]; 
+//var nextDown = [ 1,3,3,5,5,7,7,8,9,10,0 ];
 
 // Is the river a terminal trib (eg.g no upstream movement possible)
 // needs to be defined by hand for any network
 var terminalTrib = [ 1,1,0,1,0,1,0,0 ];
+//var terminalTrib = [ 1,0,1,0,1,0,1,0,0,0,0 ];
 
 // river name for emigrant 'section'
-var emigrationRiver = "WB", emigrationRiverN = 7, emigrationSection = 0; emigrationSectionN = 1;
+var emigrationRiver = "WB", emigrationRiverN = 7, emigrationSection = -1; emigrationSectionN = 1;
+//var emigrationRiver = "WB", emigrationRiverN = 9, emigrationSection = 0; emigrationSectionN = 1;
+
 
 var sppScale = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(["Atlantic salmon", "Brown trout", "Brook trout"]);
 var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(['rgb(162,205,174)', 'rgb(54,96,114)', 'rgb(36,45,66)']); //ICE
@@ -168,7 +172,7 @@ var canvas = document.getElementById("myCanvas"), //getElementByIdquerySelector
     context = canvas.getContext("2d");
     
 // set up graphics
-var margin = {top: 40, right: 40, bottom: 0, left: 60},
+var margin = {top: 40, right: 40, bottom: 0, left: 90},
     width = canvas.width - margin.left - margin.right,
     height = canvas.height - margin.top - margin.bottom;
     
@@ -187,8 +191,8 @@ d3.select(canvas)
   );
 
 // get xy data: file from D:\PITTAGMAIN\West Brook data\ on ben's computer
-d3.csv("http://felek.cns.umass.edu:4444/forceV4/WBCoordsForD3JS.csv", type, function (xyIn){
-  d3.csv("http://felek.cns.umass.edu:4444/coreDataOut.csv", typeCoreData, function (cd){
+d3.csv("http://felek.cns.umass.edu:4444/forceV4/WB/dev/WBCoordsForD3JSAboveBelow.csv", type, function (xyIn){
+  d3.csv("http://felek.cns.umass.edu:4444/forceV4/WB/dev/coreDataOut.csv", typeCoreData, function (cd){
 
     xScale.domain(d3.extent(xyIn, function(d) { return d.lat; }));
     yScale.domain(d3.extent(xyIn, function(d) { return d.lon; }));

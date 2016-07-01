@@ -1,0 +1,34 @@
+  .container-fluid {
+      padding-top: 0px;
+      padding-bottom: 40px;
+      margin-right: 20px;
+      margin-left: 15px;
+  }
+  
+  .container-canvas {
+      margin: 0 auto;
+      width: 900px;
+  }
+
+
+
+  .slider.slider-horizontal {
+   width: 1000px;
+   height: 20px;
+  }
+  
+  .btn-group-vertical {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  }
+
+
+    
+    
+    
+    
+    
+    
+    
+
