@@ -157,7 +157,8 @@ var emigrationRiver = "WB", emigrationRiverN = 7, emigrationSection = -1; emigra
 
 
 var sppScale = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(["Atlantic salmon", "Brown trout", "Brook trout"]);
-var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(['rgb(162,205,174)', 'rgb(54,96,114)', 'rgb(36,45,66)']); //ICE
+//var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(['rgb(162,205,174)', 'rgb(54,96,114)', 'rgb(36,45,66)']); //ICE
+var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range([d3.rgb(162,205,174), d3.rgb(74,116,134), d3.rgb(36,45,66)]); //ICE+20
 //var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(['rgb(31,120,180)','rgb(178,223,138)','rgb(51,160,44)']);
 //var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(['rgb(31,120,180)','rgb(178,223,138)','rgb(51,160,44)']);
 //var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(['rgb(190,25,25)','rgb(20,200,20)','rgb(160,200,255)']);

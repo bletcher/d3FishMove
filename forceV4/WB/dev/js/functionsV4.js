@@ -66,7 +66,8 @@
              });
       */       $("#unselectAll").on("click", function () {
                console.log("#unselectAll click");
-               resetColorsToSpp();
+              // resetColorsToSpp();
+               resetOpacityToOne();
                state.selectedID = [];
                updateRenderData();
                ticked();
@@ -74,7 +75,8 @@
              });
              $("#resetSppColors").on("click", function () {
                console.log("#resetSppColors click");
-               resetColorsToSppUnSelected();
+            //   resetColorsToSppUnSelected();
+               resetOpacityToOne();
           //     state.selectedID = [];
                updateRenderData();
                ticked();
@@ -101,7 +103,8 @@
     */         $("#onClickDD").on("change", function () {
                console.log("#onClickDD change");
                state.onClick = $("#onClickDD").val();
-               resetColorsToSpp();
+         //      resetColorsToSpp();
+               resetOpacityToOne();
                state.selectedID = [];
                updateRenderData();
                ticked();
@@ -290,43 +293,34 @@
         
       context.arc(   d.x, d.y, ageScale(d.currentAge)*(1-simulation.alpha()/0.2), 0, 2 * Math.PI);
   
-      if(!IDinSelectedID(state.selectedID,d.id)) {  
-        context.strokeStyle = d.color;//d3.rgb(sppScaleColor( d.species )).darker(1);
-        context.stroke();
+      d.color.opacity = 1;
+      state.selectedID.length > 0;
+      if(state.selectedID.length > 0 && !IDinSelectedID(state.selectedID,d.id)) {  
+        d.color.opacity = 0.1;
       }
-      else {
-        context.strokeStyle = "black";
-        context.stroke();      
-      }
-      
+
+      context.strokeStyle = d.color;
+      context.stroke();
       context.fillStyle = d.color;
       context.fill();
     }  
+    
     else if (!d.isFirstSample ) {
       
       context.arc(d.x, d.y, ageScale(d.currentAge), 0, 2 * Math.PI);
   
-      if(!IDinSelectedID(state.selectedID,d.id)) {  
-        context.strokeStyle = d.color;//d3.rgb(sppScaleColor( d.species )).darker(1);
-        context.stroke();
+      d.color.opacity = 1;
+      state.selectedID.length > 0;
+      if(state.selectedID.length > 0 && !IDinSelectedID(state.selectedID,d.id)) {  
+        d.color.opacity = 0.1;
       }
-      else {
-        context.strokeStyle = "black";
-        context.stroke();    
-        context.linewidth = 4;
-        context.stroke();
-      }
-      
-      context.fillStyle = d.color;// d3.rgb(sppScaleColor( d ));
+
+      context.strokeStyle = d.color;
+      context.stroke();
+      context.fillStyle = d.color;
       context.fill();
-    }
-  
-  //  if(d.once){
-  //    context.strokeStyle = "black";
-  //    context.stroke();
-  //  }
-  
-  }
+   }
+ } 
   
   function ended(){
   
@@ -432,91 +426,77 @@
   }
 
 
-function incrementSegments(){
-/*
-  // Jump to path end if first sample or skip a sample
-  if( (state.currentSample == minTimeStep + 1) || (state.currentSample != state.previousSample + 1) ){  
+  function incrementSegments(){
+  /*
+    // Jump to path end if first sample or skip a sample
+    if( (state.currentSample == minTimeStep + 1) || (state.currentSample != state.previousSample + 1) ){  
+      
+      state.nodesRender.forEach(function (d,i) { d.coordinate = d.pathEnd; });
+      console.log("Prop done moving all",state.nodesRender);
+      simulation.alpha(1).alphaMin(0.01).nodes(state.nodesRender).restart();
+    }
     
-    state.nodesRender.forEach(function (d,i) { d.coordinate = d.pathEnd; });
-    console.log("Prop done moving all",state.nodesRender);
-    simulation.alpha(1).alphaMin(0.01).nodes(state.nodesRender).restart();
+    // Step through path
+    else {  
+  */  
+      var indexSegNum = 0;
+      var intDur = state.currentSample == minTimeStep ? 2 : intervalDur; //probably not needed now
+    
+      // increment segments until all fish have moved
+      var intervalNum = setInterval(function(){ 
+           indexSegNum = indexSegNum + 1;
+           
+           var indexNumDone = 0;
+           
+           state.nodesRender.forEach(function (d,i) {
+             if(indexSegNum < d.nodePath.length){
+               d.coordinate = d.nodePath[indexSegNum];
+             }
+             else { 
+               d.coordinate = d.coordinate;
+               indexNumDone = indexNumDone + 1;
+             }
+           });
+           
+           console.log("Prop done moving", indexNumDone/state.nodesRender.length, state.currentSample);
+           $("#propDoneLabel").html((indexNumDone/state.nodesRender.length).toFixed(2));
+      //     $("#simAlphaLabel").html(simulation.alpha().toFixed(2));
+           
+           var aMin = state.currentSample == minTimeStep+1 ? 0.00001 : 0.01;
+           simulation.alpha(1).alphaMin(0.01).nodes(state.nodesRender).restart(); //alphaMin > 0 shortens the simulation - keeps the dots from jiggling near end as they find the packing solution
+    
+           if (state.nodesRender.length === 0 || indexNumDone/state.nodesRender.length == 1) clearInterval(intervalNum);
+           
+       },intDur);
+   // }
   }
   
-  // Step through path
-  else {  
-*/  
-    var indexSegNum = 0;
-    var intDur = state.currentSample == minTimeStep ? 2 : intervalDur; //probably not needed now
-  
-    // increment segments until all fish have moved
-    var intervalNum = setInterval(function(){ 
-         indexSegNum = indexSegNum + 1;
-         
-         var indexNumDone = 0;
-         
-         state.nodesRender.forEach(function (d,i) {
-           if(indexSegNum < d.nodePath.length){
-             d.coordinate = d.nodePath[indexSegNum];
-           }
-           else { 
-             d.coordinate = d.coordinate;
-             indexNumDone = indexNumDone + 1;
-           }
-         });
-         
-         console.log("Prop done moving", indexNumDone/state.nodesRender.length, state.currentSample);
-         $("#propDoneLabel").html((indexNumDone/state.nodesRender.length).toFixed(2));
-    //     $("#simAlphaLabel").html(simulation.alpha().toFixed(2));
-         
-         var aMin = state.currentSample == minTimeStep+1 ? 0.00001 : 0.01;
-         simulation.alpha(1).alphaMin(0.01).nodes(state.nodesRender).restart(); //alphaMin > 0 shortens the simulation - keeps the dots from jiggling near end as they find the packing solution
-  
-         if (state.nodesRender.length === 0 || indexNumDone/state.nodesRender.length == 1) clearInterval(intervalNum);
-         
-     },intDur);
- // }
-}
-
-
-
-
-function updateCurrentAge(d){
-   var indx = d.sample.indexOf(state.currentSample); 
-       d.currentAge = d.age[indx];
-}
-
-function updateCurrentSeason(d){
-   var indx = d.sample.indexOf(state.currentSample); 
-       d.currentSeason = d.season[indx];
-}
-
-function updateCurrentYear(d){
-   var indx = d.sample.indexOf(state.currentSample); 
-       d.currentYear = d.year[indx];
-}
-
-function selectedIDIsNotAlive(){
-  state.selectedID.forEach( function(d){
-    console.log("selectedIsAlive",d);
-    if( !state.nodesRender.map(function(d){ return d.id }).includes(d) ){ console.log("selectedIsNOTAlive",d);state.selectedID.splice(state.selectedID.indexOf(d),1)  }
-  });
-}
-
-  function resetColorsSelected(){  //this resets colors of all decsendents of nodes; nodesCurrent, nodesRender
-    state.selectedID.forEach( function(d){ getDataID(state.nodes,       d)[0].color = sppScaleColor( getDataID(state.nodes,d)[0].species ); } );
-
+  function updateCurrentAge(d){
+     var indx = d.sample.indexOf(state.currentSample); 
+         d.currentAge = d.age[indx];
   }
   
-  function resetColorsToSpp(){  //this resets colors of all decsendents of nodes; nodesCurrent, nodesRender
-    state.nodes.forEach( function(d){ d.color = sppScaleColor( d.species ); } );
+  function updateCurrentSeason(d){
+     var indx = d.sample.indexOf(state.currentSample); 
+         d.currentSeason = d.season[indx];
   }
   
-  function resetColorsToSppUnSelected(){  //this resets colors of all decsendents of nodes; nodesCurrent, nodesRender
-    state.nodes.forEach( function(d){ if(!IDinSelectedID( state.selectedID,d.id )) d.color = sppScaleColor( d.species ); } );
+  function updateCurrentYear(d){
+     var indx = d.sample.indexOf(state.currentSample); 
+         d.currentYear = d.year[indx];
+  }
+  
+  function selectedIDIsNotAlive(){
+    state.selectedID.forEach( function(d){
+      console.log("selectedIsAlive",d);
+      if( !state.nodesRender.map(function(d){ return d.id }).includes(d) ){ console.log("selectedIsNOTAlive",d);state.selectedID.splice(state.selectedID.indexOf(d),1)  }
+    });
   }
 
-
-
+  function resetOpacityToOne(){
+    state.nodes.forEach( function(d){ d.color.opacity = 1;} );  
+  }
+  
   function clickSubject() {
     console.log("mouseClickSubject",d3.event.x,d3.event.y,simulation.find(d3.event.x - margin.left, d3.event.y - margin.top, searchRadius));
     return simulation.find(d3.event.x - margin.left, d3.event.y - margin.top, searchRadius);
@@ -530,52 +510,34 @@ function selectedIDIsNotAlive(){
      // select an individual circle when clicked 
      if (state.onClick == "ind") {
 
-       // Empty selectedID array
-   //    state.selectedID = [];
-
        // selecting new point
        if ( !IDinSelectedID( state.selectedID,d.id ) ){
          state.selectedID.push(d.id);
          console.log("selected",state.selectedID);
-   //      getDataID(state.nodes,d.id)[0].color = colorScale20( d.id );              ///could update nodes just before next state.currentSample
-         getDataID(state.nodesRender,d.id)[0].color = colorScale20( d.id );
        }
        
        // unselect existing selected ID
        else if ( IDinSelectedID(state.selectedID,d.id) ){
          unSelectThisOne(d);
          console.log("UNselected",state.selectedID);
-   //      getDataID(state.nodes,d.id)[0].color = colorScale( d.speciesIndex );
-         getDataID(state.nodesRender,d.id)[0].color = sppScaleColor( d.species );
        }
      }
      
      else if (state.onClick == "sec") {
 
-       state.nodes.forEach(function(d){d.color="lightgrey"});
-       
        // Empty selectedID array
        state.selectedID = [];
        
        // get all data from the section of the selected individual
        state.sectionData = getDataSection(state.nodesRender,d.coordinate);
-       console.log(state.sectionData, d.coordinate);
+
        // Add ID's of the selected fish's family to selectedID
        state.selectedID = state.sectionData.map( function(d){ return(d.id) } );
-       
-       state.selectedID.forEach ( function(d){ //getDataID(state.nodesCurrent, d)[0].color = colorScale20( d ); 
-                                               getDataID(state.nodesRender,  d)[0].color = colorScale20( d );
-                                             });
-       
-       console.log("section",state.selectedID, getDataSample(state.sectionData,state.currentSample)//.map(function(d) {return d.section}) 
-       );
-        
+
      }
      // Select IDs of all individuals in the selected individual's family
      else if (state.onClick == "fam") {
 
-       state.nodes.forEach(function(d){d.color="lightgrey"});
-       
        // Empty selectedID array
        state.selectedID = [];
        
@@ -583,17 +545,13 @@ function selectedIDIsNotAlive(){
        state.familyData = getDataFamily(state.nodesRender,d.familyID);
        // Add ID's of the selected fish's family to selectedID
        state.selectedID = state.familyData.map( function(d){ return(d.id) } );
-       
-    //   state.selectedID.forEach ( function(d){ getDataID(state.nodes,       d)[0].color = colorScale20( d ); } );
-       state.selectedID.forEach ( function(d){ getDataID(state.nodesRender,d)[0].color = colorScale20( d ); } );
-       
+
        console.log("family",state.selectedID);
-       
      }
      
      updateRenderData();
      ticked();
-     ended();  //alter ended() to include selectedID info for coloring
+     ended(); 
    }
    
   // Is id in selectedID array?
