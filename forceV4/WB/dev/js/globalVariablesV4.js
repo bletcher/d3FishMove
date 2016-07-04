@@ -14,7 +14,8 @@
      sampSet: [],
      seasonSet: [],
      yearSet: [],
-     previousSample: undefined
+     previousSample: undefined,
+     propMoved: undefined
    };
 
 var searchRadius = 5;
@@ -50,7 +51,7 @@ var tooltip = d3.select("body")
   var sliderLabelsMaxNum = 20;
   var sampSetLegend;
 
-
+var propMoved;
 
 
 var cd,cd2;

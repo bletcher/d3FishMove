@@ -19,6 +19,7 @@
    
   <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/WB/dev/js/functionsV4.js"></script>
   <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/WB/dev/js/globalVariablesV4.js"></script>
+  <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/WB/dev/js/heatMap.js"></script>
   
   <link rel="stylesheet" href="http://felek.cns.umass.edu:4444/forceV4/css/movementV4.css">
   
@@ -103,10 +104,19 @@
                    </div>
                  </div>
                  
+                <div class="form-group">
+                  <label for="propMovedDD" class="col-xs-4">Prop moved by?</label>
+                    <div class="col-xs-8">  
+                      <select class="form-control" id="propMovedDD">
+                        <option selected="selected" value="all">All</option>
+                        <option value="byRiver">River</option>
+                      </select>
+                   </div>
+                 </div>
+                 
                  <button type="button" class="btn btn-default btn-sm  pull-right" id="unselectAll">Unselect all</button>
-                 <button type="button" class="btn btn-default btn-sm  pull-right" id="resetSppColors">Recolor species</button>
 
-                 <div id="propDoneLabel">prop done moving</div>
+                 <div id="propDoneLabel">Prop done moving</div>
                  
              </div>
            </form>
@@ -154,6 +164,12 @@ var terminalTrib = [ 1,1,0,1,0,1,0,0 ];
 // river name for emigrant 'section'
 var emigrationRiver = "WB", emigrationRiverN = 7, emigrationSection = -1; emigrationSectionN = 1;
 //var emigrationRiver = "WB", emigrationRiverN = 9, emigrationSection = 0; emigrationSectionN = 1;
+
+// Scale riverN to river names
+var scaleRiverNtoRiver = d3.scaleOrdinal().domain(d3.range(0,terminalTrib.length)).range(["WB","IL","WB","OL","WB","OS","WB","Em"])
+
+var uniqueRivers = ["WB","IL","OL","OS","Em"];
+var scaleRivertoRiverHeatMap = d3.scaleOrdinal().domain(["WB","IL","OL","OS","Em"]).range([0,1,2,3,4]);
 
 
 var sppScale = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(["Atlantic salmon", "Brown trout", "Brook trout"]);

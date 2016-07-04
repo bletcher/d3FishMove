@@ -43,6 +43,7 @@
        //      state.barOption = $("#barOptionDD").val();
           //   state.barVariable = $("#barVariableDD").val();
              state.onClick = $("#onClickDD").val();
+             state.propMovedDD = $("#propMovedDD").val();
              state.addLastSample = $("#addLastSampleDD").val();
      //        state.lines = $("#linesDD").val();
              console.log('state: ', state);
@@ -110,6 +111,11 @@
                ticked();
                ended();
              });
+            $("#propMovedDD").on("change", function () {
+               console.log("#propMovedDD change");
+               state.propMovedDD = $("#propMovedDD").val();
+               ended();
+            });   
             $("#addLastSampleDD").on("change", function () {
                console.log("#addLastSampleDD change");
                state.addLastSample = $("#addLastSampleDD").val();
@@ -271,13 +277,16 @@
     // move to global variables?
     var vOffset = 20, radius = 7; vOffsetText = radius/2;
     var w = width - 100, h = height - vOffset * i - 20;
+    var col = d3.rgb(sppScaleColor( d ));
+    
+    col.opacity = 1;
     
     context.beginPath();
     context.moveTo(w, h );
     context.arc(   w, h, radius, 0, 2 * Math.PI);
-    context.strokeStyle = d3.rgb(sppScaleColor( d )).darker(2);
+    context.strokeStyle = col.darker(2);
     context.stroke();
-    context.fillStyle = sppScaleColor( d );
+    context.fillStyle = col;
     context.fill();
     context.font = "15px Arial";
     context.fillText(sppScale(d) ,w + 20, h + vOffsetText);
@@ -336,6 +345,8 @@
     else if( state.addLastSample == "no" ){
       ticked();
     }
+    
+    drawHeatMap();
     
   }
   
@@ -643,6 +654,36 @@
     return n;
   }
 
+  function getStartRiver(dd,s) {
+    return dd.filter( function(d) {
+      return d.key == s;
+    });
+  }
+
+  function getEndRiver(dd,s) {
+    return dd.filter( function(d) {
+      return d.values.key == s;
+    });
+  }
+  
+  function getStartAndEndRiver(ddd,s,e) {
+    return ddd.filter( function(dd) {
+      return dd.key == s; {
+        return dd.filter(function(d){
+          d.key.values == e;
+        });  
+      }
+    });
+  }
+/*
+var priority_order = ['MUST', "SHOULD", 'COULD', 'WISH'];
+var nested_data = d3.nest()
+.key(function(d) { return d.status; }).sortKeys(d3.ascending)
+.key(function(d) { return d.priority; }).sortKeys(function(a,b) { return priority_order.indexOf(a) - priority_order.indexOf(b); })
+.rollup(function(leaves) { return leaves.length; })
+.entries(csv_data);
+*/
+
   function uniques(array) {
      return Array.from(new Set(array));
   }
@@ -834,4 +875,23 @@
     incrementSegments();
   });
   
+  }
+  
+  function createArray(length) {
+    var arr = new Array(length || 0),
+        i = length;
+
+    if (arguments.length > 1) {
+        var args = Array.prototype.slice.call(arguments, 1);
+        while(i--) arr[length-1 - i] = createArray.apply(this, args);
+    }
+
+    return arr;
+  }
+  
+  function fill2D(rows, cols,i) {
+    var array = [], row = [];
+    while (cols--) row.push(i);
+    while (rows--) array.push(row.slice());
+    return array;
   }
