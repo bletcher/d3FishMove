@@ -6,9 +6,9 @@
     
     getPropMoved();
     
-    var col = d3.scaleLinear().domain([0,1]).range([d3.rgb(162,205,174), d3.rgb(36,45,66)]); 
+    var col = d3.scaleLinear().domain([0,1]).range([d3.rgb(172,215,184), d3.rgb(36,45,66)]); 
 
-    image = context.createImageData(boxesXY*boxDim, boxesXY*boxDim);
+    image = contextT.createImageData(boxesXY*boxDim, boxesXY*boxDim);
 
     for (var i = 0, p = -1; i < boxesXY; ++i) {
       for (var j = 0; j < boxDim; ++j) {
@@ -28,27 +28,30 @@
 
     var xOffset = 16*2, yOffset = 16*2, fontSize = 14;
     
-    context.putImageData(image, xOffset, yOffset);
+    contextT.putImageData(image, xOffset, yOffset);
     
-    context.font = fontSize + "px calibri";
+    contextT.font = fontSize + "px calibri";
     
-    context.fillText("From: ", boxesXY*boxDim/1.75, fontSize-4);
+    contextT.fillStyle = d3.rgb('50','50','50');
+    contextT.fillText("From: ", boxesXY*boxDim/1.75, fontSize-4);
       
     for (var ii = 0; ii < boxesXY; ++ii) {
-      // hroizontal river labels
-      context.fillText(uniqueRivers[ii], ii*boxDim + xOffset + boxDim/5, yOffset - 2);
-      
+      // horizontal river labels
+      contextT.fillStyle = d3.rgb('50','50','50');
+      contextT.fillText(uniqueRivers[ii], ii*boxDim + xOffset + boxDim/5, yOffset - 2);
       for (var kk = 0; kk < boxesXY; ++kk) {
         var t;
         if (propMoved[ii][kk] === 0 ) t = 0;
         else t = propMoved[ii][kk].toFixed(2);
-        context.fillText(t, ii*boxDim + xOffset + boxDim/5, kk*boxDim + yOffset + boxDim/1.75);    
+        contextT.fillStyle = d3.rgb('230','230', '230');
+        contextT.fillText(t, ii*boxDim + xOffset + boxDim/5, kk*boxDim + yOffset + boxDim/1.75); 
       }
     }
+    contextT.fillStyle = d3.rgb('50','50','50');
     
     //Vertical river labels
     for (var v = 0; v < boxesXY; ++v) {
-      context.fillText(uniqueRivers[v], 2, v*boxDim + yOffset + boxDim/1.75);
+      contextT.fillText(uniqueRivers[v], 2, v*boxDim + yOffset + boxDim/1.75);
     }  
   }  
   

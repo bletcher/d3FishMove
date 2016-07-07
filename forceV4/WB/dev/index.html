@@ -20,8 +20,9 @@
   <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/WB/dev/js/functionsV4.js"></script>
   <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/WB/dev/js/globalVariablesV4.js"></script>
   <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/WB/dev/js/heatMap.js"></script>
+  <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/WB/dev/js/histogram.js"></script>
   
-  <link rel="stylesheet" href="http://felek.cns.umass.edu:4444/forceV4/css/movementV4.css">
+  <link rel="stylesheet" href="http://felek.cns.umass.edu:4444/forceV4/WB/dev/css/movementV4.css">
   
 </head>
 
@@ -34,95 +35,153 @@
       <!-- Page Header -->
     <div class="row">
       
-        <div class="col-lg-10">
+        <div class="col-lg-9">
             <h3 class="page-header">Trout and salmon in a small stream network in western MA, USA
                 <small></small>
             </h3>
-        </div>
+     <!--         
+        <div class="container-canvas"> class='img-responsive' using these changes xy coords so clicking doesn't work without modifiction  -->
 
-     </div> 
-
-
-     <div class="row" id="main">
-        <div class="col-lg-10">
-    <!--      <div class="container-canvas"> class='img-responsive' using these changes xy coords so clicking doesn't work without modifiction  -->
-
-           <canvas id="myCanvas" width="960" height="700">
+           <canvas id="mapCanvas" width="1024" height="704">
            </canvas>
-         
-        </div>
-       
-       
-         <div class="col-lg-2">
-           <form class="form-inline-vertical"> 
-
-     <!--    <div class="btn-toolbar">  -->
-             <div class="form-group form-group-sm">
-               
-                <div class="form-group">
-                  <label for="selectedSpeciesDD" class="col-xs-4">Species</label>
-                    <div class="col-xs-8">
+ 
+        </div>    
+            
+        <div class="col-lg-3">
+ 
+          <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+            <div class="panel panel-default">
+          
+                  <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
                     
-                      <select class="form-control" id="selectedSpeciesDD">
-                        <option selected="selected" value="all">All</option>
-                        <option value="ats">Salmon</option>
-                        <option value="bnt">BrownT</option>
-                        <option value="bkt">BrookT</option>
-                        
-                      </select>
-                    </div>
-                 </div>
-               
-                <div class="form-group">
-                  <label for="dotOptionDD" class="col-xs-4">Show</label>
-                    <div class="col-xs-8">
-                      <select class="form-control" id="dotOptionDD">
-                        <option selected="selected" value="all">All</option>
-                        <option value="selected">Selected</option>
-                      </select>
-                    </div>
-                 </div>
+                  </a>
+          
+              <div id="collapseOne" class="panel" role="tabpanel" aria-labelledby="headingOne">
+                <div class="panel-body">
+                 
+                 
+                      <form class="form-inline-vertical"> 
+          
+               <!--    <div class="btn-toolbar">  -->
+                       <div class="form-group form-group-sm">
+                         
+                          <div class="form-group">
+                            <label for="selectedSpeciesDD" class="col-xs-5">Species</label>
+                              <div class="col-xs-7">
+                              
+                                <select class="form-control" id="selectedSpeciesDD">
+                                  <option selected="selected" value="all">All</option>
+                                  <option value="ats">Salmon</option>
+                                  <option value="bnt">BrownT</option>
+                                  <option value="bkt">BrookT</option>
+                                  
+                                </select>
+                              </div>
+                           </div>
+                         
+                          <div class="form-group">
+                            <label for="dotOptionDD" class="col-xs-5">Show</label>
+                              <div class="col-xs-7">
+                                <select class="form-control" id="dotOptionDD">
+                                  <option selected="selected" value="all">All</option>
+                                  <option value="selected">Selected</option>
+                                </select>
+                              </div>
+                           </div>
+          
+                          <div class="form-group">
+                            <label for="onClickDD" class="col-xs-5">Select</label>
+                              <div class="col-xs-7">  
+                                <select class="form-control" id="onClickDD">
+                                  <option value="ind">Individual</option>
+                                  <option selected="selected" value="sec">Section</option>
+                                  <option value="fam">Family</option>
+                                  <option value="riv">River</option>
+                                </select>
+                             </div>
+                           </div>
+                           
+                          <div class="form-group">
+                            <label for="addLastSampleDD" class="col-xs-6">Color last obs?</label>
+                              <div class="col-xs-6">  
+                                <select class="form-control" id="addLastSampleDD">
+                                  <option selected="selected" value="yes">Yes</option>
+                                  <option value="no">No</option>
+                                </select>
+                             </div>
+                           </div>
+                           
+                          <div class="form-group">
+                            <label for="propMovedDD" class="col-xs-6">PropMovedBy</label>
+                              <div class="col-xs-6">  
+                                <select class="form-control" id="propMovedDD">
+                                  <option selected="selected" value="all">All</option>
+                                  <option value="byRiver">River</option>
+                                </select>
+                             </div>
+                           </div>
+          
+                           <button type="button" class="btn btn-default btn-sm  " id="unselectAll">Reset Opacity</button>
+                           <button type="button" class="btn btn-default btn-sm  " id="showNotEnc">Show UnEnc</button>              
+                   
+             <!--              <div class="btn-group" data-toggle="buttons">
+                              <label class="btn btn-primary active">
+                                <input type="checkbox" autocomplete="off" checked> Checkbox 1 (pre-checked)
+                              </label>
+                           </div>
+                 -->                            
+                       </div>
+                       
+                     </form>
+                 
+                 
+                 
+                </div>
+              </div>
+            </div>
+            <div class="panel panel-default">
+              <div class="panel-heading" role="tab" id="headingTwo">
+                <h3 class="panel-title">
+                  <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                    Histograms
+                  </a>
+                </h3>
+              </div>
+              <div id="collapseTwo" class="panel" role="tabpanel" aria-labelledby="headingTwo">
+                <div class="panel-body">
+                  <div id="histograms">
+                    
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="panel panel-default">
+              <div class="panel-heading" role="tab" id="headingThree">
+                <h4 class="panel-title">
+                  <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                    Transitions
+                  </a>
+                </h4>
+              </div>
+              <div id="collapseThree" class="panel" role="tabpanel" aria-labelledby="headingThree">
+                <div class="panel-body">
+                  <canvas id="transCanvas" width="225" height="225">
+                  </canvas>
+        <!--          <div id="propDoneLabel">Prop done moving</div>  -->
+                </div>
+              </div>
+            </div>
+          </div>
 
-                <div class="form-group">
-                  <label for="onClickDD" class="col-xs-4">Select</label>
-                    <div class="col-xs-8">  
-                      <select class="form-control" id="onClickDD">
-                        <option value="ind">Individual</option>
-                        <option selected="selected" value="sec">Section</option>
-                        <option value="fam">Family</option>
-                      </select>
-                   </div>
-                 </div>
-                 
-                <div class="form-group">
-                  <label for="addLastSampleDD" class="col-xs-4">Color last obs?</label>
-                    <div class="col-xs-8">  
-                      <select class="form-control" id="addLastSampleDD">
-                        <option selected="selected" value="yes">Yes</option>
-                        <option value="no">No</option>
-                      </select>
-                   </div>
-                 </div>
-                 
-                <div class="form-group">
-                  <label for="propMovedDD" class="col-xs-4">Prop moved by?</label>
-                    <div class="col-xs-8">  
-                      <select class="form-control" id="propMovedDD">
-                        <option selected="selected" value="all">All</option>
-                        <option value="byRiver">River</option>
-                      </select>
-                   </div>
-                 </div>
-                 
-                 <button type="button" class="btn btn-default btn-sm  pull-right" id="unselectAll">Unselect all</button>
+        </div>      
+    
 
-                 <div id="propDoneLabel">Prop done moving</div>
-                 
-             </div>
-           </form>
-         </div> 
-         
-       </div>
+    
+    
+     </div> 
+     
+     
+     
        
     <hr>
 
@@ -136,8 +195,7 @@
         </div>
         <div class="col-lg-2">
 
-            <div id="yearLabel">year</div>
-            <div id="seasonLabel">season</div>
+        
 
         </div>
     </div>
@@ -185,10 +243,13 @@ var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range([d3.rgb(
 //#314056,#0B8286,#55C585,#E4FB68
 //////////////////////////////////////////////////////////
 
-var canvas = document.getElementById("myCanvas"), //getElementByIdquerySelector
+
+/////////////////////
+// Map canvas 
+var canvas = document.getElementById("mapCanvas"), //getElementByIdquerySelector
     context = canvas.getContext("2d");
     
-// set up graphics
+// set up map graphics
 var margin = {top: 40, right: 40, bottom: 0, left: 90},
     width = canvas.width - margin.left - margin.right,
     height = canvas.height - margin.top - margin.bottom;
@@ -207,9 +268,16 @@ d3.select(canvas)
     .subject(clickDot)  // acts as 'onclick'
   );
 
+/////////////////////
+// Transitions canvas  
+var canvasT = document.getElementById("transCanvas"), 
+    contextT = canvasT.getContext("2d");
+
+//"http://felek.cns.umass.edu:4444/forceV4/WB/dev
 // get xy data: file from D:\PITTAGMAIN\West Brook data\ on ben's computer
-d3.csv("http://felek.cns.umass.edu:4444/forceV4/WB/dev/WBCoordsForD3JSAboveBelow.csv", type, function (xyIn){
-  d3.csv("http://felek.cns.umass.edu:4444/forceV4/WB/dev/coreDataOut.csv", typeCoreData, function (cd){
+d3.csv("/forceV4/WB/dev/envDataOut.csv", typeEnv, function (env){
+ d3.csv("/forceV4/WB/dev/WBCoordsForD3JSAboveBelow.csv", type, function (xyIn){
+  d3.csv("/forceV4/WB/dev/coreDataOut.csv", typeCoreData, function (cd){
 
     xScale.domain(d3.extent(xyIn, function(d) { return d.lat; }));
     yScale.domain(d3.extent(xyIn, function(d) { return d.lon; }));
@@ -218,9 +286,10 @@ d3.csv("http://felek.cns.umass.edu:4444/forceV4/WB/dev/WBCoordsForD3JSAboveBelow
     initializeState();
     initializeInterface();
     
-    // Initialize network and fish data
+    // Initialize network, fish and environmental data
     initializeNetwork(xyIn);
     initializeFishData(cd,xyIn);
+    initializeEnvData(env);
     
  //   state.nodes = getDataID(state.nodes,7320)
     
@@ -245,7 +314,7 @@ d3.csv("http://felek.cns.umass.edu:4444/forceV4/WB/dev/WBCoordsForD3JSAboveBelow
       .on("tick", ticked)
       .on("end",  ended)
     
-
+    }); // envData
   }); //coreData
 }); //csv  
 //});

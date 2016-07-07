@@ -7,14 +7,29 @@
   
   .container-canvas {
       margin: 0 auto;
-      width: 900px;
+      width: 1024px;
   }
 
   svgHeatMap,
   canvasHeatMap {
     position: absolute;
+    z-index: 2
   }
 
+
+  .bar rect {
+    fill: steelblue;
+  }
+  
+  .bar2 rect {
+    fill: orange;
+    opacity: 0.75;
+  }
+
+  .bar text {
+    fill: #fff;
+    font: 10px sans-serif;
+  }
 
   .slider.slider-horizontal {
    width: 1000px;
@@ -24,7 +39,7 @@
   .btn-group-vertical {
   position: relative;
   display: inline-block;
-  vertical-align: middle;
+  vertical-align: top;
   }
 
 

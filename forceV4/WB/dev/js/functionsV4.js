@@ -9,6 +9,16 @@
       return d;
     }
 
+    function typeEnv(d){
+      d.date =  Date.parse(d.date);
+      d.temp = +d.daily_mean_temp;
+      d.flow = +d.qPredicted;
+      d.season = +d.seasonFill;
+      d.sample = +d.sampleNumberFill;
+      d.year = +d.year;
+      return d;
+    }
+
     function typeCoreData(d){
       d.sample = +d.sample;
       d.date = Date.parse(d.date);
@@ -59,21 +69,6 @@
               ticked();
               ended();
              });
-   /*          $("#selectedRiverDD").on("change", function () {
-              console.log("#selectedRiverDD change");
-              state.selectedRiver = $("#selectedRiverDD").val();
-              updateRiverSpecies(state);
-              ticked();
-             });
-      */       $("#unselectAll").on("click", function () {
-               console.log("#unselectAll click");
-              // resetColorsToSpp();
-               resetOpacityToOne();
-               state.selectedID = [];
-               updateRenderData();
-               ticked();
-               ended();
-             });
              $("#resetSppColors").on("click", function () {
                console.log("#resetSppColors click");
             //   resetColorsToSppUnSelected();
@@ -90,21 +85,10 @@
                ticked();
                ended();
              });
-  /*
-             $("#barOptionDD").on("change", function () {
-               console.log("#barOption change");
-               state.barOption = $("#barOptionDD").val();
-               ticked();
-             });
-             $("#barVariableDD").on("change", function () {
-               console.log("#barVariableDD change");
-               state.barVariable = $("#barVariableDD").val();
-               ticked();
-             });
-    */         $("#onClickDD").on("change", function () {
+
+             $("#onClickDD").on("change", function () {
                console.log("#onClickDD change");
                state.onClick = $("#onClickDD").val();
-         //      resetColorsToSpp();
                resetOpacityToOne();
                state.selectedID = [];
                updateRenderData();
@@ -120,6 +104,26 @@
                console.log("#addLastSampleDD change");
                state.addLastSample = $("#addLastSampleDD").val();
                ended();
+             });
+             $("#unselectAll").on("click", function () {
+               console.log("#unselectAll click");
+               resetOpacityToOne();
+               state.selectedID = [];
+               updateRenderData();
+               ticked();
+               ended();
+             });
+             $("#showNotEnc").on("click", function () {
+               console.log("#showNotEnc change");
+               whitenUnEnc();
+               ticked();
+               ended();
+               setTimeout(function () {
+                 reColorUnEnc();
+                 ticked();
+                 ended();
+               }, 500);
+
              });
            }
   
@@ -227,6 +231,9 @@
                      date: d.values.map(function(dd) {
                        return dd.date;
                      }),
+                     enc: d.values.map(function(dd) {
+                       return dd.enc;
+                     }),
                      species: d.values[0].species,
                      speciesIndex: spp.indexOf(d.values[0].species), // integer value of spp
                      color: sppScaleColor( d.values[0].species ),// colorScale( spp.indexOf(d.values[0].species) ),
@@ -241,6 +248,10 @@
                                     }
                        );
                                     
+  }
+  
+  function initializeEnvData(env){
+    envData=env;
   }
   
   function ticked() {
@@ -258,6 +269,7 @@
     context.stroke();
   
     spp.forEach(drawLegend);
+    drawInfo();
   
     state.nodesRender.forEach(drawNode);
   
@@ -275,35 +287,44 @@
   
   function drawLegend(d,i){
     // move to global variables?
-    var vOffset = 20, radius = 7; vOffsetText = radius/2;
-    var w = width - 100, h = height - vOffset * i - 20;
+    var vOffset = 25, radius = 9; vOffsetText = radius/2;
+    var w = -50, h = 50 - vOffset * i - 20;
     var col = d3.rgb(sppScaleColor( d ));
     
     col.opacity = 1;
     
     context.beginPath();
-    context.moveTo(w, h );
+//    context.moveTo(w, h );
     context.arc(   w, h, radius, 0, 2 * Math.PI);
     context.strokeStyle = col.darker(2);
     context.stroke();
     context.fillStyle = col;
     context.fill();
-    context.font = "15px Arial";
+    context.font = "20px calibri";
     context.fillText(sppScale(d) ,w + 20, h + vOffsetText);
   //  console.log(d,sppScaleColor( d ))
+  }
+  
+  function drawInfo(){
+    
+    context.fillStyle = "lightgrey";
+    context.font = "40px calibri";
+    context.fillText(state.currentSeason + " - " + getNextSeason( state.currentSeason ), 600, 625);
+    
+    state.currentYear = getDataSampleInfo(state.sampleInfo,state.currentSample)[0].year;
+    context.fillText(state.currentYear, 600, 575);
   }
   
   function drawNode (d, i) {
   
     context.beginPath();
-    context.moveTo(d.x, d.y );
-  
+
     if( ((d.isFirstSample) && (simulation.alpha() < 0.2)) ){  // keep new fish from entering from the upper left, they emerge near the end
         
       context.arc(   d.x, d.y, ageScale(d.currentAge)*(1-simulation.alpha()/0.2), 0, 2 * Math.PI);
   
       d.color.opacity = 1;
-      state.selectedID.length > 0;
+  //    state.selectedID.length > 0;
       if(state.selectedID.length > 0 && !IDinSelectedID(state.selectedID,d.id)) {  
         d.color.opacity = 0.1;
       }
@@ -319,7 +340,7 @@
       context.arc(d.x, d.y, ageScale(d.currentAge), 0, 2 * Math.PI);
   
       d.color.opacity = 1;
-      state.selectedID.length > 0;
+    //  state.selectedID.length > 0;
       if(state.selectedID.length > 0 && !IDinSelectedID(state.selectedID,d.id)) {  
         d.color.opacity = 0.1;
       }
@@ -347,6 +368,7 @@
     }
     
     drawHeatMap();
+    drawHistogram();
     
   }
   
@@ -378,12 +400,42 @@
       if ( d.isLastSample ){
   
         context.beginPath();
-        context.moveTo(d.x, d.y );
+     //   context.moveTo(d.x, d.y );
         context.arc(d.x, d.y, ageScale(d.currentAge) - 1, 0, 2 * Math.PI);
         context.fillStyle = d3.rgb(253,255,204); // ICE
     //    context.fillStyle = "#E4FB68"//"#EFEE69"//"#ffffb3";//'rgb(250,250,250)';//"yellow";
         context.fill();
     }
+  }
+ 
+  function fillInUnEnc2(d){
+      if ( d.isLastSample ){
+  
+        context.beginPath();
+     //   context.moveTo(d.x, d.y );
+        context.arc(d.x, d.y, ageScale(d.currentAge) - 1, 0, 2 * Math.PI);
+        context.fillStyle = d3.rgb(253,255,204); // ICE
+    //    context.fillStyle = "#E4FB68"//"#EFEE69"//"#ffffb3";//'rgb(250,250,250)';//"yellow";
+        context.fill();
+    }
+  } 
+ 
+   function whitenUnEnc(){
+    state.nodesRender.forEach( function(d){ 
+      var indx = d.sample.indexOf(state.currentSample); 
+      if( d.enc[indx] === 0 ) {
+        d.color = d3.rgb('255','255','255');
+      }  
+    });  
+  } 
+  
+  function reColorUnEnc(){
+    state.nodesRender.forEach( function(d){ 
+      var indx = d.sample.indexOf(state.currentSample); 
+      if( d.enc[indx] === 0 ) {
+        d.color = sppScaleColor( d.species );
+      }  
+    });  
   }
   
   function getNodesCurrent(){
@@ -418,13 +470,11 @@
     state.nodesCurrent.forEach(function(d) { updateCurrentAge(d); });
     getNodesRender();
     
+    //getSelected();
+    
+    // update season and yearinfo for drawInfo()
     state.nodesCurrent.forEach(function(d) { updateCurrentSeason(d); updateCurrentYear(d); });
-    
     state.currentSeason = getDataSampleInfo(state.sampleInfo,state.currentSample)[0].season;
-    $("#seasonLabel").html(state.currentSeason + " - " + getNextSeason( state.currentSeason ));
-    
-    state.currentYear = getDataSampleInfo(state.sampleInfo,state.currentSample)[0].year;
-    $("#yearLabel").html(state.currentYear);
     
   }
   
@@ -433,9 +483,15 @@
     if( state.selectedSpecies != "all") { state.nodesCurrent = getDataSpecies(state.nodesCurrent, state.selectedSpecies);}
     
     if (      state.dotOption == "all" ) {      state.nodesRender = state.nodesCurrent; }
-    else if ( state.dotOption == "selected" ) { state.nodesRender = getSelected(state.nodesCurrent); }
+    else if ( state.dotOption == "selected" ) { state.nodesRender = getDataSelected(state.nodesCurrent); }
   }
 
+/*  function getSelected(){
+    // all fish are 'selected' (opacity = 1) if the selectedID list is empty
+    // if not, just retain existing selectedID list
+    if( state.selectedID.length === 0 ) state.selectedID =  state.nodesCurrent.map(function(d){ return d.id });
+  }
+*/
 
   function incrementSegments(){
   /*
@@ -471,7 +527,6 @@
            
            console.log("Prop done moving", indexNumDone/state.nodesRender.length, state.currentSample);
            $("#propDoneLabel").html((indexNumDone/state.nodesRender.length).toFixed(2));
-      //     $("#simAlphaLabel").html(simulation.alpha().toFixed(2));
            
            var aMin = state.currentSample == minTimeStep+1 ? 0.00001 : 0.01;
            simulation.alpha(1).alphaMin(0.01).nodes(state.nodesRender).restart(); //alphaMin > 0 shortens the simulation - keeps the dots from jiggling near end as they find the packing solution
@@ -546,6 +601,7 @@
        state.selectedID = state.sectionData.map( function(d){ return(d.id) } );
 
      }
+     
      // Select IDs of all individuals in the selected individual's family
      else if (state.onClick == "fam") {
 
@@ -558,6 +614,19 @@
        state.selectedID = state.familyData.map( function(d){ return(d.id) } );
 
        console.log("family",state.selectedID);
+     }
+     
+     else if (state.onClick == "riv") {
+
+       // Empty selectedID array
+       state.selectedID = [];
+       
+       // get all data from the section of the selected individual
+       state.riverData = getDataRiver(state.nodesRender,d.endRiver);
+
+       // Add ID's of the selected fish's family to selectedID
+       state.selectedID = state.riverData.map( function(d){ return(d.id) } );
+
      }
      
      updateRenderData();
@@ -587,6 +656,12 @@
       return dd.familyID == famID;
     });
   }
+
+  function getDataRiver(d,river){
+    return d.filter( function(dd) {
+      return dd.endRiver == river;
+    });
+  }
   
   function getDataSpecies(d,s) {
     return d.filter( function(d) {
@@ -600,7 +675,7 @@
     });
   }
 
-  function getSelected(dd) {
+  function getDataSelected(dd) {
     return dd.filter( function(d) {
       return IDinSelectedID(state.selectedID,d.id);
     });
@@ -608,7 +683,13 @@
 
   function getDataSample(dd,s) {
     return dd.filter( function(d) {
-      return d.sample.includes(s);
+      return d.sample == s;
+    });
+  }
+  
+  function getDataSeason(dd,s) {
+    return dd.filter( function(d) {
+      return d.season == s;
     });
   }
 
@@ -675,14 +756,6 @@
       }
     });
   }
-/*
-var priority_order = ['MUST', "SHOULD", 'COULD', 'WISH'];
-var nested_data = d3.nest()
-.key(function(d) { return d.status; }).sortKeys(d3.ascending)
-.key(function(d) { return d.priority; }).sortKeys(function(a,b) { return priority_order.indexOf(a) - priority_order.indexOf(b); })
-.rollup(function(leaves) { return leaves.length; })
-.entries(csv_data);
-*/
 
   function uniques(array) {
      return Array.from(new Set(array));

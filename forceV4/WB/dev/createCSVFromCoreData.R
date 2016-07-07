@@ -14,7 +14,7 @@ out <- cd %>%
                  date = detectionDate, 
                  id = tagFactor, 
                  species = species, 
-                 sample = sampleNumber, 
+                 sample = sampleNumber, # sampleName is the original, sampleNumber is consecutive
                  enc = enc, 
                  section = section, 
                  lagSection = lagSection,
