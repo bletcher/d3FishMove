@@ -56,3 +56,4 @@ var propMoved;
 
 var cd,cd2,envData;
 
+var width, height;

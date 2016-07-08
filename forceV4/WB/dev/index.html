@@ -44,8 +44,53 @@
 
            <canvas id="mapCanvas" width="1024" height="704">
            </canvas>
- 
+         
+            <form class="form-inline">
+              <div class="form-group">
+                <button type="button" class="btn btn-default " id="prevSamp">
+                  <span class="glyphicon glyphicon-chevron-left" aria-hidden="true">Previous</span> 
+                </button>
+                
+              </div>
+              <div class="form-group">
+                <button type="button" class="btn btn-default " id="nextSamp">
+                  Next <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span> 
+                </button>
+              </div>
+              
+              <div class="btn-group dropup" id="yearSelect">
+                <button type="button" class="btn btn-default" >Select year</button>
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <span class="caret"></span>
+                  <span class="sr-only">Toggle Dropdown</span>
+                </button>
+                <ul class="dropdown-menu">
+                   <li><a href="#">1997</a></li>
+                   <li><a href="#">1998</a></li>
+                   <li><a href="#">1999</a></li>
+                   <li><a href="#">2000</a></li>
+                   <li><a href="#">2001</a></li>
+                   <li><a href="#">2002</a></li>
+                   <li><a href="#">2003</a></li>
+                   <li><a href="#">2004</a></li>
+                   <li><a href="#">2005</a></li>
+                   <li><a href="#">2006</a></li>
+                   <li><a href="#">2007</a></li>
+                   <li><a href="#">2008</a></li>
+                   <li><a href="#">2009</a></li>                   
+                   <li><a href="#">2010</a></li>
+                   <li><a href="#">2011</a></li>
+                   <li><a href="#">2012</a></li>
+                   <li><a href="#">2013</a></li> 
+                   <li><a href="#">2014</a></li>
+                   <li><a href="#">2015</a></li> 
+                 </ul>
+              </div>
+
+            </form>
+          <hr>  
         </div>    
+         
             
         <div class="col-lg-3">
  
@@ -143,7 +188,7 @@
               <div class="panel-heading" role="tab" id="headingTwo">
                 <h3 class="panel-title">
                   <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                    Histograms
+                    Stream temperature and flow
                   </a>
                 </h3>
               </div>
@@ -172,20 +217,11 @@
               </div>
             </div>
           </div>
-
         </div>      
-    
-
-    
-    
      </div> 
-     
-     
-     
-       
-    <hr>
 
-    <!-- Slider section -->
+
+    <!-- Slider section 
     <div class="row">
         <div class="col-lg-10">
             <div class="sliderSection" id="slider">
@@ -195,12 +231,9 @@
         </div>
         <div class="col-lg-2">
 
-        
-
         </div>
     </div>
-
-  <hr>
+-->
   </div> 
 <!--  <button id="btnNext">Next</button> -->
 
@@ -237,6 +270,10 @@ var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range([d3.rgb(
 //var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(['rgb(31,120,180)','rgb(178,223,138)','rgb(51,160,44)']);
 //var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(['rgb(190,25,25)','rgb(20,200,20)','rgb(160,200,255)']);
 //var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(['#55C585','#0B8286','#314056']);
+
+// River name locations
+// see "riverLabelXY" below, after width and height are defined
+
  
 // From http://tristen.ca/hcl-picker/
 //#21313E,#20726E,#67B675,#EFEE69
@@ -250,16 +287,23 @@ var canvas = document.getElementById("mapCanvas"), //getElementByIdquerySelector
     context = canvas.getContext("2d");
     
 // set up map graphics
-var margin = {top: 40, right: 40, bottom: 0, left: 90},
-    width = canvas.width - margin.left - margin.right,
+var margin = {top: 40, right: 40, bottom: 0, left: 50};
+    width = canvas.width - margin.left - margin.right;
     height = canvas.height - margin.top - margin.bottom;
+
+var riverLabelXY = {
+  wb: {x: width * 0.13, y: height * 0.5},
+  ol: {x: width * 0.83, y: height * 0.15},
+  os: {x: width * 0.60, y: height * 0.6},
+  il: {x: width * 0.30, y: height * 0.2},
+  em: {x: width * 0.15, y: height * 0.9}
+};
     
 var xScale = d3.scaleLinear()
     .range([0, width - margin.top - margin.bottom]);
     
 var yScale = d3.scaleLinear()
     .range([0, height - margin.left - margin.right]);    
-
 
 d3.select(canvas)
   .on("mousemove", mouseMoved)

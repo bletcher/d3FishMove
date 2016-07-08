@@ -123,10 +123,28 @@
                  ticked();
                  ended();
                }, 500);
-
              });
+             $("#prevSamp").on("click", function () {
+               console.log("#prevSamp change");
+               state.currentSample = state.currentSample - 1;
+               updateRenderData();
+               incrementSegments();
+             });
+             $("#nextSamp").on("click", function () {
+               console.log("#nextSamp change");
+               state.currentSample = state.currentSample + 1;
+               updateRenderData();
+               incrementSegments();
+             });
+             $("#yearSelect").on("change", function () {
+               console.log("#yearSelect change",$("#yearSelect").val());
+               state.currentSample = getDataSampleInfoFromYear(state.sampleInfo,$("#yearSelect").val())[0].sample;
+               updateRenderData();
+               incrementSegments();
+             });
+             
            }
-  
+  getDataSampleInfoFromYear(state.sampleInfo,1998)[0].sample
   function initializeNetwork(xyIn){
     console.log("initializeNetwork");
       ////////////////////////////////////////////////////////////////////////////
@@ -309,10 +327,20 @@
     
     context.fillStyle = "lightgrey";
     context.font = "40px calibri";
-    context.fillText(state.currentSeason + " - " + getNextSeason( state.currentSeason ), 600, 625);
+    context.fillText(state.currentSeason + " - " + getNextSeason( state.currentSeason ), 600, 600);
     
     state.currentYear = getDataSampleInfo(state.sampleInfo,state.currentSample)[0].year;
-    context.fillText(state.currentYear, 600, 575);
+    context.fillText(state.currentYear, 600, 550);
+    
+    // River names
+    // maybe move this to index.html so all river-spp info is in one place
+    context.fillStyle = "lightgrey";
+    context.font = "35px calibri";
+    context.fillText("WB", riverLabelXY.wb.x, riverLabelXY.wb.y);
+    context.fillText("OL", riverLabelXY.ol.x, riverLabelXY.ol.y);
+    context.fillText("OS", riverLabelXY.os.x, riverLabelXY.os.y);
+    context.fillText("IL", riverLabelXY.il.x, riverLabelXY.il.y);
+    context.fillText("EM", riverLabelXY.em.x, riverLabelXY.em.y);
   }
   
   function drawNode (d, i) {
@@ -367,8 +395,7 @@
       ticked();
     }
     
-    drawHeatMap();
-    drawHistogram();
+
     
   }
   
@@ -476,6 +503,8 @@
     state.nodesCurrent.forEach(function(d) { updateCurrentSeason(d); updateCurrentYear(d); });
     state.currentSeason = getDataSampleInfo(state.sampleInfo,state.currentSample)[0].season;
     
+    drawHeatMap();
+    drawHistogram();
   }
   
   function getNodesRender(){
@@ -696,6 +725,12 @@
   function getDataSampleInfo(dd,s) {
     return dd.filter( function(d) {
       return d.sample == s;
+    });
+  }
+
+  function getDataSampleInfoFromYear(dd,y) {
+    return dd.filter( function(d) {
+      return d.year == y && d.season == state.currentSeason;
     });
   }
 
@@ -949,6 +984,8 @@
   });
   
   }
+  
+  
   
   function createArray(length) {
     var arr = new Array(length || 0),

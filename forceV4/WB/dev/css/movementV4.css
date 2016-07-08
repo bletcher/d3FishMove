@@ -16,14 +16,32 @@
     z-index: 2
   }
 
+  #prevSamp {
+    position: absolute;
+    bottom: 60px;
+    left: 665px;
+    font-family: "verdana", sans-serif;
+  }
+
+  #yearSelect {
+    position: absolute;
+    bottom: 60px;
+    left: 834px;
+  }
+  
+  #nextSamp {
+    position: absolute;
+    bottom: 60px;
+    left: 755px;
+  }
 
   .bar rect {
-    fill: steelblue;
+    fill: rgb(74,116,134);
   }
   
   .bar2 rect {
-    fill: orange;
-    opacity: 0.75;
+    fill: rgba(249, 164, 6, 0.75);
+    
   }
 
   .bar text {
@@ -37,9 +55,10 @@
   }
   
   .btn-group-vertical {
-  position: relative;
-  display: inline-block;
-  vertical-align: top;
+    position: relative;
+    display: inline-block;
+    vertical-align: top;
+   
   }
 
 
