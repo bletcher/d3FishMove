@@ -136,15 +136,15 @@
                updateRenderData();
                incrementSegments();
              });
-             $("#yearSelect").on("change", function () {
-               console.log("#yearSelect change",$("#yearSelect").val());
-               state.currentSample = getDataSampleInfoFromYear(state.sampleInfo,$("#yearSelect").val())[0].sample;
+             $("#getYear li").on("click", function (d) {
+               console.log("#yearSelect change",$(this).text());
+               state.currentSample = getDataSampleInfoFromYear( state.sampleInfo,$(this).text() )[0].sample;
                updateRenderData();
                incrementSegments();
              });
              
            }
-  getDataSampleInfoFromYear(state.sampleInfo,1998)[0].sample
+
   function initializeNetwork(xyIn){
     console.log("initializeNetwork");
       ////////////////////////////////////////////////////////////////////////////
@@ -948,45 +948,7 @@
       .style("visibility", "visible");
   }
 
-  function updateSlider() {
-   console.log('updateSlider', state);
-   
-   if ($("#slider").children().length > 1) {
-     console.log("destroying slider");
-     $("#sampleSlider").slider('destroy');
-   }
-  
-   console.log('children', $('#sampleSlider').children().length);
-   
-   var sampSetLegend = state.yearSet.slice(state.yearSet.samps); //create a clone
-   
-   if( state.sampSet.length - 1 > sliderLabelsMaxNum ){
-     var sliderInterval = Math.round( (state.sampSet.length - 1)/sliderLabelsMaxNum );
-     for(i = 0;  i < state.sampSet.length-1; i++){
-       if( i % sliderInterval !== 0 ) sampSetLegend[i] = null;
-     }   
-   }
-  
-   var slider = $('#sampleSlider').slider({   
-    ticks: state.sampSet,
-    ticks_labels: sampSetLegend,
-    ticks_snap_bounds: 1,
-    value: state.currentSample
-  });
-  
-  $('#sampleSlider').on("slideStop", function () {
-    state.previousSample = state.currentSample;
-    state.currentSample = $('#sampleSlider').slider("getValue");
-    console.log("samples",state.previousSample,state.currentSample)
-  
-    updateRenderData();
-    incrementSegments();
-  });
-  
-  }
-  
-  
-  
+ 
   function createArray(length) {
     var arr = new Array(length || 0),
         i = length;

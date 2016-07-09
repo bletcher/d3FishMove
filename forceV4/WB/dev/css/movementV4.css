@@ -48,11 +48,6 @@
     fill: #fff;
     font: 10px sans-serif;
   }
-
-  .slider.slider-horizontal {
-   width: 1000px;
-   height: 20px;
-  }
   
   .btn-group-vertical {
     position: relative;

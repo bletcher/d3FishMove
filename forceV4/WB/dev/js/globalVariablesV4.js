@@ -48,10 +48,6 @@ var tooltip = d3.select("body")
     .style("z-index", "10")
     .style("visibility", "hidden");
 
-// Slider bar
-  var sliderLabelsMaxNum = 20;
-  var sampSetLegend;
-
 var propMoved;
 
 var cd,cd2,envData;

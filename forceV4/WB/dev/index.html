@@ -14,9 +14,6 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
   <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
   
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/6.1.5/css/bootstrap-slider.css" rel="stylesheet">
-  <script type='text/javascript' src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/6.1.5/bootstrap-slider.js"></script>
-   
   <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/WB/dev/js/functionsV4.js"></script>
   <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/WB/dev/js/globalVariablesV4.js"></script>
   <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/WB/dev/js/heatMap.js"></script>
@@ -58,13 +55,13 @@
                 </button>
               </div>
               
-              <div class="btn-group dropup" id="yearSelect">
+              <div class="btn-group dropup" id = "yearSelect">
                 <button type="button" class="btn btn-default" >Select year</button>
                 <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                   <span class="caret"></span>
                   <span class="sr-only">Toggle Dropdown</span>
                 </button>
-                <ul class="dropdown-menu">
+                <ul id="getYear" class="dropdown-menu">
                    <li><a href="#">1997</a></li>
                    <li><a href="#">1998</a></li>
                    <li><a href="#">1999</a></li>
@@ -220,23 +217,7 @@
         </div>      
      </div> 
 
-
-    <!-- Slider section 
-    <div class="row">
-        <div class="col-lg-10">
-            <div class="sliderSection" id="slider">
-              <input id="sampleSlider">
-
-            </div>
-        </div>
-        <div class="col-lg-2">
-
-        </div>
-    </div>
--->
   </div> 
-<!--  <button id="btnNext">Next</button> -->
-
 
 <script>
 
@@ -334,10 +315,6 @@ d3.csv("/forceV4/WB/dev/envDataOut.csv", typeEnv, function (env){
     initializeNetwork(xyIn);
     initializeFishData(cd,xyIn);
     initializeEnvData(env);
-    
- //   state.nodes = getDataID(state.nodes,7320)
-    
-    updateSlider();
 
     // update and render first interval. Dots will settle on second sample of the interval
     updateRenderData();
