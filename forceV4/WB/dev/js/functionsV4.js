@@ -52,6 +52,7 @@
      state.onClick = $("#onClickDD").val();
      state.propMovedDD = $("#propMovedDD").val();
      state.addLastSample = $("#addLastSampleDD").val();
+     state.selectedRiver = "all"; // default setting. changed when onClick == 'riv'
      console.log('state: ', state);
    }
            
@@ -86,6 +87,7 @@
     $("#propMovedDD").on("change", function () {
        console.log("#propMovedDD change");
        state.propMovedDD = $("#propMovedDD").val();
+       drawHeatMap();
        ended();
     });   
     $("#addLastSampleDD").on("change", function () {
@@ -189,7 +191,7 @@
       state.seasonSet = state.sampleInfo.map(function(d){return d.season});
       
       // Define starting sample #
-      state.currentSample = d3.min(state.sampSet);
+      state.currentSample = 35; //d3.min(state.sampSet);
           
     //  console.log("sampSet",state);
   
@@ -300,7 +302,7 @@
   function drawLegend(d,i){
     // move to global variables?
     var vOffset = 25, radius = 9; vOffsetText = radius/2;
-    var w = -50, h = 50 - vOffset * i - 20;
+    var w = -60, h = 50 - vOffset * i - 20;
     var col = d3.rgb(sppScaleColor( d ));
     
     col.opacity = 1;
@@ -445,7 +447,7 @@
  
    function whitenUnEnc(){
     state.nodesRender.forEach( function(d){ 
-      var indx = d.sample.indexOf(state.currentSample); 
+      var indx = d.sample.indexOf(state.currentSample + 1); 
       if( d.enc[indx] === 0 ) {
         d.color = d3.rgb('255','255','255');
       }  
@@ -454,7 +456,7 @@
   
   function reColorUnEnc(){
     state.nodesRender.forEach( function(d){ 
-      var indx = d.sample.indexOf(state.currentSample); 
+      var indx = d.sample.indexOf(state.currentSample + 1); 
       if( d.enc[indx] === 0 ) {
         d.color = sppScaleColor( d.species );
       }  
@@ -670,6 +672,9 @@
 
        // Add ID's of the selected fish's family to selectedID
        state.selectedID = state.riverData.map( function(d){ return(d.id) } );
+       
+       state.selectedRiver = d.endRiver;
+       updateDistMovedArr();
 
      }
      

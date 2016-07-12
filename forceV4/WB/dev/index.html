@@ -132,7 +132,7 @@
                            </div>
           
                           <div class="form-group">
-                            <label for="onClickDD" class="col-xs-5">Select</label>
+                            <label for="onClickDD" class="col-xs-5">Select by</label>
                               <div class="col-xs-7">  
                                 <select class="form-control" id="onClickDD">
                                   <option value="ind">Individual</option>
@@ -154,7 +154,7 @@
                            </div>
                            
                           <div class="form-group">
-                            <label for="propMovedDD" class="col-xs-6">PropMovedBy</label>
+                            <label for="propMovedDD" class="col-xs-6">PropMoved by</label>
                               <div class="col-xs-6">  
                                 <select class="form-control" id="propMovedDD">
                                   <option selected="selected" value="all">All</option>
@@ -285,7 +285,7 @@ var canvas = document.getElementById("mapCanvas"), //getElementByIdquerySelector
     context = canvas.getContext("2d");
     
 // set up map graphics
-var margin = {top: 40, right: 40, bottom: 0, left: 50};
+var margin = {top: 40, right: 40, bottom: 0, left: 100};
     width = canvas.width - margin.left - margin.right;
     height = canvas.height - margin.top - margin.bottom;
 
@@ -294,7 +294,7 @@ var riverLabelXY = {
   ol: {x: width * 0.83, y: height * 0.15},
   os: {x: width * 0.60, y: height * 0.6},
   il: {x: width * 0.30, y: height * 0.2},
-  em: {x: width * 0.15, y: height * 0.9}
+  em: {x: width * 0.13, y: height * 0.94}
 };
     
 var xScale = d3.scaleLinear()
