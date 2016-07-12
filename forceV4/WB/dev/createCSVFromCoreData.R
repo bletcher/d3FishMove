@@ -43,8 +43,6 @@ out$seasonStr <- ifelse(out$season == 1, "Spring",
 
 out$age <- year( out$date ) - out$cohort
 
-
-
 write.csv(out,file='coreDataOut.csv', row.names = F)
 
 

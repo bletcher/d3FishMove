@@ -40,6 +40,8 @@ var simulation;
 
 var ageScale = d3.scaleOrdinal().domain(d3.range(5)).range([2,3,4,5,6]); //[1,1.5,2,2.5,3]
 var seasonScale = d3.scaleOrdinal().domain(["Spring","Summer","Autumn","Winter"]).range([1,2,3,4]); 
+var seasonScaleRev = d3.scaleOrdinal().domain([1,2,3,4]).range(["Spring","Summer","Autumn","Winter"]); 
+
 
 var tooltip = d3.select("body")
   .append("div")
@@ -50,6 +52,6 @@ var tooltip = d3.select("body")
 
 var propMoved;
 
-var cd,cd2,envData;
+var cd,cd2,cdHold,envData;
 
 var width, height;

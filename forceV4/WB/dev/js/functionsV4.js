@@ -45,105 +45,93 @@
 
   function color(d){ return d.id; }
   
-           function initializeState() {
-             console.log('initializeState()');
-   /*          state.selectedRiver = $("#selectedRiverDD").val();
-       */    state.selectedSpecies = $("#selectedSpeciesDD").val();
-             state.dotOption = $("#dotOptionDD").val();   
-       //      state.barOption = $("#barOptionDD").val();
-          //   state.barVariable = $("#barVariableDD").val();
-             state.onClick = $("#onClickDD").val();
-             state.propMovedDD = $("#propMovedDD").val();
-             state.addLastSample = $("#addLastSampleDD").val();
-     //        state.lines = $("#linesDD").val();
-             console.log('state: ', state);
-           }
+   function initializeState() {
+     console.log('initializeState()');
+     state.selectedSpecies = $("#selectedSpeciesDD").val();
+     state.dotOption = $("#dotOptionDD").val();   
+     state.onClick = $("#onClickDD").val();
+     state.propMovedDD = $("#propMovedDD").val();
+     state.addLastSample = $("#addLastSampleDD").val();
+     console.log('state: ', state);
+   }
            
-           function initializeInterface() {
-             console.log('initializeInterface()');
-             
-             $("#selectedSpeciesDD").on("change", function () {
-              console.log("#selectedspeciesDD change");
-              state.selectedSpecies = $("#selectedSpeciesDD").val();
-              updateRenderData();
-              ticked();
-              ended();
-             });
-             $("#resetSppColors").on("click", function () {
-               console.log("#resetSppColors click");
-            //   resetColorsToSppUnSelected();
-               resetOpacityToOne();
-          //     state.selectedID = [];
-               updateRenderData();
-               ticked();
-               ended();
-             });
-             $("#dotOptionDD").on("change", function () {
-               console.log("#dotOption change");
-               state.dotOption = $("#dotOptionDD").val();
-               updateRenderData();
-               ticked();
-               ended();
-             });
+   function initializeInterface() {
+     console.log('initializeInterface()');
+     
+     $("#selectedSpeciesDD").on("change", function () {
+      console.log("#selectedspeciesDD change");
+      state.selectedSpecies = $("#selectedSpeciesDD").val();
+      updateDistMovedArr();
+      updateRenderData();
+      ticked();
+      ended();
+     });
+     $("#dotOptionDD").on("change", function () {
+       console.log("#dotOption change");
+       state.dotOption = $("#dotOptionDD").val();
+       updateRenderData();
+       ticked();
+       ended();
+     });
 
-             $("#onClickDD").on("change", function () {
-               console.log("#onClickDD change");
-               state.onClick = $("#onClickDD").val();
-               resetOpacityToOne();
-               state.selectedID = [];
-               updateRenderData();
-               ticked();
-               ended();
-             });
-            $("#propMovedDD").on("change", function () {
-               console.log("#propMovedDD change");
-               state.propMovedDD = $("#propMovedDD").val();
-               ended();
-            });   
-            $("#addLastSampleDD").on("change", function () {
-               console.log("#addLastSampleDD change");
-               state.addLastSample = $("#addLastSampleDD").val();
-               ended();
-             });
-             $("#unselectAll").on("click", function () {
-               console.log("#unselectAll click");
-               resetOpacityToOne();
-               state.selectedID = [];
-               updateRenderData();
-               ticked();
-               ended();
-             });
-             $("#showNotEnc").on("click", function () {
-               console.log("#showNotEnc change");
-               whitenUnEnc();
-               ticked();
-               ended();
-               setTimeout(function () {
-                 reColorUnEnc();
-                 ticked();
-                 ended();
-               }, 500);
-             });
-             $("#prevSamp").on("click", function () {
-               console.log("#prevSamp change");
-               state.currentSample = state.currentSample - 1;
-               updateRenderData();
-               incrementSegments();
-             });
-             $("#nextSamp").on("click", function () {
-               console.log("#nextSamp change");
-               state.currentSample = state.currentSample + 1;
-               updateRenderData();
-               incrementSegments();
-             });
-             $("#getYear li").on("click", function (d) {
-               console.log("#yearSelect change",$(this).text());
-               state.currentSample = getDataSampleInfoFromYear( state.sampleInfo,$(this).text() )[0].sample;
-               updateRenderData();
-               incrementSegments();
-             });
-             
-           }
+     $("#onClickDD").on("change", function () {
+       console.log("#onClickDD change");
+       state.onClick = $("#onClickDD").val();
+       resetOpacityToOne();
+       state.selectedID = [];
+       updateRenderData();
+       ticked();
+       ended();
+     });
+    $("#propMovedDD").on("change", function () {
+       console.log("#propMovedDD change");
+       state.propMovedDD = $("#propMovedDD").val();
+       ended();
+    });   
+    $("#addLastSampleDD").on("change", function () {
+       console.log("#addLastSampleDD change");
+       state.addLastSample = $("#addLastSampleDD").val();
+       ended();
+     });
+     $("#unselectAll").on("click", function () {
+       console.log("#unselectAll click");
+       resetOpacityToOne();
+       state.selectedID = [];
+       updateRenderData();
+       ticked();
+       ended();
+     });
+     $("#showNotEnc").on("click", function () {
+       console.log("#showNotEnc change");
+       whitenUnEnc();
+       ticked();
+       ended();
+       setTimeout(function () {
+         reColorUnEnc();
+         ticked();
+         ended();
+       }, 500);
+     });
+     $("#prevSamp").on("click", function () {
+       console.log("#prevSamp change");
+       state.currentSample = state.currentSample - 1;
+       updateRenderData();
+       incrementSegments();
+     });
+     $("#nextSamp").on("click", function () {
+       console.log("#nextSamp change");
+       state.currentSample = state.currentSample + 1;
+       updateRenderData();
+       incrementSegments();
+     });
+     $("#getYear li").on("click", function (d) {
+       console.log("#yearSelect change",$(this).text());
+       state.currentSample = getDataSampleInfoFromYear( state.sampleInfo,$(this).text() )[0].sample;
+       updateRenderData();
+       incrementSegments();
+     });
+     
+   }
 
   function initializeNetwork(xyIn){
     console.log("initializeNetwork");
@@ -172,6 +160,7 @@
   
   function initializeFishData(cd,xyIn){
       console.log("initializefishData");
+      cdHold = getDataNotNaN_distMoved(cd);
       
       // massage fish data
       minTimeStep =    d3.min(cd, function(d) { return d.sample; }) - 1;
@@ -252,6 +241,9 @@
                      enc: d.values.map(function(dd) {
                        return dd.enc;
                      }),
+                     distMoved: d.values.map(function(dd) {
+                       return dd.distMoved;
+                     }),
                      species: d.values[0].species,
                      speciesIndex: spp.indexOf(d.values[0].species), // integer value of spp
                      color: sppScaleColor( d.values[0].species ),// colorScale( spp.indexOf(d.values[0].species) ),
@@ -265,7 +257,9 @@
                                       d.lastSample  = d3.max(d.sample);
                                     }
                        );
-                                    
+
+    // get data for movement distribution histos                   
+    updateDistMovedArr();
   }
   
   function initializeEnvData(env){
@@ -416,9 +410,11 @@
         e.section = emigrationSection; e.sectionN = emigrationSectionN;
         if (d.season == "Winter") { e.year = d.year + 1; e.age = d.age + 1; }
         
-        d.maxSample = d.sample + 1;
-  
         cd.push(e);
+        
+        d.maxSample = d.sample + 1;
+        d.distMoved = -50; //put  -50 into previous sample for movement distribution histos
+        
       }
     });
   }
@@ -505,6 +501,7 @@
     
     drawHeatMap();
     drawHistogram();
+    drawHistogramDistMoved();
   }
   
   function getNodesRender(){
@@ -514,6 +511,8 @@
     if (      state.dotOption == "all" ) {      state.nodesRender = state.nodesCurrent; }
     else if ( state.dotOption == "selected" ) { state.nodesRender = getDataSelected(state.nodesCurrent); }
   }
+
+
 
 /*  function getSelected(){
     // all fish are 'selected' (opacity = 1) if the selectedID list is empty
@@ -579,6 +578,22 @@
   function updateCurrentYear(d){
      var indx = d.sample.indexOf(state.currentSample); 
          d.currentYear = d.year[indx];
+  }
+  
+  function getDistMoved(d){
+     var indx = d.sample.indexOf(state.currentSample); // 
+     return d.distMoved[indx];
+  }
+  
+  function getDistMovedBySeason(d,s=state.currentSeason){
+     var indx = d.season.indexOf(s); // 
+     return d.distMoved[indx];
+  }
+  
+  
+  function removeFalsey(arr) {
+    var filteredArray = arr.filter(Boolean);
+    return filteredArray;
   }
   
   function selectedIDIsNotAlive(){
@@ -748,6 +763,12 @@
   function getDataEmigrated(dd) {
     return dd.filter( function(d) {
       return !isNaN(d.dateEmigrated);
+    });
+  }
+   
+  function getDataNotNaN_distMoved(dd) {
+    return dd.filter( function(d) {
+      return !isNaN(d.distMoved);
     });
   }
 
