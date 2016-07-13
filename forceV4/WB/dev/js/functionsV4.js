@@ -337,6 +337,29 @@
     context.fillText("OS", riverLabelXY.os.x, riverLabelXY.os.y);
     context.fillText("IL", riverLabelXY.il.x, riverLabelXY.il.y);
     context.fillText("EM", riverLabelXY.em.x, riverLabelXY.em.y);
+   
+    // last obs
+    var vOffset = 25, radius = 9; vOffsetText = radius/2;
+    var w = -60, h = 50 - vOffset * (-3) - 20;
+    var col = d3.rgb(sppScaleColor( 2 ));
+    
+    col.opacity = 1;
+    
+    context.beginPath();
+    context.arc( w, h, radius, 0, 2 * Math.PI );
+    context.strokeStyle = col;//.darker(2);
+    context.stroke();
+    context.fillStyle = col;
+    context.fill();
+    context.font = "18px calibri";
+    context.fillStyle = "lightgrey";
+    context.fillText("Last observation", w + 20, h + vOffsetText);
+    
+    context.beginPath();
+    context.arc(w, h, radius - 2, 0, 2 * Math.PI);
+    context.fillStyle = d3.rgb(253,255,204); // ICE
+    context.fill();
+    
   }
   
   function drawNode (d, i) {

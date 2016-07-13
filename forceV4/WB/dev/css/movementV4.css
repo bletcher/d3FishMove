@@ -19,20 +19,20 @@
   #prevSamp {
     position: absolute;
     bottom: 60px;
-    left: 665px;
+    left: 715px;
     font-family: "verdana", sans-serif;
   }
 
   #yearSelect {
     position: absolute;
     bottom: 60px;
-    left: 834px;
+    left: 884px;
   }
   
   #nextSamp {
     position: absolute;
     bottom: 60px;
-    left: 755px;
+    left: 805px;
   }
 
   .bar rect {
