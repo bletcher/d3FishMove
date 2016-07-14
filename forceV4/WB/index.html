@@ -5,8 +5,7 @@
   <title>Fish Movement</title>
   <meta charset="utf-8">
   
-  <script src="https://d3js.org/d3.v4.0.0-alpha.40.min.js"></script>
-
+  <script src="https://d3js.org/d3.v4.min.js"></script>
   
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css">
@@ -14,12 +13,12 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
   <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
   
-  <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/WB/js/functionsV4.js"></script>
-  <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/WB/js/globalVariablesV4.js"></script>
-  <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/WB/js/heatMap.js"></script>
-  <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/WB/js/histogram.js"></script>
+  <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/WB/dev/js/functionsV4.js"></script>
+  <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/WB/dev/js/globalVariablesV4.js"></script>
+  <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/WB/dev/js/heatMap.js"></script>
+  <script type='text/javascript' src="http://felek.cns.umass.edu:4444/forceV4/WB/dev/js/histogram.js"></script>
   
-  <link rel="stylesheet" href="http://felek.cns.umass.edu:4444/forceV4/WB/css/movementV4.css">
+  <link rel="stylesheet" href="http://felek.cns.umass.edu:4444/forceV4/WB/dev/css/movementV4.css">
   
 </head>
 
@@ -317,9 +316,9 @@ var canvasT = document.getElementById("transCanvas"),
 
 //"http://felek.cns.umass.edu:4444/forceV4/WB/dev
 // get xy data: file from D:\PITTAGMAIN\West Brook data\ on ben's computer
-d3.csv("/forceV4/WB/envDataOut.csv", typeEnv, function (env){
- d3.csv("/forceV4/WB/WBCoordsForD3JSAboveBelow.csv", type, function (xyIn){
-  d3.csv("/forceV4/WB/coreDataOut.csv", typeCoreData, function (cd){
+d3.csv("/forceV4/WB/dev/envDataOut.csv", typeEnv, function (env){
+ d3.csv("/forceV4/WB/dev/WBCoordsForD3JSAboveBelow.csv", type, function (xyIn){
+  d3.csv("/forceV4/WB/dev/coreDataOut.csv", typeCoreData, function (cd){
 
     xScale.domain(d3.extent(xyIn, function(d) { return d.lat; }));
     yScale.domain(d3.extent(xyIn, function(d) { return d.lon; }));
@@ -339,7 +338,7 @@ d3.csv("/forceV4/WB/envDataOut.csv", typeEnv, function (env){
     
     // force simulation
     simulation = d3.forceSimulation()
-      .drag(0.75)
+      .velocityDecay(0.75)
      // .alphaDecay(0.01)
       .force("charge", d3.forceManyBody()
                          .strength(1) //strength of attraction among points [ - repels, + attracts ]

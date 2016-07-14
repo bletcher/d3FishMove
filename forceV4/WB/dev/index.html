@@ -204,7 +204,7 @@
                   </a>
                 </h4>
               </div>
-              <div id="collapseThree" class="panel" role="tabpanel" aria-labelledby="headingThree">
+              <div id="collapseThree" class="panel" role="tabpanel" data-toggle="false" aria-labelledby="headingThree">
                 <div class="panel-body">
                   <canvas id="transCanvas" width="225" height="225">
                   </canvas>
@@ -220,7 +220,7 @@
                   </a>
                 </h4>
               </div>
-              <div id="collapseFour" class="panel" role="tabpanel" aria-labelledby="headingFour">
+              <div id="collapseFour" class="panel" role="tabpanel" data-toggle="false" aria-labelledby="headingFour">
                 <div class="panel-body">
                   <div id="kernels">
                     
@@ -338,7 +338,6 @@ d3.csv("/forceV4/WB/dev/envDataOut.csv", typeEnv, function (env){
     
     // force simulation
     simulation = d3.forceSimulation()
-//      .(0.75)
       .velocityDecay(0.75)
      // .alphaDecay(0.01)
       .force("charge", d3.forceManyBody()
