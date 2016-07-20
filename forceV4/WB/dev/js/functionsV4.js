@@ -147,7 +147,7 @@
                    return {
                      riverN: Number(d.key),
                      coordinates: d.values.map(function(dd) {
-                       return [dd.lat,dd.lon];
+                       return [dd.lat,dd.lon,dd.sectionN];
                      }),
                      minSection: d3.min( d.values.map(function(dd) { return dd.section; }) ),
                      maxSection: d3.max( d.values.map(function(dd) { return dd.section; }) )
@@ -293,8 +293,9 @@
   
   function drawcoordinate (d, i) {
     d.coordinates.forEach( function (dd,ii) {
-      context.moveTo(xScale(dd[0]), yScale(dd[1]));
-      context.arc(   xScale(dd[0]), yScale(dd[1]), 10, 0, 2 * Math.PI);
+      context.moveTo( xScale(dd[0]), yScale(dd[1]) );
+      context.arc( xScale(dd[0]), yScale(dd[1]), 10, 0, 2 * Math.PI);
+ //     context.fillText(dd[2], xScale(dd[0])+0, yScale(dd[1])-20);
     });
   }
   
