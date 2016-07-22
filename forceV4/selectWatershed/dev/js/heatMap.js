@@ -26,6 +26,8 @@
       }
     }
 
+    contextT.clearRect(0, 0, canvasT.width, canvasT.height);
+
     var xOffset = 16*2, yOffset = 16*2, fontSize = 14;
     
     contextT.putImageData(image, xOffset, yOffset);
@@ -53,6 +55,7 @@
     for (var v = 0; v < boxesXY; ++v) {
       contextT.fillText(uniqueRivers[v], 2, v*boxDim + yOffset + boxDim/1.75);
     }  
+    
   }  
   
   

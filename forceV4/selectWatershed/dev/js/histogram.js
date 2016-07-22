@@ -6,7 +6,7 @@ function updateDistMovedArr(){
   if( state.onClick == "riv") { hold = getDataRiver(hold, state.selectedRiver);} 
   
   state.distMovedArr = [];   
-  [1,2,3,4].forEach( function(s){
+  uniqueSeasons.forEach( function(s){
     var dat = [];
     hold.forEach(function(d,i){ 
       dat = dat.concat( removeFalsey( [getDistMovedBySeason(d,seasonScaleRev(s))] ) ); 

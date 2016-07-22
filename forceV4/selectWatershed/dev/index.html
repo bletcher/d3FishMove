@@ -33,7 +33,7 @@
     <div class="row">
       
         <div class="col-lg-9">
-            <h3 class="page-header">Trout and salmon in a small stream network in western MA, USA
+            <h3 class="page-header">Trout and salmon in a small stream networks
                 <small></small>
             </h3>
      <!--         
@@ -112,8 +112,8 @@
                               <div class="col-xs-7">
                               
                                 <select class="form-control" id="selectedWatershedDD">
-                                  <option selected="selected" value="WB">West Brook</option>
-                                  <option value="SB">Stanley Brook</option>
+                                  <option selected="selected" value="west">West Brook</option>
+                                  <option value="stanley">Stanley Brook</option>
 
                                 </select>
                               </div>
@@ -250,27 +250,6 @@
 
 <script>
 
-// Network-specific info ///////////////////////////////////
-// data are in ../js/watershedInfo.js
-console.log($("#selectedWatershedDD").val())
-getWatershedData($("#selectedWatershedDD").val());
-
-    nextDown = state.watershedData.nextDown;
-    terminalTrib = state.watershedData.terminalTrib;
-    emigrationRiver = state.watershedData.emigrationRiver;
-    emigrationRiverN = state.watershedData.emigrationRiverN;
-    emigrationSection = state.watershedData.emigrationSection;
-    emigrationSectionN = state.watershedData.emigrationSectionN;
-    scaleRiverNtoRiver = state.watershedData.scaleRiverNtoRiver;
-    uniqueRivers = state.watershedData.uniqueRivers;
-    scaleRivertoRiverHeatMap = state.watershedData.scaleRivertoRiverHeatMap;
-    sppScale = state.watershedData.sppScale;
-    sppScaleColor = state.watershedData.sppScaleColor;
-    riverLabelXY = state.watershedData.riverLabelXY;
-
-//////////////////////////////////////////////////////////
-
-
 /////////////////////
 // Map canvas 
 var canvas = document.getElementById("mapCanvas"), //getElementByIdquerySelector
@@ -280,12 +259,6 @@ var canvas = document.getElementById("mapCanvas"), //getElementByIdquerySelector
 var margin = {top: 40, right: 40, bottom: 0, left: 100};
     width = canvas.width - margin.left - margin.right;
     height = canvas.height - margin.top - margin.bottom;
-
-
-
-///// need to get riverLabelXY
-
-
 
 var xScale = d3.scaleLinear()
     .range([0, width - margin.top - margin.bottom]);
@@ -307,20 +280,20 @@ var canvasT = document.getElementById("transCanvas"),
 
 //"http://felek.cns.umass.edu:4444/forceV4/selectWatershed/dev
 // get xy data: file from D:\PITTAGMAIN\West Brook data\ on ben's computer
-d3.csv("/forceV4/WB/dev/envDataOut.csv", typeEnv, function (env){
- d3.csv("/forceV4/WB/dev/WBCoordsForD3JSAboveBelow.csv", type, function (xyIn){
-  d3.csv("/forceV4/WB/dev/coreDataOut.csv", typeCoreData, function (cd){
+d3.csv("/forceV4/selectWatershed/dev/WBenvDataOut.csv", typeEnv, function (envIn){
+ d3.csv("/forceV4/selectWatershed/dev/coordsForD3JS.csv", type, function (coordsIn){
+  d3.csv("/forceV4/selectWatershed/dev/coreDataOut.csv", typeCoreData, function (cdIn){
 
-    xScale.domain(d3.extent(xyIn, function(d) { return d.lat; }));
-    yScale.domain(d3.extent(xyIn, function(d) { return d.lon; }));
+    csvIn.env = envIn; csvIn.coordsXY = coordsIn; csvIn.cd = cdIn;
 
-    // Initialize state and interface
+    // Initialize state, watershed data and interface
     initializeState();
+    getWatershedData(envIn,coordsIn,cdIn); 
     initializeInterface();
     
     // Initialize network, fish and environmental data
-    initializeNetwork(xyIn);
-    initializeFishData(cd,xyIn);
+    initializeNetwork(coordsXY);
+    initializeFishData(cd,coordsXY);
     initializeEnvData(env);
 
     // update and render first interval. Dots will settle on second sample of the interval

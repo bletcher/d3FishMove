@@ -1,16 +1,42 @@
-  function getWatershedData(d){
+  function getWatershedData(){
     var w;
-    switch(d){
-      case "WB":
+    switch(state.selectedWatershed){
+      case "west":
         w = watershed.WB;
         break;
-      case "SB":
+      case "stanley":
         w = watershed.SB;
         break;
     }
     state.watershedData = w;
+    
+    nextDown = state.watershedData.nextDown,
+    terminalTrib = state.watershedData.terminalTrib,
+    emigrationRiver = state.watershedData.emigrationRiver,
+    emigrationRiverN = state.watershedData.emigrationRiverN,
+    emigrationSection = state.watershedData.emigrationSection,
+    emigrationSectionN = state.watershedData.emigrationSectionN,
+    scaleRiverNtoRiver = state.watershedData.scaleRiverNtoRiver,
+    uniqueRivers = state.watershedData.uniqueRivers,
+    uniqueSeasons = state.watershedData.uniqueSeasons,
+    scaleRivertoRiverHeatMap = state.watershedData.scaleRivertoRiverHeatMap,
+    sppScale = state.watershedData.sppScale,
+    sppScaleColor = state.watershedData.sppScaleColor;
+    initialSampleNumber = state.watershedData.initialSampleNumber;
+ //   riverLabelXY = state.watershedData.riverLabelXY;
+    
+    /////
+    env = csvIn.env;//getDataWatershed(csvIn.env,state.selectedWatershed);
+    coordsXY =  getDataWatershed(csvIn.coordsXY, state.selectedWatershed);
+    cd =  getDataWatershed(csvIn.cd, state.selectedWatershed);
+    
+    getRiverLabelXY(state.selectedWatershed); // Function in watershedInfo.js
+    
+    xScale.domain(d3.extent(coordsXY, function(d) { return d.lat; }));
+    yScale.domain(d3.extent(coordsXY, function(d) { return d.lon; }));
+    
   }
-
+  
 // inputting data
     function type(d){
       d.lat = +d.lat;
@@ -53,6 +79,7 @@
       d.riverAbbr = d.river;
       d.age = +d.age;
       d.dateEmigrated = Date.parse(d.dateEmigrated);
+      d.watershed = d.watershed;
       return d;
     }
 
@@ -60,6 +87,7 @@
   
    function initializeState() {
      console.log('initializeState()');
+     state.selectedWatershed = $("#selectedWatershedDD").val();
      state.selectedSpecies = $("#selectedSpeciesDD").val();
      state.dotOption = $("#dotOptionDD").val();   
      state.onClick = $("#onClickDD").val();
@@ -71,7 +99,23 @@
            
    function initializeInterface() {
      console.log('initializeInterface()');
-     
+
+     $("#selectedWatershedDD").on("change", function () {
+      console.log("#selectedWatershedDD change");
+      state.selectedWatershed = $("#selectedWatershedDD").val();
+
+  //    initializeState();
+      getWatershedData(); 
+  //    initializeInterface(envIn,coordsIn,cdIn);
+      
+      initializeNetwork(coordsXY);
+      initializeFishData(cd,coordsXY);
+      initializeEnvData(env);
+
+      updateRenderData();
+      incrementSegments();
+
+     });     
      $("#selectedSpeciesDD").on("change", function () {
       console.log("#selectedspeciesDD change");
       state.selectedSpecies = $("#selectedSpeciesDD").val();
@@ -148,13 +192,13 @@
      
    }
 
-  function initializeNetwork(xyIn){
+  function initializeNetwork(coordsXY){
     console.log("initializeNetwork");
       ////////////////////////////////////////////////////////////////////////////
       // set up xy coordinates from csv file
       byRiver = d3.nest()
                   .key(function(d){return d.riverN;}).sortKeys(d3.ascending)
-                  .entries(xyIn); 
+                  .entries(coordsXY); 
     
       xy = byRiver.map(function (d) {
                    return {
@@ -173,7 +217,7 @@
   }
   
   
-  function initializeFishData(cd,xyIn){
+  function initializeFishData(cd,coordsXY){
       console.log("initializefishData");
       cdHold = getDataNotNaN_distMoved(cd);
       
@@ -204,14 +248,14 @@
       state.seasonSet = state.sampleInfo.map(function(d){return d.season});
       
       // Define starting sample #
-      state.currentSample = 35; //d3.min(state.sampSet);
+      state.currentSample = initialSampleNumber; //d3.min(state.sampSet);
           
     //  console.log("sampSet",state);
   
       spp = uniques( cd.map( function(d) {return d.species}) ); // array of unique species
       console.log("spp",spp);
       
-      assignSectionN(cd,xyIn);
+      assignSectionN(cd,coordsXY);
       
       // add extra row for fish that emigrated. Put them in section 0 in the WB [river 7]
       addEmigrants(cd);
@@ -343,15 +387,10 @@
     context.fillText(state.currentYear, 600, 550);
     
     // River names
-    // maybe move this to index.html so all river-spp info is in one place
     context.fillStyle = "lightgrey";
     context.font = "35px calibri";
-    context.fillText("WB", riverLabelXY.wb.x, riverLabelXY.wb.y);
-    context.fillText("OL", riverLabelXY.ol.x, riverLabelXY.ol.y);
-    context.fillText("OS", riverLabelXY.os.x, riverLabelXY.os.y);
-    context.fillText("IL", riverLabelXY.il.x, riverLabelXY.il.y);
-    context.fillText("EM", riverLabelXY.em.x, riverLabelXY.em.y);
-   
+    fillTextRiver(state.selectedWatershed);
+
     // last obs
     var vOffset = 25, radius = 9; vOffsetText = radius/2;
     var w = -60, h = 50 - vOffset * (-3) - 20;
@@ -651,75 +690,75 @@
     return simulation.find(d3.event.x - margin.left, d3.event.y - margin.top, searchRadius);
   }
 
-   function clickDot(){
+ function clickDot(){
 
-     var d = clickSubject();
-     console.log("selected",d.id);
-     
-     // select an individual circle when clicked 
-     if (state.onClick == "ind") {
+   var d = clickSubject();
+   console.log("selected",d.id);
+   
+   // select an individual circle when clicked 
+   if (state.onClick == "ind") {
 
-       // selecting new point
-       if ( !IDinSelectedID( state.selectedID,d.id ) ){
-         state.selectedID.push(d.id);
-         console.log("selected",state.selectedID);
-       }
-       
-       // unselect existing selected ID
-       else if ( IDinSelectedID(state.selectedID,d.id) ){
-         unSelectThisOne(d);
-         console.log("UNselected",state.selectedID);
-       }
+     // selecting new point
+     if ( !IDinSelectedID( state.selectedID,d.id ) ){
+       state.selectedID.push(d.id);
+       console.log("selected",state.selectedID);
      }
      
-     else if (state.onClick == "sec") {
-
-       // Empty selectedID array
-       state.selectedID = [];
-       
-       // get all data from the section of the selected individual
-       state.sectionData = getDataSection(state.nodesRender,d.coordinate);
-
-       // Add ID's of the selected fish's family to selectedID
-       state.selectedID = state.sectionData.map( function(d){ return(d.id) } );
-
+     // unselect existing selected ID
+     else if ( IDinSelectedID(state.selectedID,d.id) ){
+       unSelectThisOne(d);
+       console.log("UNselected",state.selectedID);
      }
-     
-     // Select IDs of all individuals in the selected individual's family
-     else if (state.onClick == "fam") {
-
-       // Empty selectedID array
-       state.selectedID = [];
-       
-       // get all data from the family of the selected individual
-       state.familyData = getDataFamily(state.nodesRender,d.familyID);
-       // Add ID's of the selected fish's family to selectedID
-       state.selectedID = state.familyData.map( function(d){ return(d.id) } );
-
-       console.log("family",state.selectedID);
-     }
-     
-     else if (state.onClick == "riv") {
-
-       // Empty selectedID array
-       state.selectedID = [];
-       
-       // get all data from the section of the selected individual
-       state.riverData = getDataRiver(state.nodesRender,d.endRiver);
-
-       // Add ID's of the selected fish's family to selectedID
-       state.selectedID = state.riverData.map( function(d){ return(d.id) } );
-       
-       state.selectedRiver = d.endRiver;
-       updateDistMovedArr();
-
-     }
-     
-     updateRenderData();
-     ticked();
-     ended(); 
    }
    
+   else if (state.onClick == "sec") {
+
+     // Empty selectedID array
+     state.selectedID = [];
+     
+     // get all data from the section of the selected individual
+     state.sectionData = getDataSection(state.nodesRender,d.coordinate);
+
+     // Add ID's of the selected fish's family to selectedID
+     state.selectedID = state.sectionData.map( function(d){ return(d.id) } );
+
+   }
+   
+   // Select IDs of all individuals in the selected individual's family
+   else if (state.onClick == "fam") {
+
+     // Empty selectedID array
+     state.selectedID = [];
+     
+     // get all data from the family of the selected individual
+     state.familyData = getDataFamily(state.nodesRender,d.familyID);
+     // Add ID's of the selected fish's family to selectedID
+     state.selectedID = state.familyData.map( function(d){ return(d.id) } );
+
+     console.log("family",state.selectedID);
+   }
+   
+   else if (state.onClick == "riv") {
+
+     // Empty selectedID array
+     state.selectedID = [];
+     
+     // get all data from the section of the selected individual
+     state.riverData = getDataRiver(state.nodesRender,d.endRiver);
+
+     // Add ID's of the selected fish's family to selectedID
+     state.selectedID = state.riverData.map( function(d){ return(d.id) } );
+     
+     state.selectedRiver = d.endRiver;
+     updateDistMovedArr();
+
+   }
+   
+   updateRenderData();
+   ticked();
+   ended(); 
+ }
+ 
   // Is id in selectedID array?
   function IDinSelectedID(arr, val) {
     return arr.some(function(arrVal) {
@@ -752,6 +791,12 @@
   function getDataSpecies(d,s) {
     return d.filter( function(d) {
       return d.species == s;
+    });
+  }
+
+  function getDataWatershed(d,s) {
+    return d.filter( function(d) {
+      return d.watershed == s;
     });
   }
 
@@ -868,13 +913,14 @@
           return arr;
       }
   
-  function assignSectionN(cd,xyIn){
+  function assignSectionN(cd,coordsXY){
   // assign sectionN based on riverAbbr and section# 
   // need to check lat/lon sor sections -1 and 0 in OS - just subtracted from the last decimal for now
-  console.log("assign",cd,xyIn)
+  console.log("assign",cd,coordsXY)
     cd.forEach(function (d,i) {
-      d.sectionN = xyIn.filter( function(dd) { return d.riverAbbr == dd.riverAbbr && d.section == dd.section } )[0].sectionN;
-      d.riverN =   xyIn.filter( function(dd) { return d.riverAbbr == dd.riverAbbr && d.section == dd.section } )[0].riverN;
+ //     if(state.selectedWatershed == "stanley") console.log(i,d,coordsXY)
+      d.sectionN = coordsXY.filter( function(dd) { return d.riverAbbr == dd.riverAbbr && d.section == dd.section } )[0].sectionN;
+      d.riverN =   coordsXY.filter( function(dd) { return d.riverAbbr == dd.riverAbbr && d.section == dd.section } )[0].riverN;
     });
   }
   

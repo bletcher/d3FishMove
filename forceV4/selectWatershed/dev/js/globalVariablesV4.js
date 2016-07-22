@@ -18,6 +18,12 @@ var state = {
  propMoved: undefined
 };
 
+var csvIn = {
+ env: undefined,        
+ cd: undefined,
+ coordsXY: undefined
+}; 
+
 var searchRadius = 5;
 
 var minTimeStep,
@@ -55,3 +61,20 @@ var propMoved;
 var cd,cd2,cdHold,envData;
 
 var width, height;
+
+var nextDown,
+terminalTrib,
+emigrationRiver,
+emigrationRiverN,
+emigrationSection,
+emigrationSectionN,
+scaleRiverNtoRiver,
+uniqueRivers,
+scaleRivertoRiverHeatMap,
+sppScale,
+sppScaleColor,
+uniqueSeasons,
+initialSampleNumber,
+riverLabelXY;
+
+var env,coordinates,cd;
