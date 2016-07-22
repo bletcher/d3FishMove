@@ -3,9 +3,11 @@
     switch(state.selectedWatershed){
       case "west":
         w = watershed.WB;
+        getNextSeason = getNextSeasonWB;
         break;
       case "stanley":
         w = watershed.SB;
+        getNextSeason = getNextSeasonSB;
         break;
     }
     state.watershedData = w;
@@ -23,17 +25,36 @@
     sppScale = state.watershedData.sppScale,
     sppScaleColor = state.watershedData.sppScaleColor;
     initialSampleNumber = state.watershedData.initialSampleNumber;
- //   riverLabelXY = state.watershedData.riverLabelXY;
+    siteTitle = state.watershedData.siteTitle;
     
     /////
     env = csvIn.env;//getDataWatershed(csvIn.env,state.selectedWatershed);
     coordsXY =  getDataWatershed(csvIn.coordsXY, state.selectedWatershed);
     cd =  getDataWatershed(csvIn.cd, state.selectedWatershed);
     
+    // title
+    $('#siteTitle').empty();
+    $("#siteTitle").append(siteTitle);
+    
     getRiverLabelXY(state.selectedWatershed); // Function in watershedInfo.js
     
     xScale.domain(d3.extent(coordsXY, function(d) { return d.lat; }));
     yScale.domain(d3.extent(coordsXY, function(d) { return d.lon; }));
+    
+    // year dropdown //
+    // Populate year dropdown. State.yearSet hasn't been defined yet, get unique years here.
+    var y = sortUnique(cd.map(function(d){return (d.year) }));
+    
+    //empty existing dropdown
+    $('#getYear').children().remove();
+    
+    // fill in with this watershed's years
+    $(yearSelect).ready(function(){
+     for( var index in y )
+     {
+       $('#yearSelect ul').append('<li><a href="#">'  + y[index] + '</a></li>');
+     }
+    });
     
   }
   
@@ -80,6 +101,7 @@
       d.age = +d.age;
       d.dateEmigrated = Date.parse(d.dateEmigrated);
       d.watershed = d.watershed;
+      d.tag = d.tag;
       return d;
     }
 
@@ -267,6 +289,7 @@
       state.nodes = byFish.map(function (d) {
                    return {
                      id: d.values[0].id,
+                     tag: d.values[0].tag,
                      riverN: d.values.map(function(dd) {
                        return dd.riverN;
                      }),
@@ -421,7 +444,7 @@
 
     if( ((d.isFirstSample) && (simulation.alpha() < 0.2)) ){  // keep new fish from entering from the upper left, they emerge near the end
         
-      context.arc(   d.x, d.y, ageScale(d.currentAge)*(1-simulation.alpha()/0.2), 0, 2 * Math.PI);
+      context.arc( d.x, d.y, ageScale(d.currentAge)*(1-simulation.alpha()/0.2), 0, 2 * Math.PI);
   
       d.color.opacity = 1;
   //    state.selectedID.length > 0;
@@ -859,7 +882,7 @@
     });
   }
 
-  function getNextSeason(s){
+  function getNextSeasonWB(s){
     var n;
     switch(s){
       case "Spring":
@@ -873,6 +896,19 @@
         break;
       case "Winter":
         n = "Spring";
+        break;
+    }
+    return n;
+  }
+  
+  function getNextSeasonSB(s){
+    var n;
+    switch(s){
+      case "Summer":
+        n = "Autumn";
+        break;
+      case "Autumn":
+        n = "Summer";
         break;
     }
     return n;
@@ -916,7 +952,7 @@
   function assignSectionN(cd,coordsXY){
   // assign sectionN based on riverAbbr and section# 
   // need to check lat/lon sor sections -1 and 0 in OS - just subtracted from the last decimal for now
-  console.log("assign",cd,coordsXY)
+  
     cd.forEach(function (d,i) {
  //     if(state.selectedWatershed == "stanley") console.log(i,d,coordsXY)
       d.sectionN = coordsXY.filter( function(dd) { return d.riverAbbr == dd.riverAbbr && d.section == dd.section } )[0].sectionN;
@@ -1047,17 +1083,26 @@
   }
 
   function mouseMoved() {
-    var a = this.parentNode, m = d3.mouse(this), d = simulation.find(m[0]- margin.left , m[1]- margin.top , searchRadius);
-  //  console.log("mouseMoved",d)
+    var a = this.parentNode, 
+        m = d3.mouse(this), 
+        d = simulation.find(m[0]- margin.left , m[1]- margin.top , searchRadius);
+
     if (!d) return a.removeAttribute("title"), tooltip.style('visibility','hidden');
-    a.setAttribute("title",d.id + " " + d.familyID + " Sections " + d.section +
-                           " Samples " + d.sample); 	
+
+    var buildText = d.id + " " + d.tag + '\n' ;
+    
+      d.sample.forEach(function(dd,i){
+        var tmp = [dd].concat([d.river[i], d.year[i], d.season[i], d.section[i], d.age[i], d.len[i]]) +'\n';
+        if (dd == state.currentSample + 1) tmp = "*" + tmp;
+        buildText = buildText + tmp  
+      }) 
+
+    a.setAttribute("title", buildText )
 
     tooltip
       .style("visibility", "visible");
-  }
+}
 
- 
   function createArray(length) {
     var arr = new Array(length || 0),
         i = length;

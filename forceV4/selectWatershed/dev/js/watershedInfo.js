@@ -1,7 +1,7 @@
 
 var watershed = {
   WB: {
-    
+
     nextDown: [ 2,2,4,4,6,6,7,0 ], // Contiguous downstream river for each index (river #)
     terminalTrib: [ 1,1,0,1,0,1,0,0 ], // Is the river a terminal trib (eg.g no upstream movement possible)
     emigrationRiver: "WB", 
@@ -14,10 +14,12 @@ var watershed = {
     scaleRivertoRiverHeatMap: d3.scaleOrdinal().domain(["WB","IL","OL","OS","Em"]).range([0,1,2,3,4]),
     sppScale: d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(["Atlantic salmon", "Brown trout", "Brook trout"]),
     sppScaleColor: d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range([d3.rgb(162,205,174), d3.rgb(74,116,134), d3.rgb(36,45,66)]),
-    initialSampleNumber: 35
+    initialSampleNumber: 11,
+    StopIterationitle: "Trout and salmon in a small stream network in Western MA, USA"
 
   },
   SB: {
+
     nextDown: [ 2,2,3,4,0 ],
     terminalTrib: [ 1,1,0,0,0 ],
     emigrationRiver: "tidal", 
@@ -30,7 +32,8 @@ var watershed = {
     scaleRivertoRiverHeatMap: d3.scaleOrdinal().domain(["mainstem","west","east","tidal","em"]).range([0,1,2,3,4]),
     sppScale: d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(["Atlantic salmon", "Brown trout", "Brook trout"]),
     sppScaleColor: d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range([d3.rgb(162,205,174), d3.rgb(74,116,134), d3.rgb(36,45,66)]),
-    initialSampleNumber: 4
+    initialSampleNumber: 4,
+    siteTitle: "Brook trout in a coastal stream network in Acadia National Park, ME, USA"
 
   }
 };
