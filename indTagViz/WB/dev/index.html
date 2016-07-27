@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+<head>
+  <title>Fish Movement</title>
+  <meta charset="utf-8">
+  
+  <script src="https://d3js.org/d3.v4.js"></script>
+  
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css">
+  
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+  
+  <script type='text/javascript' src="http://felek.cns.umass.edu:4444/indTagViz/WB/dev/js/functions.js"></script>
+    <script type='text/javascript' src="http://felek.cns.umass.edu:4444/indTagViz/WB/dev/js/globalVariables.js"></script>
+  
+  <link rel="stylesheet" href="http://felek.cns.umass.edu:4444/indTagViz/WB/dev/css/indTagViz.css">  
+  
+</head>
+
+<body>
+
+
+  <!-- Page Content -->
+  <div class="container-fluid">
+
+      <!-- Page Header -->
+    <div class="row">
+      
+        <div class="col-lg-9">
+            <h3 class="page-header">Trout and salmon in a small stream network in western MA, USA
+                <small></small>
+            </h3>
+
+        <canvas width="1024" height="760"></canvas>
+      
+        <div class="btn-group">
+          <button type="button" class="btn btn-primary" id="all">All</button>
+          <button type="button" class="btn btn-primary" id="species">Species</button>
+          <button type="button" class="btn btn-primary" id="river">River</button>
+          <button type="button" class="btn btn-primary" id="season">Season</button>
+          <button type="button" class="btn btn-primary" id="year">Year</button>
+          <button type="button" class="btn btn-primary" id="seasonYear">Season/Year</button>
+        </div>
+        
+      </div>
+        
+    </div>
+  </div>
+<script>
+
+
+var sppScale = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(["Atlantic salmon", "Brown trout", "Brook trout"]);
+var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range([d3.rgb(162,205,174), d3.rgb(74,116,134), d3.rgb(36,45,66)]); //ICE+20
+var sppRiverColor = d3.scaleOrdinal().domain(["WB","OL","OS","IL"]).range([d3.rgb(162,205,174), d3.rgb(74,116,134), d3.rgb(36,45,66), d3.rgb(16,25,46)]); //ICE+20
+var sppSeasonColor = d3.scaleOrdinal().domain(["Spring","Summer","Autumn","Winter"]).range([d3.rgb(162,205,174), d3.rgb(74,116,134), d3.rgb(36,45,66), d3.rgb(16,25,46)]); //ICE+20
+
+/////////////////////
+// set up map graphics
+
+var canvas = document.querySelector("canvas"),
+    context = canvas.getContext("2d");
+
+var margin = {top: 40, right: 40, bottom: 0, left: 100},
+    width = canvas.width - margin.left - margin.right,
+    height = canvas.height - margin.top - margin.bottom;
+
+var xScale = d3.scaleLinear()
+    .range([0, width - margin.top - margin.bottom]);
+    
+var yScale = d3.scaleLinear()
+    .range([0, height - margin.left - margin.right]);    
+
+d3.select(canvas)
+  .on("mousemove", mouseMoved)
+  .call(d3.drag()
+    .container(canvas)
+    .subject(clickDot)  // acts as 'onclick'
+  );
+  
+////////////  
+
+// force simulation
+  simulation = d3.forceSimulation()
+ //   .velocityDecay(0.75)
+    .force("charge", d3.forceManyBody()
+                       .strength(-initialRadius + 1) //strength of attraction among points [ - repels, + attracts ]
+//                    .distanceMax(200)
+//                        .theta(0.95) doesn't do much
+          )
+    .force("collide", d3.forceCollide()
+                        .radius(initialRadius + 1.025)//(function(d) { return ageScale(d.currentAge) + 1.025; })
+ //                       .iterations(2)
+          )              
+    .force("x", d3.forceX().x(function(d) { return d.xx; })
+ //                 .strength(0.25)
+          ) //bigger strength means faster [0,1]
+    .force("y", d3.forceY().y(function(d) { return d.yy; })
+ //                .strength(0.25)
+          ) 
+
+ //   .on("end",  ended)
+  ;
+
+//"http://felek.cns.umass.edu:4444/forceV4/WB/dev
+
+d3.csv("/forceV4/WB/coreDataOut.csv", typeCoreData, function (error,cd){
+  if (error) throw error;
+  
+  var cd = getDataEnc(cd);
+  csvIn.cd = cd;
+ // cd = getDataIdLessThan(cd,2000);
+  cd = getDataIdBtw(cd,2000,4500);
+  
+  
+  initializeInterface();
+  initializeXY(width,height); 
+  initializeFishData(cd);
+  getXY("all");
+
+  console.log(cd,state.nodes);
+
+  simulation
+      .nodes(state.nodes)
+      .on("tick", ticked)
+      
+  function ticked() {
+  //  console.log(state.currentSample,simulation.alpha())
+    
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.save();
+    context.translate(margin.left, margin.top); // subtract the margin values whenever use simulation.find()
+  
+    state.nodes.forEach(drawNode);
+    
+    context.restore();
+  }
+  
+  function drawNode(d){ 
+      context.beginPath();
+      context.arc( d.x, d.y, initialRadius, 0, 2 * Math.PI);
+
+      context.strokeStyle = d.color;//"grey";
+      context.stroke();
+      context.fillStyle = d.color;//"grey";
+      context.fill();
+
+  };
+
+}); //csv  
+//});
+
+    </script>
+  </body>
+</html>
+
+
