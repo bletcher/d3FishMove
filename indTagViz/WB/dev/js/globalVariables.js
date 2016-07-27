@@ -1,12 +1,17 @@
 var state = {
   forceX: undefined,
   forceY: undefined,
-  nodes: undefined
+  nodes: undefined,
+  counts: []
 };
 
 var xy;
 
-var byFish; 
+var byFish;
+
+var spp, riv, sea, yea;
+    
+var fishPerCircle = 25;
 
 var csvIn = {};
 

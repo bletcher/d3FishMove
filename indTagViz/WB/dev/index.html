@@ -29,33 +29,97 @@
       <!-- Page Header -->
     <div class="row">
       
-        <div class="col-lg-9">
+        <div class="col-lg-10">
             <h3 class="page-header">Trout and salmon in a small stream network in western MA, USA
                 <small></small>
             </h3>
 
         <canvas width="1024" height="760"></canvas>
       
-        <div class="btn-group">
+ <!--       <div class="btn-group"> -->
           <button type="button" class="btn btn-primary" id="all">All</button>
           <button type="button" class="btn btn-primary" id="species">Species</button>
           <button type="button" class="btn btn-primary" id="river">River</button>
           <button type="button" class="btn btn-primary" id="season">Season</button>
           <button type="button" class="btn btn-primary" id="year">Year</button>
           <button type="button" class="btn btn-primary" id="seasonYear">Season/Year</button>
-        </div>
+       
         
       </div>
-        
+      
+      <div class="col-lg-2">
+ 
+          <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+            <div class="panel panel-default">
+          
+                  <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    
+                  </a>
+          
+              <div id="collapseOne" class="panel" role="tabpanel" aria-labelledby="headingOne">
+                <div class="panel-body">
+                 
+                 
+                      <form class="form-inline-vertical"> 
+          
+               <!--    <div class="btn-toolbar">  -->
+                       <div class="form-group form-group-sm">
+
+                           <div class="btn-group-vertical" role="group" aria-label="...">
+                             Color by
+                             <button type="button" class="btn btn-default btn-sm  " id="colorSpecies">Species</button>
+                             <button type="button" class="btn btn-default btn-sm  " id="colorRiver">River</button> 
+                             <button type="button" class="btn btn-default btn-sm  " id="colorSeason">Season</button>
+                             <button type="button" class="btn btn-default btn-sm  " id="colorYear">Year</button>
+                           </div>
+             <!--              <div class="btn-group" data-toggle="buttons">
+                              <label class="btn btn-primary active">
+                                <input type="checkbox" autocomplete="off" checked> Checkbox 1 (pre-checked)
+                              </label>
+                           </div>
+                 -->                            
+                       </div>
+                       
+                     </form>
+                 
+                </div>
+              </div>
+            </div>
+            
+            <div class="panel panel-default">
+              <div class="panel-heading" role="tab" id="headingOne">
+                <h3 class="panel-title">
+                  <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                    Legend
+                  </a>
+                </h3>
+              </div>
+              <div id="collapseOne" class="panel" role="tabpanel" aria-labelledby="headingTwo">
+                <div class="panel-body">
+                  <div id="legend">
+                    <canvas id="legendCanvas" width="200" height="400"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            
+            
+            
+          </div>
+        </div>
+
     </div>
   </div>
 <script>
 
 
 var sppScale = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(["Atlantic salmon", "Brown trout", "Brook trout"]);
-var sppScaleColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range([d3.rgb(162,205,174), d3.rgb(74,116,134), d3.rgb(36,45,66)]); //ICE+20
-var sppRiverColor = d3.scaleOrdinal().domain(["WB","OL","OS","IL"]).range([d3.rgb(162,205,174), d3.rgb(74,116,134), d3.rgb(36,45,66), d3.rgb(16,25,46)]); //ICE+20
-var sppSeasonColor = d3.scaleOrdinal().domain(["Spring","Summer","Autumn","Winter"]).range([d3.rgb(162,205,174), d3.rgb(74,116,134), d3.rgb(36,45,66), d3.rgb(16,25,46)]); //ICE+20
+var sppColor = d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range([d3.rgb(162,205,174), d3.rgb(74,116,134), d3.rgb(36,45,66)]); //ICE+20
+var riverColor = d3.scaleOrdinal().domain(["WB","OL","OS","IL"]).range([d3.rgb(162,205,174), d3.rgb(74,116,134), d3.rgb(36,45,66), d3.rgb(16,25,46)]); //ICE+20
+var seasonColor = d3.scaleOrdinal().domain(["Spring","Summer","Autumn","Winter"]).range([d3.rgb(162,205,174), d3.rgb(74,116,134), d3.rgb(36,45,66), d3.rgb(16,25,46)]); //ICE+20
+//var yearColor = d3.scaleOrdinal().domain(d3.range(0,3)).range([d3.rgb(162,205,174), d3.rgb(74,116,134), d3.rgb(36,45,66), d3.rgb(16,25,46)]); //ICE+20
+var yearColor = d3.scaleOrdinal(d3.schemeCategory20c); //ICE+20
 
 /////////////////////
 // set up map graphics
@@ -79,7 +143,13 @@ d3.select(canvas)
     .container(canvas)
     .subject(clickDot)  // acts as 'onclick'
   );
-  
+
+var canvasL = document.getElementById("legendCanvas"), 
+    contextL = canvasL.getContext("2d");
+
+var marginL = {top: 0, right: 0, bottom: 0, left: 0},
+    widthL = canvasL.width - marginL.left - marginL.right,
+    heightL = canvasL.height - marginL.top - marginL.bottom;  
 ////////////  
 
 // force simulation
@@ -112,7 +182,7 @@ d3.csv("/forceV4/WB/coreDataOut.csv", typeCoreData, function (error,cd){
   var cd = getDataEnc(cd);
   csvIn.cd = cd;
  // cd = getDataIdLessThan(cd,2000);
-  cd = getDataIdBtw(cd,2000,4500);
+ // cd = getDataIdBtw(cd,2000,4500);
   
   
   initializeInterface();
@@ -120,34 +190,12 @@ d3.csv("/forceV4/WB/coreDataOut.csv", typeCoreData, function (error,cd){
   initializeFishData(cd);
   getXY("all");
 
-  console.log(cd,state.nodes);
+  console.log(cd,state.counts);
 
   simulation
-      .nodes(state.nodes)
+      .nodes(state.counts)
       .on("tick", ticked)
       
-  function ticked() {
-  //  console.log(state.currentSample,simulation.alpha())
-    
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.save();
-    context.translate(margin.left, margin.top); // subtract the margin values whenever use simulation.find()
-  
-    state.nodes.forEach(drawNode);
-    
-    context.restore();
-  }
-  
-  function drawNode(d){ 
-      context.beginPath();
-      context.arc( d.x, d.y, initialRadius, 0, 2 * Math.PI);
-
-      context.strokeStyle = d.color;//"grey";
-      context.stroke();
-      context.fillStyle = d.color;//"grey";
-      context.fill();
-
-  };
 
 }); //csv  
 //});
