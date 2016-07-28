@@ -34,7 +34,7 @@
                 <small></small>
             </h3>
 
-        <canvas width="1024" height="760"></canvas>
+        <canvas width="900" height="600"></canvas>
       
  <!--       <div class="btn-group"> -->
           <button type="button" class="btn btn-primary" id="all">All</button>
@@ -49,16 +49,8 @@
       
       <div class="col-lg-2">
  
-          <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
             <div class="panel panel-default">
-          
-                  <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                    
-                  </a>
-          
-              <div id="collapseOne" class="panel" role="tabpanel" aria-labelledby="headingOne">
-                <div class="panel-body">
-                 
+               <div class="panel-body">
                  
                       <form class="form-inline-vertical"> 
           
@@ -83,7 +75,6 @@
                      </form>
                  
                 </div>
-              </div>
             </div>
             
             <div class="panel panel-default">
@@ -97,20 +88,18 @@
               <div id="collapseOne" class="panel" role="tabpanel" aria-labelledby="headingTwo">
                 <div class="panel-body">
                   <div id="legend">
-                    <canvas id="legendCanvas" width="200" height="400"></canvas>
+                    <canvas id="legendCanvas" width="160" height="500"></canvas>
+                    <p id='numF'></p>
                   </div>
                 </div>
               </div>
             </div>
             
-            
-            
-            
           </div>
         </div>
 
     </div>
-  </div>
+
 <script>
 
 
@@ -137,6 +126,10 @@ var xScale = d3.scaleLinear()
 var yScale = d3.scaleLinear()
     .range([0, height - margin.left - margin.right]);    
 
+//var scaleWidth = d3.scaleLinear().domain([0, canvas.width - margin.left]).range([40, canvas.width - 240]);
+var scaleWidth = d3.scaleLinear().domain([0, width]).range([40, width - 140]);
+var scaleHeight = d3.scaleLinear().domain([0, height]).range([40, height - 80]);
+
 d3.select(canvas)
   .on("mousemove", mouseMoved)
   .call(d3.drag()
@@ -161,7 +154,7 @@ var marginL = {top: 0, right: 0, bottom: 0, left: 0},
 //                        .theta(0.95) doesn't do much
           )
     .force("collide", d3.forceCollide()
-                        .radius(initialRadius + 1.025)//(function(d) { return ageScale(d.currentAge) + 1.025; })
+                        .radius(initialRadius + 1.02)//(function(d) { return ageScale(d.currentAge) + 1.025; })
  //                       .iterations(2)
           )              
     .force("x", d3.forceX().x(function(d) { return d.xx; })

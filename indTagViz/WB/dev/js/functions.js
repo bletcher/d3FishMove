@@ -84,18 +84,20 @@
        contextL.clearRect(0, 0, canvasL.width, canvasL.height);
        yea.forEach(function(d,i) {drawLegend(d,i,"year")});
      });
+     
+     $("#numF").text("Each circle represents " + fishPerCircle + " fish");
   }
 
   function initializeXY(w,h){
-    var xProp4 = [0.25,0.5,0.75], yProp4 = [0.25,0.5,0.75];
-    var xProp3 = [0.33,0.66], yProp3 = [0.33,0.66];
+    var xProp4 = [0.33,0.5,0.66], yProp4 = [0.33,0.5,0.66];
+ //   var xProp3 = [0.33,0.66], yProp3 = [0.33,0.66];
     
     xy = {
       all: [ w*xProp4[1], h*yProp4[1] ],
       species: {
-        ats: [w*xProp4[1], h*yProp4[1]],
-        bkt: [w*xProp3[0], h*yProp3[0]],
-        bnt: [w*xProp3[1], h*yProp3[0]]
+        ats: [w*xProp4[1], h*yProp4[2]],
+        bkt: [w*xProp4[0], h*yProp4[0]],
+        bnt: [w*xProp4[2], h*yProp4[0]]
       },
       river: {
         WB: [w*xProp4[0], h*yProp4[0]],
@@ -104,16 +106,16 @@
         IL: [w*xProp4[2], h*yProp4[2]]
       },
       season: {
-        Spring: [w*xProp3[0], h*yProp3[0]],
-        Summer: [w*xProp3[0], h*yProp3[1]],
-        Autumn: [w*xProp3[1], h*yProp3[0]],
-        Winter: [w*xProp3[1], h*yProp3[1]]
+        Spring: [w*xProp4[0], h*yProp4[0]],
+        Summer: [w*xProp4[0], h*yProp4[2]],
+        Autumn: [w*xProp4[2], h*yProp4[0]],
+        Winter: [w*xProp4[2], h*yProp4[2]]
       }
     };
   }
-
+/*
   function initializeFishData(cd){
-      console.log("initializefishData");
+    console.log("initializefishData");
 
     spp = sortUnique(cd.map(function(d){return d.species}));
     riv = sortUnique(cd.map(function(d){return d.river}));
@@ -130,7 +132,7 @@
             var subset = getDataSRSY(cd,spp[s],riv[r],sea[s2],yea[y]);
             var numLines = parseInt(subset.length / fishPerCircle);
             
-        //    console.log(indx,spp[s],riv[r],sea[s2],yea[y],subset,subset.length,numLines)
+            console.log(indx,spp[s],riv[r],sea[s2],yea[y],numLines)//,subset,subset.length,numLines)
             
             for( var i = 0; i < numLines; i++){
            
@@ -146,6 +148,47 @@
     console.log("initializefishData - done");
     state.counts.forEach(function(d){ d.color = sppColor( "bnt" ) }); 
   }
+  
+ */ 
+  // Jeff's version, 12x faster
+  function initializeFishData(cd){
+    console.log("initializefishData_3()...");
+  
+    spp = sortUnique(cd.map(function(d){return d.species}));
+    riv = sortUnique(cd.map(function(d){return d.river}));
+    sea = sortUnique(cd.map(function(d){return d.season}));
+    yea = sortUnique(cd.map(function(d){return d.year}));
+ 
+    var nest = d3.nest()
+      .key(function (d) {
+        // creates a compound key as string (e.g. "bkt,IL,Spring,2013")
+        return [d.species, d.river, d.season, d.year];
+      })
+      .rollup(function (leaves) {
+        return leaves.length;
+      })
+      .entries(cd);
+  //  window.nest3 = nest;
+  
+    //var counts = [];
+    nest.forEach(function (d) {
+      var key = d.key.split(","), // "bkt,IL,Spring,2013" -> ["bkt", "IL", "Spring", 2013]
+          fishCount = d.value,
+          circleCount = parseInt(fishCount / fishPerCircle);
+  
+      for (var i = 0; i < circleCount; i++) {
+        state.counts.push({
+          species: key[0],
+          river: key[1],
+          season: key[2],
+          year: key[3]
+        });
+      }
+    });
+  
+    state.counts.forEach(function(d){ d.color = sppColor( "bnt" ); d.year = +d.year });
+  }
+
 
  function getDataSRSY(d,spp,riv,sea,yea){
    return d.filter( function(dd) {
@@ -154,11 +197,11 @@
  }
 
   function getXY(scenario){
-    var y = uniques(state.counts.map(function(d){return d.year}));
-    var stepWidth = width/(y.length + 1);
+    var y = sortUnique(state.counts.map(function(d){return d.year}));
+    var stepWidth = (canvas.width - margin.left)/(y.length + 1);
     
     var s = ["Spring", "Summer", "Autumn", "Winter"]; //uniques(state.counts.map(function(d){return d.season[0]}));
-    var stepHeight = height/(s.length + 1);
+    var stepHeight = (canvas.height - margin.top)/(s.length + 1);
     
       state.counts.forEach(function(d){
         
@@ -228,13 +271,13 @@
           break;
           
           case "year":
-            d.xx =  y.indexOf(d.year) * stepWidth + stepWidth;
-            d.yy = height * 0.6;
+            d.xx = scaleWidth( y.indexOf(d.year) * stepWidth + stepWidth );
+            d.yy = height * 0.5;
           break;
           
           case "seasonYear":
-            d.xx =  y.indexOf(d.year) * stepWidth + stepWidth;
-            d.yy = s.indexOf(d.season) * stepHeight + stepHeight;
+            d.xx = scaleWidth( y.indexOf(d.year) * stepWidth + stepWidth );
+            d.yy = scaleHeight( s.indexOf(d.season) * stepHeight + stepHeight );
           break;
         }
         
@@ -299,14 +342,19 @@
     var w = 10, h = (heightL/2 + vOffset*numRows/2) - vOffset * i;
     var col, txt, numrows;
     
+    contextL.save();  
+    contextL.translate(0.5, 0.5);
+    
     contextL.beginPath();
     contextL.arc(w, h, radius, 0, 2 * Math.PI);
     contextL.strokeStyle = col.darker(2);
     contextL.stroke();
     contextL.fillStyle = col;
     contextL.fill();
-    contextL.font = "16px calibri";
+    contextL.font = "20px calibri";
     contextL.fillText(txt ,w + 20, h + vOffsetText);
+    
+    contextL.restore();
   }
 
   
