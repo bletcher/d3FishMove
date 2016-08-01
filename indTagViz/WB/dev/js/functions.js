@@ -155,8 +155,8 @@
     console.log("initializefishData_3()...");
   
     spp = sortUnique(cd.map(function(d){return d.species}));
-    riv = sortUnique(cd.map(function(d){return d.river}));
-    sea = sortUnique(cd.map(function(d){return d.season}));
+    riv = [ "WB", "OL", "OS", "IL"].reverse(); //sortUnique(cd.map(function(d){return d.river}));
+    sea = [ "Spring", "Summer", "Autumn", "Winter"].reverse(); // sortUnique(cd.map(function(d){return d.season}));
     yea = sortUnique(cd.map(function(d){return d.year}));
  
     var nest = d3.nest()
@@ -187,8 +187,14 @@
     });
   
     state.counts.forEach(function(d){ d.color = sppColor( "bnt" ); d.year = +d.year });
+    
+    // sort the counts to get different starting patterns  (".thenBy(" ", -1)" to reverse)
+    state.counts.sort(firstBy(function(d){return d.river})
+                      .thenBy("season")
+                      .thenBy("species")
+    //                  .thenBy("year")
+                      );
   }
-
 
  function getDataSRSY(d,spp,riv,sea,yea){
    return d.filter( function(dd) {
@@ -300,7 +306,7 @@
       context.beginPath();
       context.arc( d.x, d.y, initialRadius, 0, 2 * Math.PI);
 
-      context.strokeStyle = d.color;//"grey";
+      context.strokeStyle = d3.rgb(d.color).darker(1);//"grey";
       context.stroke();
       context.fillStyle = d.color;//"grey";
       context.fill();
@@ -425,7 +431,9 @@
       } 
   
   
-  
+/*** Copyright 2013 Teun Duynstee Licensed under the Apache License, Version 2.0 https://github.com/Teun/thenBy.js ***/
+firstBy=function(){function n(n){return n}function t(n){return"string"==typeof n?n.toLowerCase():n}function r(r,e){if(e="number"==typeof e?{direction:e}:e||{},"function"!=typeof r){var i=r;r=function(n){return n[i]?n[i]:""}}if(1===r.length){var u=r,o=e.ignoreCase?t:n;r=function(n,t){return o(u(n))<o(u(t))?-1:o(u(n))>o(u(t))?1:0}}return-1===e.direction?function(n,t){return-r(n,t)}:r}function e(n,t){var i="function"==typeof this?this:!1,u=r(n,t),o=i?function(n,t){return i(n,t)||u(n,t)}:u;return o.thenBy=e,o}return e}();  
+
   
   
   

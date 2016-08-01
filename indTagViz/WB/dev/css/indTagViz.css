@@ -11,3 +11,7 @@ canvas {
   max-width: 1024px;
   max-height: 720px; */
 }
+
+.pull-left {
+  float: pull-left !important;
+}
