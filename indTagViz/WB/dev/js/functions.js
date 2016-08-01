@@ -53,7 +53,7 @@
      $("#seasonYear").on("click", function () {
        console.log("#seasonYear click");
        getXY("seasonYear");
-       simulation.alpha(1).alphaMin(0.01).nodes(state.counts).restart();
+       simulation.alpha(1).nodes(state.counts).restart();
      });
 //
      $("#colorSpecies").on("click", function () {
@@ -83,6 +83,11 @@
        ticked();
        contextL.clearRect(0, 0, canvasL.width, canvasL.height);
        yea.forEach(function(d,i) {drawLegend(d,i,"year")});
+     });
+     
+     $("#reset").on("click", function () {
+       console.log("#reset click");
+       location.reload();
      });
      
      $("#numF").text("Each circle represents " + fishPerCircle + " fish");
@@ -152,7 +157,7 @@
  */ 
   // Jeff's version, 12x faster
   function initializeFishData(cd){
-    console.log("initializefishData_3()...");
+    console.log("initializefishData()");
   
     spp = sortUnique(cd.map(function(d){return d.species}));
     riv = [ "WB", "OL", "OS", "IL"].reverse(); //sortUnique(cd.map(function(d){return d.river}));
@@ -170,7 +175,7 @@
       .entries(cd);
   //  window.nest3 = nest;
   
-    //var counts = [];
+    //state.counts = [];
     nest.forEach(function (d) {
       var key = d.key.split(","), // "bkt,IL,Spring,2013" -> ["bkt", "IL", "Spring", 2013]
           fishCount = d.value,
@@ -187,14 +192,17 @@
     });
   
     state.counts.forEach(function(d){ d.color = sppColor( "bnt" ); d.year = +d.year });
-    
+    sortFishData();
+  }
+
+ function sortFishData(){
     // sort the counts to get different starting patterns  (".thenBy(" ", -1)" to reverse)
     state.counts.sort(firstBy(function(d){return d.river})
                       .thenBy("season")
                       .thenBy("species")
     //                  .thenBy("year")
                       );
-  }
+ }
 
  function getDataSRSY(d,spp,riv,sea,yea){
    return d.filter( function(dd) {
