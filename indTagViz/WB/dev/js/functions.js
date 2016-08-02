@@ -308,7 +308,7 @@
   
     state.counts.forEach(drawNode);
     
-    if(simulation.alpha() < 0.25) {
+    if(simulation.alpha() < 0.33) {
       switch(posVar){
             case "species":
               spp.forEach(function(d,i) {drawPositionLabels(d,i,posVar)});
@@ -400,7 +400,7 @@
         switch(d){
           case "ats":
             xPos = xy.species.ats[0] + 200;
-            yPos = xy.species.ats[1];
+            yPos = xy.species.ats[1] + 50;
             col = d3.rgb(sppColor( d ));
             txt = sppScale(d);
             break;
@@ -450,7 +450,7 @@
        switch(d){
           case "Spring":
             xPos = xy.season.Spring[0] - 250;
-            yPos = xy.season.Spring[1] - 200;
+            yPos = xy.season.Spring[1] - 150;
             col = d3.rgb(seasonColor( d ));
             txt = d;
             break;
@@ -461,8 +461,8 @@
             txt = d;
             break;
           case "Autumn":
-            xPos = xy.season.Autumn[0] + 250;
-            yPos = xy.season.Autumn[1] - 50;
+            xPos = xy.season.Autumn[0] + 200;
+            yPos = xy.season.Autumn[1] - 150;
             col = d3.rgb(seasonColor( d ));
             txt = d;
             break;
@@ -482,7 +482,7 @@
         break;
       case "seasonYear":
         xPos = scaleWidthSeasonYear( uniqueYears.indexOf(d) * stepWidth + stepWidth );
-        yPos = height * 0.98;
+        yPos = height * 1;
         col = d3.rgb(yearColor( d ));
         txt = d;
         break;

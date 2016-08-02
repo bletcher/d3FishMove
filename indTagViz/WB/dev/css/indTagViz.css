@@ -15,3 +15,7 @@ canvas {
 .pull-left {
   float: pull-left !important;
 }
+
+.btn-space {
+    margin-top: 5px;
+}
