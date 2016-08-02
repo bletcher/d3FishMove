@@ -5,7 +5,7 @@ var state = {
   counts: []
 };
 
-var xy;
+var xy, posVar, xPos, yPos;
 
 var byFish;
 
@@ -14,6 +14,8 @@ var spp, riv, sea, yea;
 var fishPerCircle = 25;
 
 var csvIn = {};
+
+var uniqueYears, stepWidth, uniqueSeasons, stepHeight;
 
 var initialRadius = 3;
 

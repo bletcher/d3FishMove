@@ -14,7 +14,7 @@
   <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
   
   <script type='text/javascript' src="http://felek.cns.umass.edu:4444/indTagViz/WB/dev/js/functions.js"></script>
-    <script type='text/javascript' src="http://felek.cns.umass.edu:4444/indTagViz/WB/dev/js/globalVariables.js"></script>
+  <script type='text/javascript' src="http://felek.cns.umass.edu:4444/indTagViz/WB/dev/js/globalVariables.js"></script>
   
   <link rel="stylesheet" href="http://felek.cns.umass.edu:4444/indTagViz/WB/dev/css/indTagViz.css">  
   
@@ -145,6 +145,8 @@ var yScale = d3.scaleLinear()
 
 //var scaleWidth = d3.scaleLinear().domain([0, canvas.width - margin.left]).range([40, canvas.width - 240]);
 var scaleWidth = d3.scaleLinear().domain([0, width]).range([40, width - 140]);
+var scaleWidthYear = d3.scaleLinear().domain([0, width]).range([-margin.left - margin.right, width]);
+var scaleWidthSeasonYear = d3.scaleLinear().domain([0, width]).range([-margin.left, width - 40]);
 var scaleHeight = d3.scaleLinear().domain([0, height]).range([40, height - 80]);
 
 d3.select(canvas)
@@ -191,9 +193,18 @@ d3.csv("/forceV4/WB/coreDataOut.csv", typeCoreData, function (error,cd){
 
   console.log(cd,state.counts);
 
+  // variables for positionsing year data
+  uniqueYears = sortUnique(state.counts.map(function(d){return d.year}));
+  stepWidth = (canvas.width - margin.left)/(uniqueYears.length + 1);
+    
+  uniqueSeasons = ["Spring", "Summer", "Autumn", "Winter"]; //uniques(state.counts.map(function(d){return d.season[0]}));
+  stepHeight = (canvas.height - margin.top)/(uniqueSeasons.length + 1);
+
+
   simulation
       .nodes(state.counts)
       .on("tick", ticked)
+//      .on("end", ended)
 
 }); //csv  
 

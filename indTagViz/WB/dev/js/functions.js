@@ -28,31 +28,37 @@
      $("#all").on("click", function () {
        console.log("#all click");
        getXY("all");
-       simulation.alpha(1).nodes(state.counts).restart(); 
+       posVar = "all";
+       simulation.alpha(1).nodes(state.counts).restart();
      });
      $("#species").on("click", function () {
        console.log("#species click");
        getXY("species");
+       posVar = "species";
        simulation.alpha(1).nodes(state.counts).restart();
      });
      $("#river").on("click", function () {
        console.log("#river click");
        getXY("river");
+       posVar = "river";
        simulation.alpha(1).nodes(state.counts).restart();
      });
      $("#season").on("click", function () {
        console.log("#season click");
        getXY("season");
+       posVar = "season";
        simulation.alpha(1).nodes(state.counts).restart();
      });
      $("#year").on("click", function () {
        console.log("#year click");
        getXY("year");
+       posVar = "year";
        simulation.alpha(1).nodes(state.counts).restart();
      });
      $("#seasonYear").on("click", function () {
        console.log("#seasonYear click");
        getXY("seasonYear");
+       posVar = "seasonYear";
        simulation.alpha(1).nodes(state.counts).restart();
      });
 //
@@ -211,11 +217,6 @@
  }
 
   function getXY(scenario){
-    var y = sortUnique(state.counts.map(function(d){return d.year}));
-    var stepWidth = (canvas.width - margin.left)/(y.length + 1);
-    
-    var s = ["Spring", "Summer", "Autumn", "Winter"]; //uniques(state.counts.map(function(d){return d.season[0]}));
-    var stepHeight = (canvas.height - margin.top)/(s.length + 1);
     
       state.counts.forEach(function(d){
         
@@ -285,13 +286,13 @@
           break;
           
           case "year":
-            d.xx = scaleWidth( y.indexOf(d.year) * stepWidth + stepWidth );
+            d.xx = scaleWidth( uniqueYears.indexOf(d.year) * stepWidth + stepWidth );
             d.yy = height * 0.5;
           break;
           
           case "seasonYear":
-            d.xx = scaleWidth( y.indexOf(d.year) * stepWidth + stepWidth );
-            d.yy = scaleHeight( s.indexOf(d.season) * stepHeight + stepHeight );
+            d.xx = scaleWidth( uniqueYears.indexOf(d.year) * stepWidth + stepWidth );
+            d.yy = scaleHeight( uniqueSeasons.indexOf(d.season) * stepHeight + stepHeight );
           break;
         }
         
@@ -307,6 +308,25 @@
   
     state.counts.forEach(drawNode);
     
+    if(simulation.alpha() < 0.25) {
+      switch(posVar){
+            case "species":
+              spp.forEach(function(d,i) {drawPositionLabels(d,i,posVar)});
+            break;
+            case "river":
+              riv.forEach(function(d,i) {drawPositionLabels(d,i,posVar)});
+            break; 
+            case "season":
+              sea.forEach(function(d,i) {drawPositionLabels(d,i,posVar)});
+            break;
+            case "year":
+              yea.forEach(function(d,i) {drawPositionLabels(d,i,posVar)});
+            break;
+            case "seasonYear":
+              yea.forEach(function(d,i) {drawPositionLabels(d,i,posVar)});
+            break;
+      }
+    }
     context.restore();
   }
   
@@ -369,8 +389,118 @@
     contextL.fillText(txt ,w + 20, h + vOffsetText);
     
     contextL.restore();
+    
   }
 
+  function drawPositionLabels(d,i,variable){
+    var col,txt;
+    
+    switch(variable){
+      case "species":
+        switch(d){
+          case "ats":
+            xPos = xy.species.ats[0] + 200;
+            yPos = xy.species.ats[1];
+            col = d3.rgb(sppColor( d ));
+            txt = sppScale(d);
+            break;
+          case "bkt":
+            xPos = xy.species.bkt[0] - 300;
+            yPos = xy.species.bkt[1] - 120;
+            col = d3.rgb(sppColor( d ));            
+            txt = sppScale(d);
+            break;
+          case "bnt":
+            xPos = xy.species.bnt[0] + 200;
+            yPos = xy.species.bnt[1] - 100;
+            col = d3.rgb(sppColor( d ));
+            txt = sppScale(d);
+            break;
+        }
+        break;
+      case "river":
+        switch(d){
+          case "WB":
+            xPos = xy.river.WB[0] - 250;
+            yPos = xy.river.WB[1] - 150;
+            col = d3.rgb(riverColor( d ));
+            txt = d;
+            break;
+          case "OL":
+            xPos = xy.river.OL[0] - 250;
+            yPos = xy.river.OL[1] + 100;
+            col = d3.rgb(riverColor( d ));
+            txt = d;
+            break;
+          case "OS":
+            xPos = xy.river.OS[0] + 200;
+            yPos = xy.river.OS[1] - 50;
+            col = d3.rgb(riverColor( d ));
+            txt = d;
+            break;
+          case "IL":
+            xPos = xy.river.IL[0] + 200;
+            yPos = xy.river.IL[1] + 100;
+            col = d3.rgb(riverColor( d ));
+            txt = d;
+            break;
+        }
+        break;
+      case "season":
+       switch(d){
+          case "Spring":
+            xPos = xy.season.Spring[0] - 250;
+            yPos = xy.season.Spring[1] - 200;
+            col = d3.rgb(seasonColor( d ));
+            txt = d;
+            break;
+          case "Summer":
+            xPos = xy.season.Summer[0] - 250;
+            yPos = xy.season.Summer[1] + 100;
+            col = d3.rgb(seasonColor( d ));
+            txt = d;
+            break;
+          case "Autumn":
+            xPos = xy.season.Autumn[0] + 250;
+            yPos = xy.season.Autumn[1] - 50;
+            col = d3.rgb(seasonColor( d ));
+            txt = d;
+            break;
+          case "Winter":
+            xPos = xy.season.Winter[0] + 200;
+            yPos = xy.season.Winter[1] + 100;
+            col = d3.rgb(seasonColor( d ));
+            txt = d;
+            break;
+        }
+        break;
+      case "year":
+        xPos = scaleWidthYear( uniqueYears.indexOf(d) * stepWidth + stepWidth );
+        yPos = height * 0.95;
+        col = d3.rgb(yearColor( d ));
+        txt = d;
+        break;
+      case "seasonYear":
+        xPos = scaleWidthSeasonYear( uniqueYears.indexOf(d) * stepWidth + stepWidth );
+        yPos = height * 0.98;
+        col = d3.rgb(yearColor( d ));
+        txt = d;
+        break;
+    }
+    
+
+        // add legends to context
+    context.save();  
+    //context.translate(0.5, 0.5);
+    
+    context.fillStyle = col;
+    context.fill();
+    context.font = "20px calibri";
+    context.fillText(txt ,xPos, yPos);
+    
+    context.restore();
+    
+  }
   
  function getDataEnc(d){
    return d.filter( function(dd) {
@@ -419,7 +549,7 @@
         buildText = buildText + tmp; 
       });
 */
-    a.setAttribute("title", d.river + " " + d.species + " " + d.season + " " + d.year);
+    a.setAttribute("title", d.river + " " + sppScale(d.species) + " " + d.season + " " + d.year);
 
     tooltip
       .style("visibility", "visible");
