@@ -19,6 +19,7 @@
     d.riverAbbr = d.river;
     d.age = +d.age;
     d.dateEmigrated = Date.parse(d.dateEmigrated);
+    d.isYOY = +d.isYOY;
     return d;
   }
   
@@ -165,7 +166,7 @@
   function initializeFishData(cd){
     console.log("initializefishData()");
   
-    spp = sortUnique(cd.map(function(d){return d.species}));
+    spp = ["bkt", "bnt", "ats"].reverse();//sortUnique(cd.map(function(d){return d.species}));
     riv = [ "WB", "OL", "OS", "IL"].reverse(); //sortUnique(cd.map(function(d){return d.river}));
     sea = [ "Spring", "Summer", "Autumn", "Winter"].reverse(); // sortUnique(cd.map(function(d){return d.season}));
     yea = sortUnique(cd.map(function(d){return d.year}));
@@ -197,15 +198,15 @@
       }
     });
   
-    state.counts.forEach(function(d){ d.color = sppColor( "bnt" ); d.year = +d.year });
+    state.counts.forEach(function(d){ d.color = "lightgrey"; d.year = +d.year });
     sortFishData();
   }
 
  function sortFishData(){
     // sort the counts to get different starting patterns  (".thenBy(" ", -1)" to reverse)
-    state.counts.sort(firstBy(function(d){return d.river})
+    state.counts.sort(firstBy(function(d){return d.species})
+                      .thenBy("river")
                       .thenBy("season")
-                      .thenBy("species")
     //                  .thenBy("year")
                       );
  }
@@ -323,7 +324,8 @@
               yea.forEach(function(d,i) {drawPositionLabels(d,i,posVar)});
             break;
             case "seasonYear":
-              yea.forEach(function(d,i) {drawPositionLabels(d,i,posVar)});
+              yea.forEach(function(d,i) {drawPositionLabels(d,i,posVar,'y')});
+              sea.forEach(function(d,i) {drawPositionLabels(d,i,posVar,'s')});
             break;
       }
     }
@@ -392,8 +394,9 @@
     
   }
 
-  function drawPositionLabels(d,i,variable){
+  function drawPositionLabels(d,i,variable,sOrY){
     var col,txt;
+    context.font = "24px calibri";
     
     switch(variable){
       case "species":
@@ -411,7 +414,7 @@
             txt = sppScale(d);
             break;
           case "bnt":
-            xPos = xy.species.bnt[0] + 200;
+            xPos = xy.species.bnt[0] + 175;
             yPos = xy.species.bnt[1] - 100;
             col = d3.rgb(sppColor( d ));
             txt = sppScale(d);
@@ -479,12 +482,44 @@
         yPos = height * 0.95;
         col = d3.rgb(yearColor( d ));
         txt = d;
+        context.font = "20px calibri";
         break;
       case "seasonYear":
-        xPos = scaleWidthSeasonYear( uniqueYears.indexOf(d) * stepWidth + stepWidth );
-        yPos = height * 1;
-        col = d3.rgb(yearColor( d ));
-        txt = d;
+        if (sOrY == "y"){
+          xPos = scaleWidthSeasonYear( uniqueYears.indexOf(d) * stepWidth + stepWidth );
+          yPos = height * 1;
+          col = d3.rgb(yearColor( d ));
+          txt = d;
+          context.font = "20px calibri";
+        }
+        else if (sOrY == "s"){
+          switch(d){
+            case "Spring":
+              xPos = 25 - margin.left;
+              yPos = 20;
+              col = '#cccccc';//d3.rgb(seasonColor( d ));
+              txt = d;
+              break;
+            case "Summer":
+              xPos = 25 - margin.left;
+              yPos = 140;
+              col = '#cccccc';//d3.rgb(seasonColor( d ));
+              txt = d;
+              break;
+            case "Autumn":
+              xPos = 25 - margin.left;;
+              yPos = 250;
+              col = '#cccccc';//d3.rgb(seasonColor( d ));
+              txt = d;
+              break;
+            case "Winter":
+              xPos = 25 - margin.left;;
+              yPos = 410;
+              col = '#cccccc';//d3.rgb(seasonColor( d ));
+              txt = d;
+              break;
+          }
+        }
         break;
     }
     
@@ -495,7 +530,7 @@
     
     context.fillStyle = col;
     context.fill();
-    context.font = "20px calibri";
+//    context.font = "24px calibri";
     context.fillText(txt ,xPos, yPos);
     
     context.restore();
@@ -549,7 +584,7 @@
         buildText = buildText + tmp; 
       });
 */
-    a.setAttribute("title", d.river + " " + sppScale(d.species) + " " + d.season + " " + d.year);
+    a.setAttribute("title", sppScale(d.species) + ", " + d.river + ", " +  d.season + ", " + d.year);
 
     tooltip
       .style("visibility", "visible");

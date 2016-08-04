@@ -30,81 +30,117 @@
     <div class="row">
       
        <div class="col-lg-10">
-            <h3 class="page-header">Trout and salmon in a small stream network in western MA, USA
+            <h3 class="page-header">Trout and salmon in a small stream network in western MA, USA  -  The West Brook Story
             </h3>
-
+   <!--         <div class = "top-container">
+              <div class="description" style="opacity: 1; pointer-events: none; display: block;">
+                <p class = "text" style="opacity: 1;">
+                  
+                </p>
+              </div>
+            </div>   -->
+            
         <canvas width="900" height="600"></canvas>
- 
+        
+        <hr noshade>
+        
+        <div class="bottom-container">
+          <div class="step-container" style="opacity: 1;">
+            <div id="step1" class="step selected">1</div>
+            <div id="step2" class="step">2</div>
+            <div id="step3" class="step">3</div>
+            <div id="step4" class="step">4</div>
+            <div id="step5" class="step">5</div>
+            <div id="step6" class="step">6</div>
+           
+            <div id="divider" class="step"><span>-</span></div>
+            <div id="step9" class="step">Explore the data for yourself »</div>
+          </div>
+        </div>
       </div>
       
-      <div class="col-lg-2">
- 
-            <div class="panel panel-default">
-               <div class="panel-body">
+        <div class="col-lg-2">
+           
+           <div class = "right-container">
+              <div class="description" style="opacity: 1; display: block;">
+                <p class = "text" style="opacity: 1;">
                   
-                  <form class="form-inline-vertical"> 
-                     <div class="form-group form-group-sm">
-                       
-                       <div class="btn-group-vertical pull-left" role="group" aria-label="...">
-                         Position by:             
-                        <button type="button" class="btn btn-default btn-sm" id="all">All</button>
-                        <button type="button" class="btn btn-default btn-sm" id="species">Species</button>
-                        <button type="button" class="btn btn-default btn-sm" id="river">River</button>
-                        <button type="button" class="btn btn-default btn-sm" id="season">Season</button>
-                        <button type="button" class="btn btn-default btn-sm" id="year">Year</button>
-                        <button type="button" class="btn btn-default btn-sm" id="seasonYear">Season/Year</button>
-      
-                      </div>
-                    </div>
-                  </form>
-
-                
-
-                  <form class="form-inline-vertical"> 
-                    <div class="form-group form-group-sm">
-
-                       <div class="btn-group-vertical pull-right" role="group" aria-label="...">
-                         Color by:
-                         <button type="button" class="btn btn-default btn-sm" id="colorSpecies">Species</button>
-                         <button type="button" class="btn btn-default btn-sm" id="colorRiver">River</button> 
-                         <button type="button" class="btn btn-default btn-sm" id="colorSeason">Season</button>
-                         <button type="button" class="btn btn-default btn-sm" id="colorYear">Year</button>
-                       </div>
-                   
-                       <div class="btn-group-vertical pull-right" role="group">
-                         <button type="button" class="btn btn-primary btn-sm btn-space pull-right" id="reset">Reset</button>
-                       </div>
-
-                    </div>
-                 </form>
-               </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-2"> 
-            <div class="panel panel-default">
-              <div class="panel-heading" role="tab" id="headingOne">
-                <h3 class="panel-title">
-                  <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-                    Color legend
-                  </a>
-                </h3>
+                </p>
               </div>
-              <div id="collapseOne" class="panel" role="tabpanel" aria-labelledby="headingTwo">
-                <div class="panel-body">
-                  <div id="legend">
-                    <canvas id="legendCanvas" width="160" height="500"></canvas>
-                    <p id='numF'></p>
+            </div> 
+   
+   
+   
+   
+   
+   
+   
+   
+              <div class="panel panel-default">
+                 <div class="panel-body">
+                    
+                    <form class="form-inline-vertical"> 
+                       <div class="form-group form-group-sm">
+                         
+                         <div class="btn-group-vertical pull-left" role="group" aria-label="...">
+                           Position by:             
+                          <button type="button" class="btn btn-default btn-sm" id="all">All</button>
+                          <button type="button" class="btn btn-default btn-sm" id="species">Species</button>
+                          <button type="button" class="btn btn-default btn-sm" id="river">River</button>
+                          <button type="button" class="btn btn-default btn-sm" id="season">Season</button>
+                          <button type="button" class="btn btn-default btn-sm" id="year">Year</button>
+                          <button type="button" class="btn btn-default btn-sm" id="seasonYear">Season/Year</button>
+        
+                        </div>
+                      </div>
+                    </form>
+  
+                  
+  
+                    <form class="form-inline-vertical"> 
+                      <div class="form-group form-group-sm">
+  
+                         <div class="btn-group-vertical pull-right" role="group" aria-label="...">
+                           Color by:
+                           <button type="button" class="btn btn-default btn-sm" id="colorSpecies">Species</button>
+                           <button type="button" class="btn btn-default btn-sm" id="colorRiver">River</button> 
+                           <button type="button" class="btn btn-default btn-sm" id="colorSeason">Season</button>
+                           <button type="button" class="btn btn-default btn-sm" id="colorYear">Year</button>
+                         </div>
+                     
+                         <div class="btn-group-vertical pull-right" role="group">
+                           <button type="button" class="btn btn-primary btn-md btn-space pull-right" id="reset"> Reset </button>
+                         </div>
+  
+                      </div>
+                   </form>
+                 </div>
+              </div>
+          </div>
+          
+          <div class="col-lg-2"> 
+              <div class="panel panel-default">
+                <div class="panel-heading" role="tab" id="headingOne">
+                  <h3 class="panel-title">
+                    <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                      Color legend
+                    </a>
+                  </h3>
+                </div>
+                <div id="collapseOne" class="panel" role="tabpanel" aria-labelledby="headingTwo">
+                  <div class="panel-body">
+                    <div id="legend">
+                      <canvas id="legendCanvas" width="160" height="500"></canvas>
+                      <p id='numF'></p>
+                    </div>
                   </div>
                 </div>
-              </div>
             </div>
           
           </div>
-            
-          </div>
         
-
+      </div>
+        
     </div>
 
 <script>
@@ -178,6 +214,77 @@ var marginL = {top: 0, right: 0, bottom: 0, left: 0},
           ) 
   ;
 
+        var sppText = " <u>Brook trout</u> are native and reproduce naturally.</p>  <u>Brown trout</u> reproduce naturally, but were introduced from Europe in the mid 1800’s.</p>  <u>Atlantic salmon</u> were native but do not reproduce naturally. They were stocked as 25 mm fry in the spring.";
+        
+        var riverText = " <u>WB</u> is the mainstem and has the most area. </p>  <u>OL</u> is a Large, Open tributary, with a  fully passable culvert. </p>  <u>OS</u> is a Small, Open tributary, with a perched culvert until the Nature Conservancy replaced it in 2013. </p>  <u>IL</u> is a Large, Isolated tributary with an impassable waterfall at the confluence with WB";
+        
+        var riverText2 = " All three species lived in the <u>WB</u>. </p>  <u>OL</u> had mostly brook trout with some brown trout. </p>  <u>OS</u> was almost all brook trout. </p>  <u>IL</u> contained only brook trout.";
+        
+        var stepText = [
+          "dummy",
+          "From 1997 to 2015, we tagged almost 30,000 individual fish. </p> Those fish were captured a total of 63,232 times, many just once, some up to 10 times. </p> In the dot cloud, each circle is 25 fish captures.",
+          "There were three <b>species</b> of fish in the stream. </p>" + sppText,
+          "There were four <b>rivers</b> in the stream network. </p>" + riverText,
+          "There were four <b>rivers</b> in the stream network. </p>" + riverText2,
+          "We sampled for 19 <b>years</b>.",
+          "We sampled four <b>seasons</b> over the 19 <b>years</b>. </p> Some years we couldn't sample in the winter because of ice."
+        ]
+  
+  
+
+  var transDur = 400, desc, selectedStep;  
+  
+  // hide panels to start
+  d3.selectAll(".panel").style("visibility", "hidden")
+  
+        
+  d3.selectAll(".step:not(#divider)").on("click", function() {
+      d3.selectAll(".panel").style("visibility", "hidden"); // in case go back to steps
+      d3.selectAll(".right-container").style("display", "block")
+      desc = d3.select(".description");
+  //    desc.transition().duration(transDur).style("opacity", 0);
+      
+      d3.selectAll(".step").classed("selected", false); 
+      d3.select(this).classed("selected", true);
+      
+      selectedStep = d3.select(this).attr("id");
+      
+      switch(selectedStep){
+        case "step1":
+          $("#all").click();
+          state.counts.forEach(function(d){ d.color = "lightgrey" });
+          contextL.clearRect(0, 0, canvasL.width, canvasL.height);
+          break;
+        case "step2":
+          $("#colorSpecies").click();
+          $("#species").click();
+          break;  
+       case "step3":
+          $("#colorRiver").click();
+          $("#river").click();
+          break;
+       case "step4":
+          $("#colorSpecies").click();
+          break;
+       case "step5":
+          $("#colorYear").click();
+          $("#year").click();
+          break;
+       case "step6":
+          $("#colorYear").click();
+          $("#seasonYear").click();
+          break;
+       case "step9":
+          d3.selectAll(".panel").style("visibility", "visible")
+          d3.selectAll(".right-container").style("display", "none")
+          break;
+      }
+      
+      desc.html(stepText[+selectedStep.substr(4)]).style("opacity", 0); // can't transition html
+      desc.transition().duration(transDur).delay(250).style("opacity", 1)
+  });
+          
+     
 
 d3.csv("/forceV4/WB/coreDataOut.csv", typeCoreData, function (error,cd){
   if (error) throw error;
@@ -199,6 +306,7 @@ d3.csv("/forceV4/WB/coreDataOut.csv", typeCoreData, function (error,cd){
   uniqueSeasons = ["Spring", "Summer", "Autumn", "Winter"]; //uniques(state.counts.map(function(d){return d.season[0]}));
   stepHeight = (canvas.height - margin.top)/(uniqueSeasons.length + 1);
 
+  $("#step1").click()
 
   simulation
       .nodes(state.counts)
