@@ -67,6 +67,7 @@
        console.log("#colorSpecies click");
        state.counts.forEach(function(d){ d.color = sppColor( d.species )  });
        ticked();
+       canvasL.height = 125;
        contextL.clearRect(0, 0, canvasL.width, canvasL.height);
        spp.forEach(function(d,i) {drawLegend(d,i,"species")});
      });
@@ -74,6 +75,7 @@
        console.log("#colorSpecies click");
        state.counts.forEach(function(d){ d.color = riverColor( d.river )  });
        ticked();
+       canvasL.height = 150;
        contextL.clearRect(0, 0, canvasL.width, canvasL.height);
        riv.forEach(function(d,i) {drawLegend(d,i,"river")});
      });
@@ -81,6 +83,7 @@
        console.log("#colorSeason click");
        state.counts.forEach(function(d){ d.color = seasonColor( d.season )  });
        ticked();
+       canvasL.height = 150;
        contextL.clearRect(0, 0, canvasL.width, canvasL.height);
        sea.forEach(function(d,i) {drawLegend(d,i,"season")});
      }); 
@@ -88,13 +91,18 @@
        console.log("#colorYear click");
        state.counts.forEach(function(d){ d.color = yearColor( d.year )  });
        ticked();
+       canvasL.height = 500;
        contextL.clearRect(0, 0, canvasL.width, canvasL.height);
        yea.forEach(function(d,i) {drawLegend(d,i,"year")});
      });
      
      $("#reset").on("click", function () {
        console.log("#reset click");
-       location.reload();
+       //location.reload();
+       $("#all").click();
+       state.counts.forEach(function(d){ d.color = "lightgrey" });
+       contextL.clearRect(0, 0, canvasL.width, canvasL.height);
+       canvasL.height = 0;
      });
      
      $("#numF").text("Each circle represents " + fishPerCircle + " fish");
@@ -345,7 +353,8 @@
   
   function drawLegend(d,i,variable){
     // move to global variables?
-
+     var col, txt, numrows;
+     
      switch(variable){
       case "species":
         col = d3.rgb(sppColor( d ));
@@ -371,13 +380,11 @@
     
     // scale the legend canvas to # or rows
     var vOffset = 25;
-//    canvasL.height = vOffset*numRows;
-//    heightL = canvasL.height - marginL.top - marginL.bottom; 
-    
+
+    heightL = canvasL.height - marginL.top - marginL.bottom;
     var radius = 5; vOffsetText = radius/2;
-    var w = 10, h = (heightL/2 + vOffset*numRows/2) - vOffset * i;
-    var col, txt, numrows;
-    
+    var w = 10, h = (heightL/2 + vOffset*numRows/2 - vOffset) - vOffset * i;
+
     contextL.save();  
     contextL.translate(0.5, 0.5);
     

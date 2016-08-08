@@ -52,9 +52,10 @@
             <div id="step4" class="step">4</div>
             <div id="step5" class="step">5</div>
             <div id="step6" class="step">6</div>
+            <div id="step7" class="step">7</div>
            
             <div id="divider" class="step"><span>-</span></div>
-            <div id="step9" class="step">Explore the data for yourself »</div>
+    <!--        <div id="step9" class="step">Explore the data »</div> -->
           </div>
         </div>
       </div>
@@ -196,7 +197,7 @@ var canvasL = document.getElementById("legendCanvas"),
 
 var marginL = {top: 0, right: 0, bottom: 0, left: 0},
     widthL = canvasL.width - marginL.left - marginL.right,
-    heightL = canvasL.height - marginL.top - marginL.bottom;  
+    heightL = 0; //canvasL.height - marginL.top - marginL.bottom;  
 ////////////  
 
 // force simulation
@@ -214,31 +215,13 @@ var marginL = {top: 0, right: 0, bottom: 0, left: 0},
           ) 
   ;
 
-        var sppText = " <u>Brook trout</u> are native and reproduce naturally.</p>  <u>Brown trout</u> reproduce naturally, but were introduced from Europe in the mid 1800’s.</p>  <u>Atlantic salmon</u> were native but do not reproduce naturally. They were stocked as 25 mm fry in the spring.";
-        
-        var riverText = " <u>WB</u> is the mainstem and has the most area. </p>  <u>OL</u> is a Large, Open tributary, with a  fully passable culvert. </p>  <u>OS</u> is a Small, Open tributary, with a perched culvert until the Nature Conservancy replaced it in 2013. </p>  <u>IL</u> is a Large, Isolated tributary with an impassable waterfall at the confluence with WB";
-        
-        var riverText2 = " All three species lived in the <u>WB</u>. </p>  <u>OL</u> had mostly brook trout with some brown trout. </p>  <u>OS</u> was almost all brook trout. </p>  <u>IL</u> contained only brook trout.";
-        
-        var stepText = [
-          "dummy",
-          "From 1997 to 2015, we tagged almost 30,000 individual fish. </p> Those fish were captured a total of 63,232 times, many just once, some up to 10 times. </p> In the dot cloud, each circle is 25 fish captures.",
-          "There were three <b>species</b> of fish in the stream. </p>" + sppText,
-          "There were four <b>rivers</b> in the stream network. </p>" + riverText,
-          "There were four <b>rivers</b> in the stream network. </p>" + riverText2,
-          "We sampled for 19 <b>years</b>.",
-          "We sampled four <b>seasons</b> over the 19 <b>years</b>. </p> Some years we couldn't sample in the winter because of ice."
-        ]
-  
-  
 
-  var transDur = 400, desc, selectedStep;  
-  
   // hide panels to start
   d3.selectAll(".panel").style("visibility", "hidden")
-  
         
   d3.selectAll(".step:not(#divider)").on("click", function() {
+      var transDur = 400, desc;
+    
       d3.selectAll(".panel").style("visibility", "hidden"); // in case go back to steps
       d3.selectAll(".right-container").style("display", "block")
       desc = d3.select(".description");
@@ -247,7 +230,7 @@ var marginL = {top: 0, right: 0, bottom: 0, left: 0},
       d3.selectAll(".step").classed("selected", false); 
       d3.select(this).classed("selected", true);
       
-      selectedStep = d3.select(this).attr("id");
+      var selectedStep = d3.select(this).attr("id");
       
       switch(selectedStep){
         case "step1":
@@ -265,6 +248,7 @@ var marginL = {top: 0, right: 0, bottom: 0, left: 0},
           break;
        case "step4":
           $("#colorSpecies").click();
+          $("#river").click();
           break;
        case "step5":
           $("#colorYear").click();
@@ -274,9 +258,13 @@ var marginL = {top: 0, right: 0, bottom: 0, left: 0},
           $("#colorYear").click();
           $("#seasonYear").click();
           break;
-       case "step9":
-          d3.selectAll(".panel").style("visibility", "visible")
-          d3.selectAll(".right-container").style("display", "none")
+       case "step7":
+         
+          window.setTimeout( function(){
+            d3.selectAll(".panel").transition().duration(2000).style("visibility", "visible"),
+            d3.selectAll(".right-container").style("display", "none")}, 
+            4000
+          );
           break;
       }
       
@@ -284,7 +272,6 @@ var marginL = {top: 0, right: 0, bottom: 0, left: 0},
       desc.transition().duration(transDur).delay(250).style("opacity", 1)
   });
           
-     
 
 d3.csv("/forceV4/WB/coreDataOut.csv", typeCoreData, function (error,cd){
   if (error) throw error;

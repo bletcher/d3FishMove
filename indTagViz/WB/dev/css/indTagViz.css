@@ -50,6 +50,10 @@ canvas {
     color: #222;
 }
 
+.step-container .step:hover {
+    border: 2px solid #666;
+}
+
 .step-container .step {
     -webkit-transition: background-color .3s;
     transition: background-color .3s;
@@ -79,12 +83,6 @@ canvas {
     margin-right: 5px;
 }
 
-.step-container .step.selected {
-    border: 2px solid #666;
-    background-color: #cdcdcd;
-    color: #222;
-}
-
 .step-container .step#step9:hover {
     color: #ff944d;
 }
@@ -99,7 +97,7 @@ canvas {
 }
 
 p {
-    font: 17px/26px ArnhemPro,Georgia,"Times New Roman",serif;
+    font: 17px/26px Georgia,"Times New Roman",serif;
     color: #000;
 }
 
