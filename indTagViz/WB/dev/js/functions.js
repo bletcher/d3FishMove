@@ -58,14 +58,17 @@
        getXY("year");
        posVar = "year";
        drawPositionLabels(posVar);
-       simulation.alpha(1).nodes(state.counts).restart();
+       // sim was not completing - run 3/4 way, then start again seems to work well
+       simulation.alpha(1).alphaMin(0.75).nodes(state.counts).restart()
+         .on( "end", function(){simulation.alpha(1).nodes(state.counts).restart()} );
      });
      $("#seasonYear").on("click", function () {
        console.log("#seasonYear click");
        getXY("seasonYear");
        posVar = "seasonYear";
        drawPositionLabels(posVar);
-       simulation.alpha(1).nodes(state.counts).restart();
+       simulation.alpha(1).alphaMin(0.75).nodes(state.counts).restart()
+         .on( "end", function(){simulation.alpha(1).nodes(state.counts).restart()} );
      });
 //
      $("#colorSpecies").on("click", function () {
@@ -462,28 +465,28 @@
       case "river":
         switch(d){
           case "WB":
-            xPos = xy.river.WB[0] - 250;
+            xPos = xy.river.WB[0] - 300;
             yPos = xy.river.WB[1] - 150;
             col = d3.rgb(riverColor( d ));
-            txt = d;
+            txt = riverScale( d );
             break;
           case "OL":
-            xPos = xy.river.OL[0] - 250;
+            xPos = xy.river.OL[0] - 300;
             yPos = xy.river.OL[1] + 100;
             col = d3.rgb(riverColor( d ));
-            txt = d;
+            txt = riverScale( d );
             break;
           case "OS":
-            xPos = xy.river.OS[0] + 200;
+            xPos = xy.river.OS[0] + 150;
             yPos = xy.river.OS[1] - 50;
             col = d3.rgb(riverColor( d ));
-            txt = d;
+            txt = riverScale( d );
             break;
           case "IL":
-            xPos = xy.river.IL[0] + 200;
+            xPos = xy.river.IL[0] + 150;
             yPos = xy.river.IL[1] + 100;
             col = d3.rgb(riverColor( d ));
-            txt = d;
+            txt = riverScale( d );
             break;
         }
         break;
