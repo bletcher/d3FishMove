@@ -53,9 +53,7 @@
             <div id="step5" class="step">5</div>
             <div id="step6" class="step">6</div>
             <div id="step7" class="step">7</div>
-           
-            <div id="divider" class="step"><span>-</span></div>
-    <!--        <div id="step9" class="step">Explore the data »</div> -->
+            <div id="step8" class="step">8</div>
           </div>
         </div>
       </div>
@@ -69,14 +67,7 @@
                 </p>
               </div>
             </div> 
-   
-   
-   
-   
-   
-   
-   
-   
+
               <div class="panel panel-default">
                  <div class="panel-body">
                     
@@ -85,7 +76,7 @@
                          
                          <div class="btn-group-vertical pull-left" role="group" aria-label="...">
                            Position by:             
-                          <button type="button" class="btn btn-default btn-sm" id="all">All</button>
+                          <button type="button" class="btn btn-default btn-sm" id="all">None</button>
                           <button type="button" class="btn btn-default btn-sm" id="species">Species</button>
                           <button type="button" class="btn btn-default btn-sm" id="river">River</button>
                           <button type="button" class="btn btn-default btn-sm" id="season">Season</button>
@@ -96,22 +87,21 @@
                       </div>
                     </form>
   
-                  
-  
                     <form class="form-inline-vertical"> 
                       <div class="form-group form-group-sm">
   
                          <div class="btn-group-vertical pull-right" role="group" aria-label="...">
                            Color by:
+                           <button type="button" class="btn btn-default btn-sm" id="reset">None</button>
                            <button type="button" class="btn btn-default btn-sm" id="colorSpecies">Species</button>
                            <button type="button" class="btn btn-default btn-sm" id="colorRiver">River</button> 
                            <button type="button" class="btn btn-default btn-sm" id="colorSeason">Season</button>
                            <button type="button" class="btn btn-default btn-sm" id="colorYear">Year</button>
                          </div>
                      
-                         <div class="btn-group-vertical pull-right" role="group">
+               <!--          <div class="btn-group-vertical pull-right" role="group">
                            <button type="button" class="btn btn-primary btn-md btn-space pull-right" id="reset"> Reset </button>
-                         </div>
+                         </div> -->
   
                       </div>
                    </form>
@@ -120,7 +110,7 @@
           </div>
           
           <div class="col-lg-2"> 
-              <div class="panel panel-default">
+              <div class="panel panel-default" id="colorLegend">
                 <div class="panel-heading" role="tab" id="headingOne">
                   <h3 class="panel-title">
                     <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
@@ -181,8 +171,8 @@ var yScale = d3.scaleLinear()
 
 //var scaleWidth = d3.scaleLinear().domain([0, canvas.width - margin.left]).range([40, canvas.width - 240]);
 var scaleWidth = d3.scaleLinear().domain([0, width]).range([40, width - 140]);
-var scaleWidthYear = d3.scaleLinear().domain([0, width]).range([-margin.left - margin.right, width]);
-var scaleWidthSeasonYear = d3.scaleLinear().domain([0, width]).range([-margin.left, width - 40]);
+var scaleWidthYear = d3.scaleLinear().domain([0, width]).range([-margin.left - margin.right, width - 10]);
+var scaleWidthSeasonYear = d3.scaleLinear().domain([0, width]).range([-margin.left- margin.right, width - 40]);
 var scaleHeight = d3.scaleLinear().domain([0, height]).range([40, height - 80]);
 
 d3.select(canvas)
@@ -197,7 +187,23 @@ var canvasL = document.getElementById("legendCanvas"),
 
 var marginL = {top: 0, right: 0, bottom: 0, left: 0},
     widthL = canvasL.width - marginL.left - marginL.right,
-    heightL = 0; //canvasL.height - marginL.top - marginL.bottom;  
+    heightL = 0; //canvasL.height - marginL.top - marginL.bottom; 
+    
+//////////////
+// svg labels 
+
+svgContainer =
+  d3.select('body')
+    .append('svg')
+      .attr('width', canvas.width )//+ margin.left + margin.right)
+      .attr('height', canvas.height )// + margin.top + margin.bottom + $('h3.page-header').outerHeight())
+      .append('g');
+
+svgContainer.append('rect')
+  .attr('class', 'overlay')
+      .attr('width', canvas.width )// + margin.left + margin.right)
+      .attr('height', canvas.height)// + margin.top + margin.bottom + $('h3.page-header').outerHeight());
+  
 ////////////  
 
 // force simulation
@@ -225,12 +231,11 @@ var marginL = {top: 0, right: 0, bottom: 0, left: 0},
       d3.selectAll(".panel").style("visibility", "hidden"); // in case go back to steps
       d3.selectAll(".right-container").style("display", "block")
       desc = d3.select(".description");
-  //    desc.transition().duration(transDur).style("opacity", 0);
       
       d3.selectAll(".step").classed("selected", false); 
       d3.select(this).classed("selected", true);
       
-      var selectedStep = d3.select(this).attr("id");
+      selectedStep = d3.select(this).attr("id");
       
       switch(selectedStep){
         case "step1":
@@ -247,8 +252,8 @@ var marginL = {top: 0, right: 0, bottom: 0, left: 0},
           $("#river").click();
           break;
        case "step4":
-          $("#colorSpecies").click();
-          $("#river").click();
+          $("#colorSeason").click();
+          $("#season").click();
           break;
        case "step5":
           $("#colorYear").click();
@@ -259,10 +264,21 @@ var marginL = {top: 0, right: 0, bottom: 0, left: 0},
           $("#seasonYear").click();
           break;
        case "step7":
-         
+          $("#species").click();
+          $("#colorSpecies").click();
+          window.setTimeout( function(){
+            $("#seasonYear").click()},
+            2500
+          );
+          break;
+       case "step8":
           window.setTimeout( function(){
             d3.selectAll(".panel").transition().duration(2000).style("visibility", "visible"),
-            d3.selectAll(".right-container").style("display", "none")}, 
+            d3.selectAll(".right-container").style("display", "none"), 
+            $("#all").click(),
+            state.counts.forEach(function(d){ d.color = "lightgrey" }),
+            canvasL.height = 0,
+            contextL.clearRect(0, 0, canvasL.width, canvasL.height)},
             4000
           );
           break;

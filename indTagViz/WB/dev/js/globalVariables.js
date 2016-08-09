@@ -5,7 +5,7 @@ var state = {
   counts: []
 };
 
-var xy, posVar, xPos, yPos;
+var xy, posVar, posData = [], xPos, yPos, textLabel;
 
 var byFish;
 
@@ -35,13 +35,16 @@ var riverText = " <u>WB</u> is the mainstem and has the most area. </p>  <u>OL</
 
 var riverText2 = " All three species lived in the <u>WB</u>. </p>  <u>OL</u> had mostly brook trout with some brown trout. </p>  <u>OS</u> was almost all brook trout. </p>  <u>IL</u> contained only brook trout.";
 
+var seasonText = "Most fish were caught in Autumn, when we could first tag the youngest fish";
+
 var stepText = [
   "dummy",
   "From 1997 to 2015, we tagged almost 30,000 individual fish. </p> Those fish were captured a total of 63,232 times, many just once, some up to 10 times. </p> In the dot cloud, each circle is 25 fish captures.",
   "There were three <b>species</b> of fish in the stream. </p>" + sppText,
   "There were four <b>rivers</b> in the stream network. </p>" + riverText,
-  "There were four <b>rivers</b> in the stream network. </p>" + riverText2,
-  "We sampled for 19 <b>years</b>.",
-  "We sampled four <b>seasons</b> over the 19 <b>years</b>. </p> Some years we couldn't sample in the winter because of ice.",
-  "Explore the data by yourself by clicking buttons to <u>position</u> and <u>color</u> the circles. </p> Many combinations are possible."
+  "We sampled in four <b>seasons</b>. </p>" + seasonText,
+  "We sampled for 19 <b>years</b>.</p> There were high abundances in some years (e.g. 2003) and low abundances in others (e.g. 2011).",
+  "Over the 19 <b>years</b> of sampling we couldn't sample the winter in some years because of ice.",
+  "We started tagging <b>trout</b> in the WB in 2000 and in the WB and the tributaries in 2002.</p> We stopped stocking <b>salmon</b> in 2004. By 2008, there were very few salmon left in the stream network",
+  "Explore the data by yourself by clicking buttons to <u>position</u> and <u>color</u> the circles. </p> Many combinations are possible and the history of clicks can create interesting patterns."
 ];

@@ -23,43 +23,48 @@
     return d;
   }
   
-  
   function initializeInterface(){
   
      $("#all").on("click", function () {
        console.log("#all click");
        getXY("all");
        posVar = "all";
+       drawPositionLabels(posVar); // to empty out the labels if return to here
        simulation.alpha(1).nodes(state.counts).restart();
      });
      $("#species").on("click", function () {
        console.log("#species click");
        getXY("species");
        posVar = "species";
+       drawPositionLabels(posVar);
        simulation.alpha(1).nodes(state.counts).restart();
      });
      $("#river").on("click", function () {
        console.log("#river click");
        getXY("river");
        posVar = "river";
+       drawPositionLabels(posVar);
        simulation.alpha(1).nodes(state.counts).restart();
      });
      $("#season").on("click", function () {
        console.log("#season click");
        getXY("season");
        posVar = "season";
+       drawPositionLabels(posVar);
        simulation.alpha(1).nodes(state.counts).restart();
      });
      $("#year").on("click", function () {
        console.log("#year click");
        getXY("year");
        posVar = "year";
+       drawPositionLabels(posVar);
        simulation.alpha(1).nodes(state.counts).restart();
      });
      $("#seasonYear").on("click", function () {
        console.log("#seasonYear click");
        getXY("seasonYear");
        posVar = "seasonYear";
+       drawPositionLabels(posVar);
        simulation.alpha(1).nodes(state.counts).restart();
      });
 //
@@ -99,8 +104,9 @@
      $("#reset").on("click", function () {
        console.log("#reset click");
        //location.reload();
-       $("#all").click();
+       //$("#all").click();
        state.counts.forEach(function(d){ d.color = "lightgrey" });
+       ticked();
        contextL.clearRect(0, 0, canvasL.width, canvasL.height);
        canvasL.height = 0;
      });
@@ -188,9 +194,7 @@
         return leaves.length;
       })
       .entries(cd);
-  //  window.nest3 = nest;
-  
-    //state.counts = [];
+
     nest.forEach(function (d) {
       var key = d.key.split(","), // "bkt,IL,Spring,2013" -> ["bkt", "IL", "Spring", 2013]
           fishCount = d.value,
@@ -317,26 +321,6 @@
   
     state.counts.forEach(drawNode);
     
-    if(simulation.alpha() < 0.33) {
-      switch(posVar){
-            case "species":
-              spp.forEach(function(d,i) {drawPositionLabels(d,i,posVar)});
-            break;
-            case "river":
-              riv.forEach(function(d,i) {drawPositionLabels(d,i,posVar)});
-            break; 
-            case "season":
-              sea.forEach(function(d,i) {drawPositionLabels(d,i,posVar)});
-            break;
-            case "year":
-              yea.forEach(function(d,i) {drawPositionLabels(d,i,posVar)});
-            break;
-            case "seasonYear":
-              yea.forEach(function(d,i) {drawPositionLabels(d,i,posVar,'y')});
-              sea.forEach(function(d,i) {drawPositionLabels(d,i,posVar,'s')});
-            break;
-      }
-    }
     context.restore();
   }
   
@@ -401,9 +385,56 @@
     
   }
 
-  function drawPositionLabels(d,i,variable,sOrY){
+  function drawPositionLabels(posVar){ 
+    
+    posData = [];
+    d3.selectAll("text").remove();
+    
+    switch(posVar){
+      case "species":
+        spp.forEach(function(d,i) {getPosData(d,i,posVar)});
+      break;
+      case "river":
+        riv.forEach(function(d,i) {getPosData(d,i,posVar)});
+      break; 
+      case "season":
+        sea.forEach(function(d,i) {getPosData(d,i,posVar)});
+      break;
+      case "year":
+        yea.forEach(function(d,i) {getPosData(d,i,posVar)});
+      break;
+      case "seasonYear":
+        sea.forEach(function(d,i) {getPosData(d,i,posVar,'s')});
+        yea.forEach(function(d,i) {getPosData(d,i+4,posVar,'y')}); // +4 is a hack, cause I cound't get updating to work in V4
+      break;
+    }
+
+    addTextLabels();
+    
+  }  
+
+  function addTextLabels(){
+    textLabel = svgContainer.selectAll("text")
+                            .data(posData);
+  
+    textLabel
+       .enter()
+       .append("text")
+    //   .merge(textLabel)
+       .attr("x", function(d) { return d.xPos; })
+       .attr("y", function(d) { return d.yPos; })
+       .text( function (d) { return d.txt; })
+       .attr("font-family", function (d) { return d.fontFamily; })
+       .attr("font-size", function (d) { return d.fontSize; })
+       .attr("fill", function(d) { return d.col; })
+       ;
+  }
+
+
+  function getPosData(d,i,variable,sOrY){
     var col,txt;
-    context.font = "24px calibri";
+    var fontSize = "24px";
+    var fontFamily = "calibri";
     
     switch(variable){
       case "species":
@@ -489,7 +520,7 @@
         yPos = height * 0.95;
         col = d3.rgb(yearColor( d ));
         txt = d;
-        context.font = "20px calibri";
+        fontSize = "20px";
         break;
       case "seasonYear":
         if (sOrY == "y"){
@@ -497,7 +528,7 @@
           yPos = height * 1;
           col = d3.rgb(yearColor( d ));
           txt = d;
-          context.font = "20px calibri";
+          fontSize = "20px";
         }
         else if (sOrY == "s"){
           switch(d){
@@ -530,19 +561,68 @@
         break;
     }
     
+    posData[i] = { xPos: xPos + margin.left,
+                   yPos: yPos + margin.top,
+                   col: col,
+                   txt: txt,
+                   fontSize: fontSize,
+                   fontFamily: fontFamily
+                 };
 
-        // add legends to context
+/*    // add legends to context
     context.save();  
     //context.translate(0.5, 0.5);
     
     context.fillStyle = col;
     context.fill();
-//    context.font = "24px calibri";
+
     context.fillText(txt ,xPos, yPos);
     
-    context.restore();
+    //if( selectedStep == "step4") spp.forEach(function(dd,ii){ addSpeciesStep4(dd,ii) });
     
+    context.restore();
+*/    
   }
+ 
+/* function addSpeciesStep4 (d,i){
+    var col,txt,xPos,yPos;
+    
+    switch(d){
+      case "ats":
+        xPos = 275 - margin.left;
+        yPos = 300 - margin.top;
+        col = d3.rgb(sppColor( d ));
+        txt = sppScale(d);
+        break;
+      case "bkt":
+        xPos = 190 - margin.left;
+        yPos = 122 - margin.top;
+        col = d3.rgb(sppColor( d ));            
+        txt = sppScale(d);
+        break;
+      case "bnt":
+        xPos = 360 - margin.left;
+        yPos = 100 - margin.top;
+        col = d3.rgb(sppColor( d ));
+        txt = sppScale(d);
+        break;
+    }
+   
+    // add legends to context
+//    context.save();  
+    
+    context.font = "24px calibri";
+    context.textBaseline = 'top';
+    context.fillStyle = '#FCFCFC';
+    context.fillRect(xPos,yPos, context.measureText(txt).width + 4, 23);
+    
+    context.fillStyle = col;
+    
+    context.fillText(txt ,xPos + 2, yPos - 2);
+    
+//    context.restore();
+ }
+*/ 
   
  function getDataEnc(d){
    return d.filter( function(dd) {
