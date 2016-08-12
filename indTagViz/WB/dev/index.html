@@ -53,7 +53,7 @@
             <div id="step5" class="step">5</div>
             <div id="step6" class="step">6</div>
             <div id="step7" class="step">7</div>
-            <div id="step8" class="step">8</div>
+            <div id="step8" class="step">Explore</div>
           </div>
         </div>
       </div>
@@ -225,7 +225,7 @@ svgContainer.append('rect')
   // hide panels to start
   d3.selectAll(".panel").style("visibility", "hidden")
         
-  d3.selectAll(".step:not(#divider)").on("click", function() {
+  d3.selectAll(".step").on("click", function() {
       var transDur = 400, desc;
     
       d3.selectAll(".panel").style("visibility", "hidden"); // in case go back to steps
@@ -268,17 +268,18 @@ svgContainer.append('rect')
           $("#colorSpecies").click();
           window.setTimeout( function(){
             $("#seasonYear").click()},
-            2500
+            2000
           );
           break;
        case "step8":
+          $("#all").click(),
+          state.counts.forEach(function(d){ d.color = "lightgrey" });
+          canvasL.height = 0;
+          contextL.clearRect(0, 0, canvasL.width, canvasL.height);
           window.setTimeout( function(){
             d3.selectAll(".panel").transition().duration(2000).style("visibility", "visible"),
-            d3.selectAll(".right-container").style("display", "none"), 
-            $("#all").click(),
-            state.counts.forEach(function(d){ d.color = "lightgrey" }),
-            canvasL.height = 0,
-            contextL.clearRect(0, 0, canvasL.width, canvasL.height)},
+            d3.selectAll(".right-container").style("display", "none")} 
+            ,
             5000
           );
           break;

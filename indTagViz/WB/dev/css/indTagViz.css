@@ -41,6 +41,7 @@ canvas {
 .step-container {
     padding-top: 0px;
     padding-left: 20px;
+    font-family: sans-serif,"DecimaMonoPro",monospace;
  /*   opacity: 0; */
 }
 
@@ -50,6 +51,7 @@ canvas {
     color: #C5B4B4;
 }
 
+
 .step-container .step:hover {
     border: 2px solid #A6A4A4;
 }
@@ -57,26 +59,22 @@ canvas {
 .step-container .step {
     -webkit-transition: background-color .3s;
     transition: background-color .25s;
-    width: 30px;
-    height: 30px;
+    width: min-content;
     background-color: #f0f0f0;
     text-align: center;
     cursor: pointer;
-    line-height: 30px;
     border: 2px solid #fff;
-    font-size: 13px;
+    font-size: 14px;
     color: #999;
     margin-right: 0;
-}
-
-.skipper#bottom-skipper, .step-container .step {
+    padding: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
     display: inline-block;
-    font-family: sans-serif,"DecimaMonoPro",monospace;
 }
-
 
 p {
-    font: 17px/26px Georgia,"Times New Roman",serif;
+    font: "Helvetica Neue",Helvetica,Arial,sans-serif;
     color: #000;
 }
 
@@ -102,3 +100,4 @@ svg {
 }
 
 rect { fill: transparent; }
+

@@ -41,7 +41,7 @@ var stepText = [
   "dummy",
   "From 1997 to 2015, we tagged almost 30,000 individual fish. </p> Those fish were captured a total of 63,232 times, many just once, some up to 10 times. </p> In the dot cloud, each circle is 25 fish captures.",
   "There were three <b>species</b> of fish in the stream. </p>" + sppText,
-  "There were four <b>rivers</b> in the stream network. " ,
+  "There were four <b>rivers</b> in the stream network. </p> add map here" ,
   "We sampled in four <b>seasons</b>. </p>" + seasonText,
   "We sampled for 19 <b>years</b>.</p> There were high abundances in some years (e.g. 2003) and low abundances in others (e.g. 2011).",
   "Over the 19 <b>years</b> of sampling we couldn't sample the winter in some years because of ice.",

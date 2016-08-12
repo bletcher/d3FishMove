@@ -124,11 +124,13 @@
 
      $("#selectedWatershedDD").on("change", function () {
       console.log("#selectedWatershedDD change");
-      state.selectedWatershed = $("#selectedWatershedDD").val();
+//      state.selectedWatershed = $("#selectedWatershedDD").val();
 
-  //    initializeState();
-      getWatershedData(); 
-  //    initializeInterface(envIn,coordsIn,cdIn);
+      if($("#selectedWatershedDD").val() == 'stanley') {}
+
+      initializeState();
+      getWatershedData(csvIn.envIn,csvIn.coordsIn,csvIn.cdIn);
+      initializeInterface();
       
       initializeNetwork(coordsXY);
       initializeFishData(cd,coordsXY);
@@ -193,17 +195,40 @@
          ended();
        }, 500);
      });
+     
      $("#prevSamp").on("click", function () {
-       console.log("#prevSamp change");
-       state.currentSample = state.currentSample - 1;
-       updateRenderData();
-       incrementSegments();
+       console.log("#prevSamp change", state.currentSample, state.firstSample);
+
+       if(state.currentSample <= state.firstSample + 1) {
+         disableButton('#prevSamp');
+       //  alert('You are at the first sample');
+         bootstrap_alert.warning('You are at the first sample');
+       }
+       else {
+         // button gets enabled in ended()
+         state.currentSample = state.currentSample - 1;
+         updateRenderData();
+         incrementSegments();
+       }
+       
      });
+     
      $("#nextSamp").on("click", function () {
-       console.log("#nextSamp change");
-       state.currentSample = state.currentSample + 1;
-       updateRenderData();
-       incrementSegments();
+       console.log("#nextSamp change", state.currentSample, state.lastSample);
+
+       if(state.currentSample >= state.lastSample){
+         disableButton('#nextSamp');
+      //   alert('You are at the last sample');
+         bootstrap_alert.warning('You are at the last sample');
+       }
+       else{
+         enableButton('#nextSamp');
+         
+         state.currentSample = state.currentSample + 1;
+         updateRenderData();
+         incrementSegments();
+       }
+
      });
      $("#getYear li").on("click", function (d) {
        console.log("#yearSelect change",$(this).text());
@@ -244,9 +269,9 @@
       cdHold = getDataNotNaN_distMoved(cd);
       
       // massage fish data
-      minTimeStep =    d3.min(cd, function(d) { return d.sample; }) - 1;
-      state.currentSample = minTimeStep + 1;
-      maxTimeStep = d3.max(cd, function(d) { return d.sample; });
+      state.firstSample =    d3.min(cd, function(d) { return d.sample; }) - 1;
+      //state.currentSample = state.firstSample + 1;
+      state.lastSample = d3.max(cd, function(d) { return d.sample; });
       console.log("timeStep",state.currentSample,maxTimeStep,cd);
       
       // get set of unique samples with year and season - must be a better way...
@@ -368,6 +393,9 @@
     state.nodesRender.forEach(drawNode);
   
     context.restore();
+    
+    disableButton("#prevSamp");
+    disableButton("#nextSamp");
   }
   
   
@@ -452,7 +480,7 @@
         d.color.opacity = 0.1;
       }
 
-      context.strokeStyle = d.color;
+      context.strokeStyle = d3.rgb(d.color).darker(0.75);
       context.stroke();
       context.fillStyle = d.color;
       context.fill();
@@ -468,7 +496,7 @@
         d.color.opacity = 0.1;
       }
 
-      context.strokeStyle = d.color;
+      context.strokeStyle = d3.rgb(d.color).darker(0.75);
       context.stroke();
       context.fillStyle = d.color;
       context.fill();
@@ -490,9 +518,17 @@
       ticked();
     }
     
+    if( state.currentSample > state.firstSample + 1 || state.currentSample < state.lastSample ) {
+      enableButton("#prevSamp");
+      enableButton("#nextSamp"); 
+    }  
 
-    
   }
+  
+  bootstrap_alert = function() {};
+  bootstrap_alert.warning = function(message) {
+       $('#alert_placeholder').html('<div class="alert alert-warning alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button><span>'+ message +'</span></div>');
+        };
   
   function addEmigrants(cd){
     cd.forEach(function(d,i){
@@ -562,6 +598,16 @@
     });  
   }
   
+   function disableButton(buttonIn){
+       $(buttonIn).addClass('disabled');
+       $(buttonIn).removeAttr('data-toggle');
+   }
+   
+   function enableButton(buttonIn){
+       $(buttonIn).removeClass('disabled');
+       $(buttonIn).attr("data-toggle", "modal");
+   }
+  
   function getNodesCurrent(){
     
     // get fish that were seen only once at the end of the interval (state.currentSample + 1, beginning of this one)  
@@ -625,7 +671,7 @@
   function incrementSegments(){
   /*
     // Jump to path end if first sample or skip a sample
-    if( (state.currentSample == minTimeStep + 1) || (state.currentSample != state.previousSample + 1) ){  
+    if( (state.currentSample == state.firstSample + 1) || (state.currentSample != state.previousSample + 1) ){  
       
       state.nodesRender.forEach(function (d,i) { d.coordinate = d.pathEnd; });
       console.log("Prop done moving all",state.nodesRender);
@@ -636,7 +682,7 @@
     else {  
   */  
       var indexSegNum = 0;
-      var intDur = state.currentSample == minTimeStep ? 2 : intervalDur; //probably not needed now
+      var intDur = state.currentSample == state.firstSample ? 2 : intervalDur; //probably not needed now
     
       // increment segments until all fish have moved
       var intervalNum = setInterval(function(){ 
@@ -657,7 +703,7 @@
            console.log("Prop done moving", indexNumDone/state.nodesRender.length, state.currentSample);
            $("#propDoneLabel").html((indexNumDone/state.nodesRender.length).toFixed(2));
            
-           var aMin = state.currentSample == minTimeStep+1 ? 0.00001 : 0.01;
+           var aMin = state.currentSample == state.firstSample+1 ? 0.00001 : 0.01;
            simulation.alpha(1).alphaMin(0.01).nodes(state.nodesRender).restart(); //alphaMin > 0 shortens the simulation - keeps the dots from jiggling near end as they find the packing solution
     
            if (state.nodesRender.length === 0 || indexNumDone/state.nodesRender.length == 1) clearInterval(intervalNum);

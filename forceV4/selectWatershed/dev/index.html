@@ -5,7 +5,7 @@
   <title>Fish Movement</title>
   <meta charset="utf-8">
   
-  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="https://d3js.org/d3.v4.js"></script>
   
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css">
@@ -40,7 +40,7 @@
 
            <canvas id="mapCanvas" width="1024" height="704">
            </canvas>
-         
+
             <form class="form-inline">
               <div class="form-group">
                 <button type="button" class="btn btn-default " id="prevSamp">
@@ -61,32 +61,15 @@
                   <span class="sr-only">Toggle Dropdown</span>
                 </button>
                 <ul id="getYear" class="dropdown-menu">
-     <!--              <li><a href="#">1997</a></li>
-                   <li><a href="#">1998</a></li>
-                   <li><a href="#">1999</a></li>
-                   <li><a href="#">2000</a></li>
-                   <li><a href="#">2001</a></li>
-                   <li><a href="#">2002</a></li>
-                   <li><a href="#">2003</a></li>
-                   <li><a href="#">2004</a></li>
-                   <li><a href="#">2005</a></li>
-                   <li><a href="#">2006</a></li>
-                   <li><a href="#">2007</a></li>
-                   <li><a href="#">2008</a></li>
-                   <li><a href="#">2009</a></li>                   
-                   <li><a href="#">2010</a></li>
-                   <li><a href="#">2011</a></li>
-                   <li><a href="#">2012</a></li>
-                   <li><a href="#">2013</a></li> 
-                   <li><a href="#">2014</a></li>
+     <!--          <li><a href="#">1997</a></li>...
                    <li><a href="#">2015</a></li> -->
                  </ul>
               </div>
 
             </form>
-          <hr>  
+          <hr> 
+          <div id = "alert_placeholder"></div>
         </div>    
-         
             
         <div class="col-lg-3">
  
@@ -174,7 +157,7 @@
                              </div>
                            </div>
           
-                           <button type="button" class="btn btn-default btn-sm  " id="unselectAll">Reset Opacity</button>
+                           <button type="button" class="btn btn-default btn-sm  " id="unselectAll">Reset</button>
                            <button type="button" class="btn btn-default btn-sm  " id="showNotEnc">Show UnEnc</button>              
                    
              <!--              <div class="btn-group" data-toggle="buttons">

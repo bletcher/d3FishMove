@@ -13,7 +13,7 @@ var watershed = {
     uniqueSeasons: [1,2,3,4],
     scaleRivertoRiverHeatMap: d3.scaleOrdinal().domain(["WB","IL","OL","OS","Em"]).range([0,1,2,3,4]),
     sppScale: d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(["Atlantic salmon", "Brown trout", "Brook trout"]),
-    sppScaleColor: d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range([d3.rgb(162,205,174), d3.rgb(74,116,134), d3.rgb(36,45,66)]),
+    sppScaleColor: d3.scaleOrdinal().domain(["bkt","bnt","ats"]).range([d3.rgb(162,205,174), d3.rgb(74,116,134), d3.rgb(36,45,66)]),
     initialSampleNumber: 11,
     StopIterationitle: "Trout and salmon in a small stream network in Western MA, USA"
 
@@ -31,7 +31,7 @@ var watershed = {
     uniqueSeasons: [2,3],
     scaleRivertoRiverHeatMap: d3.scaleOrdinal().domain(["mainstem","west","east","tidal","em"]).range([0,1,2,3,4]),
     sppScale: d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range(["Atlantic salmon", "Brown trout", "Brook trout"]),
-    sppScaleColor: d3.scaleOrdinal().domain(["ats","bnt","bkt"]).range([d3.rgb(162,205,174), d3.rgb(74,116,134), d3.rgb(36,45,66)]),
+    sppScaleColor: d3.scaleOrdinal().domain(["bkt"]).range([d3.rgb(162,205,174)]),
     initialSampleNumber: 4,
     siteTitle: "Brook trout in a coastal stream network in Acadia National Park, ME, USA"
 
