@@ -28,7 +28,7 @@
     siteTitle = state.watershedData.siteTitle;
     
     /////
-    env = csvIn.env;//getDataWatershed(csvIn.env,state.selectedWatershed);
+    env = getDataWatershed(csvIn.env,state.selectedWatershed);
     coordsXY =  getDataWatershed(csvIn.coordsXY, state.selectedWatershed);
     cd =  getDataWatershed(csvIn.cd, state.selectedWatershed);
     
@@ -40,6 +40,8 @@
     
     xScale.domain(d3.extent(coordsXY, function(d) { return d.lat; }));
     yScale.domain(d3.extent(coordsXY, function(d) { return d.lon; }));
+    
+    //intervalNum = undefined;
     
     // year dropdown //
     // Populate year dropdown. State.yearSet hasn't been defined yet, get unique years here.
@@ -130,7 +132,8 @@
 
       initializeState();
       getWatershedData(csvIn.envIn,csvIn.coordsIn,csvIn.cdIn);
-      initializeInterface();
+//      initializeInterface(); This causes skips in the samples (recursive). Do not run in "#selectedWatershedDD" change.
+      getYearList(); //this does need to be updated when pick new watershed
       
       initializeNetwork(coordsXY);
       initializeFishData(cd,coordsXY);
@@ -145,6 +148,7 @@
       state.selectedSpecies = $("#selectedSpeciesDD").val();
       updateDistMovedArr();
       updateRenderData();
+      if(state.nodesCurrent.length === 0) bootstrap_alert.warning('There are no ' + sppScale( state.selectedSpecies ) + ' in this watershed');
       ticked();
       ended();
      });
@@ -155,10 +159,10 @@
        ticked();
        ended();
      });
-
      $("#onClickDD").on("change", function () {
        console.log("#onClickDD change");
        state.onClick = $("#onClickDD").val();
+       if(state.selectedWatershed == "stanley" && state.onClick == "fam") bootstrap_alert.warning('There are no Family data in this watershed');
        resetOpacityToOne();
        state.selectedID = [];
        updateRenderData();
@@ -193,7 +197,7 @@
          reColorUnEnc();
          ticked();
          ended();
-       }, 500);
+       }, 1000);
      });
      
      $("#prevSamp").on("click", function () {
@@ -225,19 +229,25 @@
          enableButton('#nextSamp');
          
          state.currentSample = state.currentSample + 1;
+         console.log("#nextSamp change2", state.currentSample, state.lastSample);
          updateRenderData();
          incrementSegments();
        }
 
      });
-     $("#getYear li").on("click", function (d) {
+     
+     getYearList();
+   }
+   
+  function getYearList(){     
+    $("#getYear li").on("click", function (d) {
        console.log("#yearSelect change",$(this).text());
        state.currentSample = getDataSampleInfoFromYear( state.sampleInfo,$(this).text() )[0].sample;
        updateRenderData();
        incrementSegments();
      });
-     
-   }
+    
+  } 
 
   function initializeNetwork(coordsXY){
     console.log("initializeNetwork");
@@ -295,7 +305,7 @@
       state.seasonSet = state.sampleInfo.map(function(d){return d.season});
       
       // Define starting sample #
-      state.currentSample = initialSampleNumber; //d3.min(state.sampSet);
+      state.currentSample = d3.min(state.sampSet); //initialSampleNumber; //
           
     //  console.log("sampSet",state);
   
@@ -472,7 +482,7 @@
 
     if( ((d.isFirstSample) && (simulation.alpha() < 0.2)) ){  // keep new fish from entering from the upper left, they emerge near the end
         
-      context.arc( d.x, d.y, ageScale(d.currentAge)*(1-simulation.alpha()/0.2), 0, 2 * Math.PI);
+      context.arc( d.x, d.y, ageScale(d.currentAge)*(1-simulation.alpha()/0.2), 0, 2 * Math.PI );
   
       d.color.opacity = 1;
   //    state.selectedID.length > 0;
@@ -631,11 +641,10 @@
     
     // Update 3 variables
     state.nodesCurrent.forEach( function(d) { d.coordinate = d.pathEnd; } );
-  
   }
   
   function updateRenderData(){
-    
+    console.log("in render", state.currentSample)
     getNodesCurrent();
     state.nodesCurrent.forEach(function(d) { updateCurrentAge(d); });
     getNodesRender();
@@ -652,11 +661,11 @@
   }
   
   function getNodesRender(){
-    
-    if( state.selectedSpecies != "all") { state.nodesCurrent = getDataSpecies(state.nodesCurrent, state.selectedSpecies);}
+    if( state.selectedSpecies != "all" ) { state.nodesCurrent = getDataSpecies(state.nodesCurrent, state.selectedSpecies);}
     
     if (      state.dotOption == "all" ) {      state.nodesRender = state.nodesCurrent; }
     else if ( state.dotOption == "selected" ) { state.nodesRender = getDataSelected(state.nodesCurrent); }
+    
   }
 
 
@@ -681,13 +690,16 @@
     // Step through path
     else {  
   */  
+  
       var indexSegNum = 0;
       var intDur = state.currentSample == state.firstSample ? 2 : intervalDur; //probably not needed now
     
+      clearInterval(existingIntervalNum); //avoids jerky circle behavior when an intervalNum exists
+
       // increment segments until all fish have moved
-      var intervalNum = setInterval(function(){ 
+      var intervalNum = setInterval(function(){
+           existingIntervalNum = intervalNum;
            indexSegNum = indexSegNum + 1;
-           
            var indexNumDone = 0;
            
            state.nodesRender.forEach(function (d,i) {
@@ -700,16 +712,50 @@
              }
            });
            
-           console.log("Prop done moving", indexNumDone/state.nodesRender.length, state.currentSample);
+           console.log("Prop done moving", (indexNumDone/state.nodesRender.length).toFixed(4), indexSegNum, intervalNum, state.currentSample);
            $("#propDoneLabel").html((indexNumDone/state.nodesRender.length).toFixed(2));
            
-           var aMin = state.currentSample == state.firstSample+1 ? 0.00001 : 0.01;
+           var aMin = state.currentSample == state.firstSample + 1 ? 0.00001 : 0.01;
            simulation.alpha(1).alphaMin(0.01).nodes(state.nodesRender).restart(); //alphaMin > 0 shortens the simulation - keeps the dots from jiggling near end as they find the packing solution
     
            if (state.nodesRender.length === 0 || indexNumDone/state.nodesRender.length == 1) clearInterval(intervalNum);
            
        },intDur);
    // }
+    
+  }
+  
+    function incrementSegments_d3(){ // moves dots too fast
+
+      var indexSegNum = 0;
+      var intDur = state.currentSample == state.firstSample ? 2 : intervalDur; //probably not needed now
+    
+      // increment segments until all fish have moved
+      var intervalNum = d3.timer(function(){ 
+           indexSegNum = indexSegNum + 1;
+           var indexNumDone = 0;
+           
+           state.nodesRender.forEach(function (d,i) {
+             if(indexSegNum < d.nodePath.length){
+               d.coordinate = d.nodePath[indexSegNum];
+             }
+             else { 
+               d.coordinate = d.coordinate;
+               indexNumDone = indexNumDone + 1;
+             }
+           });
+           
+           console.log("Prop done moving", indexNumDone/state.nodesRender.length, indexSegNum, state.currentSample);
+           $("#propDoneLabel").html((indexNumDone/state.nodesRender.length).toFixed(2));
+           
+           var aMin = state.currentSample == state.firstSample + 1 ? 0.00001 : 0.01;
+           simulation.alpha(1).alphaMin(0.01).nodes(state.nodesRender).restart(); //alphaMin > 0 shortens the simulation - keeps the dots from jiggling near end as they find the packing solution
+    
+           if (state.nodesRender.length === 0 || indexNumDone/state.nodesRender.length == 1) intervalNum.stop();
+           
+       },intDur);
+   // }
+    
   }
   
   function updateCurrentAge(d){
@@ -1138,9 +1184,9 @@
     var buildText = d.id + " " + d.tag + '\n' ;
     
       d.sample.forEach(function(dd,i){
-        var tmp = [dd].concat([d.river[i], d.year[i], d.season[i], d.section[i], d.age[i], d.len[i]]) +'\n';
-        if (dd == state.currentSample + 1) tmp = "*" + tmp;
-        buildText = buildText + tmp  
+        var tmp = [dd].concat([d.enc[i], d.river[i], d.year[i], d.season[i], d.section[i], d.age[i], d.len[i]]) ;
+        if (dd == state.currentSample + 1) tmp = tmp + " *currSamp" ;
+        buildText = buildText + tmp +'\n' 
       }) 
 
     a.setAttribute("title", buildText )

@@ -32,7 +32,10 @@ var minTimeStep,
 var numFish = 100; 
 
 var intervalDur = 200,
-    strengthAdj = 0.95;
+    strengthAdj = 0.95,
+    existingIntervalNum
+    //intervalNum
+    ;
 
 var colorScale =   d3.scaleOrdinal(d3.schemeCategory10),
     colorScale20 = d3.scaleOrdinal(d3.schemeCategory20);

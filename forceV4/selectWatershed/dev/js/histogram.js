@@ -161,7 +161,7 @@ function drawHistogramDistMoved(){
  
   histoDistMoved(data1,data2,"#collapseFour");
   
-  console.log("histo", data1,data2);
+  console.log("histo", data1,data2,state.currentSample);
 }
 
 function histoDistMoved(data1,data2,divIn){

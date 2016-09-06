@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
       <meta charset="UTF-8">
-      <title>West Brook PIT study</title>
+      <title>West Brook PIT study intro</title>
     
       <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700" rel="stylesheet" type="text/css">
       <link href="public/css/bootstrap.min.css" rel="stylesheet" type="text/css">
@@ -56,6 +56,7 @@
           pointer-events: none;
           height: auto; 
           width: 620px;
+          text-align: center;
 
         }
         
@@ -86,7 +87,7 @@
           <h2>Why a tagging study?</h2>
           <p style="font-size:1.2em;">Understanding the performance and fate of individuals helps us understand why population abundance fluctuates and why species come and go.</p>
           <p style="font-size:1.2em;">Since 1997, we have studied stream fish using <a href="https://en.wikipedia.org/wiki/Radio-frequency_identification"> tags </a>that contain unique electronic codes. We can estimate body growth, movement and reproduction (performance) and survival (fate) by recapturing tagged fish over time. </p>
-          <p style="font-size:1.2em;">Our longest-running study area is the West Brook, in Whately MA. Dots on the map are 20m-long sampling sections. Mouse over a section to see a picture of the section from 2006. Blue dots are the West Brook mainstem. Green, orange and red dots are tributaries. Get a tour of the data by  <a href="http://felek.cns.umass.edu:4444/indTagViz/WB/"> launching </a>the introduction.</p>
+          <p style="font-size:1.2em;">Our longest-running study is the West Brook, in Whately MA. Dots on the map are 20m-long sampling sections. Mouse over a section to see a picture of the section from 2006. Blue dots are the West Brook mainstem. Green, orange and red dots are tributaries. Get a tour of the data by  <a href="http://felek.cns.umass.edu:4444/indTagViz/WB/"> launching </a>the introduction.</p>
 
         </div>
   
@@ -95,7 +96,7 @@
           <div>
             <div id="map"></div>
           </div>
-          <p><a class="btn btn-lg btn-primary" style="margin-top: 25px" href="http://felek.cns.umass.edu:4444/indTagViz/WB/">Launch Intro <span class="glyphicon glyphicon-chevron-right"></span></a></p>
+          <p><a class="btn btn-lg btn-primary" style="margin-top: 25px" href="http://felek.cns.umass.edu:4444/indTagViz/WB/" target="_blank">Launch Intro <span class="glyphicon glyphicon-chevron-right"></span></a></p>
         </div>
       </div>
     </div>
@@ -106,7 +107,7 @@
       <div class="row">
         <div class="col-xs-12 col-md-8">
           <h2>Project Team</h2>
-          <p>Ben Letcher initiated the study in 1997 with Gabe Gries. Since then the study has been a collaboration among the <a href="http://www.lsc.usgs.gov/?q=cafb-population-dynamics-personnel" target="_blank">USGS Conte Laboratory</a> (Ben Letcher, Matt O'Donnell, Todd Dubreuil), the <a href="http://www.nrs.fs.fed.us/people/knislow" target="_blank">USFS Northern Research Station</a> (Keith Nislow, Jason Coombs), and the <a href="http://eco.umass.edu/" target="_blank">University of Massachusetts Department of Environmental Conservation</a> ( <a href="http://www.cfc.umt.edu/personnel/details.php?ID=4461" target="_blank">Andrew Whiteley</a> - now at The University of Montana).</p>
+          <p>Ben Letcher initiated the study in 1997 with Gabe Gries. Since then the study has been a collaboration among the <a href="http://www.lsc.usgs.gov/?q=cafb-population-dynamics-personnel" target="_blank">USGS Conte Laboratory</a> (Ben Letcher, Matt O'Donnell, Todd Dubreuil), the <a href="http://www.nrs.fs.fed.us/people/knislow" target="_blank">USFS Northern Research Station</a> (Keith Nislow, Jason Coombs), and the <a href="http://eco.umass.edu/" target="_blank">University of Massachusetts Department of Environmental Conservation</a> ( <a href="http://www.cfc.umt.edu/personnel/details.php?ID=4461" target="_blank">Andrew Whiteley</a> - now at The University of Montana). We thank the many graduate students, interns, post-docs and others who have helped sample the stream over the years. </p>
         </div>
       </div>
     </div>
@@ -144,13 +145,21 @@
   var locations,locationsMap,feature;
   var map = L.map('map').setView([42.434, -72.669], 15);
 
-  L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.{ext}', {
+/*  L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.{ext}', {
     attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     subdomains: 'abcd',
     minZoom: 4,
     maxZoom: 18,
     ext: 'png'
   }).addTo(map);
+*/
+L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    subdomains: ['a','b','c'],
+    minZoom: 4,
+    maxZoom: 18
+  }).addTo(map);
+
   
   map._initPathRoot();
   
@@ -216,14 +225,15 @@
           .style("fill", "lightgrey")
           ;
           var fileName = "img/" + d.river + "_" + year + "_" + season + "_" + d.section + ".jpg";
- //         console.log(d3.event.pageX,d3.event.pageY,fileName,'<img src= ' + fileName + '>')
+          //console.log(d3.event.pageX,d3.event.pageY,fileName,'<img src= ' + fileName + '>')
 
-          tooltip.html('<img src= ' + fileName + '>')
+          tooltip.html('<h3>River = ' + d.riverFull + ", Section = " + d.section + '</h3><br><img src= ' + fileName + '>')
             .style("left", "100px")// (d3.event.pageX + 15) + "px")
             .style("top",  "160px")// (d3.event.pageY - 15) + "px")
             .transition()
             .duration(100)
-            .style("opacity", 1);
+            .style("opacity", 1)
+            ;
 
         })
         

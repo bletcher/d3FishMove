@@ -3,7 +3,7 @@ library(lubridate)
 
 # coreData created in Matt's .../getSBCoreDataForD3FishMove subdir on Osensei
 # need to export SBcoreDataForD3.RData from Osensei and then upload here to felek 
-setwd("/home/ben/d3FishMove/forceV4/SB/dev")
+setwd("/home/ben/d3FishMove/forceV4/selectWatershed/SB/dev")
 load('SBcoreDataForD3.RData')
 
 out <- cd %>%
